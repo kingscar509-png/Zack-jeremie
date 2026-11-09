@@ -157,181 +157,556 @@ footer{text-align:center;color:var(--gris);font-size:13px;padding:30px 18px}
 
 <footer>Zack · Découvrir Jérémie autrement · © 2026</footer>
 
+
 <script type="module">
-/* ============ RÉGLAGE : colle ici les infos Firebase (voir l'étape d'installation) ============ */
-const FIREBASE_CONFIG = { apiKey:"AIzaSyBrb3dpnqf0--Hsj1z-94vrq-BDo4DB-ls", authDomain:"zack-jeremie.firebaseapp.com", projectId:"zack-jeremie", appId:"1:811952598606:web:0b36381b9665e0ec92dd1f" };
-/* =============================================================================================== */
+/* ============ CONNEXION SUPABASE ============ */
+const SUPABASE_URL = "https://hwuwqalazmrmdxseawnm.supabase.co";
+const SUPABASE_KEY = "sb_publishable_3pGbQyThjZyO3FpksGtt1g_edpPkzN5";
 
-const EN_LIGNE = !!FIREBASE_CONFIG.apiKey;
-const ICONES = {Alimentation:"🍎",Vêtements:"👕",Technologie:"💻",Santé:"💊",Construction:"🏗️",Agriculture:"🌱",Services:"🛠️",Autres:"📦"};
+let sb = null;
+let user = null;
+let entreprises = [];
+let businessId = null;
+let catActive = "Toutes";
+let modeAuth = "connexion";
+
+const ICONES = {
+  Alimentation:"🍎", Vêtements:"👕", Technologie:"💻",
+  Santé:"💊", Construction:"🏗️", Agriculture:"🌱",
+  Services:"🛠️", Autres:"📦"
+};
 const CATS = Object.keys(ICONES);
-const DEMO = [
-  {nom:"Exemple : Marché local",categorie:"Alimentation",description:"Produits alimentaires et articles du quotidien.",adresse:"Jérémie, Haïti",produits:["Riz","Huile","Légumes frais"],evenements:[],telephone:"",whatsapp:"",email:"",facebook:""},
-  {nom:"Exemple : Boutique mode",categorie:"Vêtements",description:"Vêtements, chaussures et accessoires.",adresse:"Jérémie, Haïti",produits:["Robes","Chaussures"],evenements:[],telephone:"",whatsapp:"",email:"",facebook:""},
-  {nom:"Exemple : Tech Store",categorie:"Technologie",description:"Téléphones et accessoires électroniques.",adresse:"Jérémie, Haïti",produits:["Téléphones","Chargeurs"],evenements:[],telephone:"",whatsapp:"",email:"",facebook:""}
-];
+const $ = id => document.getElementById(id);
 
-let fb=null, user=null, entreprises=[], catActive="Toutes", modeAuth="connexion";
-const $=id=>document.getElementById(id);
-const esc=t=>{const d=document.createElement("div");d.textContent=t??"";return d.innerHTML.replace(/"/g,"&quot;")};
-const chiffres=t=>String(t||"").replace(/\D/g,"");
-const lienWeb=t=>/^https?:\/\//i.test(t||"")?t:"";
-const dateFr=d=>new Date(d+"T00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
-const aujourdhui=()=>new Date().toISOString().slice(0,10);
+const esc = t => {
+  const d = document.createElement("div");
+  d.textContent = t ?? "";
+  return d.innerHTML.replace(/"/g, "&quot;");
+};
+const chiffres = t => String(t || "").replace(/\D/g, "");
+const lienWeb = t => /^https?:\/\//i.test(t || "") ? t : "";
+const aujourdhui = () => new Date().toISOString().slice(0,10);
+const dateFr = d => new Date(d+"T00:00").toLocaleDateString("fr-FR", {
+  day:"numeric", month:"long", year:"numeric"
+});
 
-function message(id,texte,type){const m=$(id);m.textContent=texte;m.className="msg "+type;m.hidden=!texte}
-function aller(vue){
-  ["accueil","auth","espace"].forEach(v=>$("vue-"+v).hidden=v!==vue);
+function message(id, texte, type) {
+  const m = $(id);
+  m.textContent = texte;
+  m.className = "msg " + type;
+  m.hidden = !texte;
+}
+
+function aller(vue) {
+  ["accueil","auth","espace"].forEach(v => {
+    $("vue-"+v).hidden = v !== vue;
+  });
   window.scrollTo(0,0);
 }
-function majNav(){$("btnNav").textContent=user?"Mon espace":"Se connecter"}
 
-/* ---------- Démarrage ---------- */
-async function demarrer(){
-  $("categorie").innerHTML=CATS.map(c=>`<option>${c}</option>`).join("");
+function majNav() {
+  $("btnNav").textContent = user ? "Mon espace" : "Se connecter";
+}
+
+/* ============ DÉMARRAGE ============ */
+async function demarrer() {
+  $("categorie").innerHTML = CATS.map(c =>
+    `<option>${c}</option>`
+  ).join("");
+
   dessinerCategories();
-  if(EN_LIGNE){
-    try{
-      const b="https://www.gstatic.com/firebasejs/10.12.2/";
-      const [A,Au,F]=await Promise.all([import(b+"firebase-app.js"),import(b+"firebase-auth.js"),import(b+"firebase-firestore.js")]);
-      const app=A.initializeApp(FIREBASE_CONFIG);
-      fb={Au,F,auth:Au.getAuth(app),db:F.getFirestore(app)};
-      Au.onAuthStateChanged(fb.auth,u=>{user=u;majNav()});
-    }catch(e){fb=null}
+
+  try {
+    if (!SUPABASE_KEY || SUPABASE_KEY === "COLLE_TA_CLE_PUBLISHABLE_ICI") {
+      throw new Error("Clé Supabase manquante.");
+    }
+
+    const { createClient } = await import(
+      "https://esm.sh/@supabase/supabase-js@2"
+    );
+
+    sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const { data } = await sb.auth.getSession();
+    user = data.session?.user || null;
+
+    sb.auth.onAuthStateChange((_event, session) => {
+      user = session?.user || null;
+      majNav();
+    });
+
+    await charger();
+    afficher();
+    majNav();
+
+  } catch (e) {
+    console.error(e);
+    entreprises = [];
+    afficher();
+    majNav();
+    message("msgAuth", "Connexion à Supabase impossible. Vérifiez la configuration.", "err");
   }
-  await charger(); afficher(); majNav();
 }
 
-async function charger(){
-  if(!fb){entreprises=DEMO;return}
-  try{
-    const s=await fb.F.getDocs(fb.F.collection(fb.db,"entreprises"));
-    entreprises=s.docs.map(d=>({id:d.id,...d.data()}));
-  }catch(e){entreprises=[]}
+/* ============ CHARGER LES ENTREPRISES VALIDÉES ============ */
+async function charger() {
+  if (!sb) {
+    entreprises = [];
+    return;
+  }
+
+  const { data, error } = await sb
+    .from("businesses")
+    .select("*")
+    .eq("status", "verified")
+    .order("created_at", { ascending:false });
+
+  if (error) {
+    console.error(error);
+    entreprises = [];
+    return;
+  }
+
+  const ids = (data || []).map(e => e.id);
+
+  if (!ids.length) {
+    entreprises = [];
+    return;
+  }
+
+  const [p, ev] = await Promise.all([
+    sb.from("products")
+      .select("business_id,name")
+      .in("business_id", ids)
+      .eq("is_available", true),
+
+    sb.from("posts")
+      .select("business_id,title,published_at,post_type")
+      .in("business_id", ids)
+      .eq("is_published", true)
+      .eq("post_type", "event")
+  ]);
+
+  entreprises = (data || []).map(e => ({
+    id: e.id,
+    nom: e.name,
+    categorie: e.category,
+    description: e.description,
+    adresse: e.address,
+    telephone: e.phone,
+    whatsapp: e.whatsapp,
+    email: e.email,
+    facebook: e.facebook_url,
+    produits: (p.data || [])
+      .filter(x => x.business_id === e.id)
+      .map(x => x.name),
+    evenements: (ev.data || [])
+      .filter(x => x.business_id === e.id)
+      .map(x => ({
+        titre: x.title,
+        date: x.published_at?.slice(0,10) || ""
+      }))
+  }));
 }
 
-/* ---------- Accueil ---------- */
-function dessinerCategories(){
-  $("categories").innerHTML=["Toutes",...CATS].map(c=>`<button class="chip${c===catActive?" on":""}" data-a="cat" data-v="${c}">${ICONES[c]||"🏪"} ${c}</button>`).join("");
+/* ============ ACCUEIL ============ */
+function dessinerCategories() {
+  $("categories").innerHTML = ["Toutes", ...CATS].map(c =>
+    `<button class="chip${c===catActive?" on":""}" data-a="cat" data-v="${c}">
+      ${ICONES[c] || "🏪"} ${c}
+    </button>`
+  ).join("");
 }
 
-function carte(e,i){
-  const prods=(e.produits||[]).filter(Boolean);
-  const evs=(e.evenements||[]).filter(x=>x.titre&&x.date>=aujourdhui()).sort((a,b)=>a.date<b.date?-1:1);
-  const w=chiffres(e.whatsapp), t=chiffres(e.telephone), fbk=lienWeb(e.facebook);
-  const liens=[
-    w&&`<a class="wa" href="https://wa.me/${w}" target="_blank" rel="noopener">WhatsApp</a>`,
-    t&&`<a href="tel:${t}">Appeler</a>`,
-    e.email&&`<a href="mailto:${esc(e.email)}">Email</a>`,
-    fbk&&`<a href="${esc(fbk)}" target="_blank" rel="noopener">Facebook</a>`
+function carte(e,i) {
+  const prods = (e.produits || []).filter(Boolean);
+  const evs = (e.evenements || [])
+    .filter(x => x.titre && x.date >= aujourdhui());
+
+  const w = chiffres(e.whatsapp);
+  const t = chiffres(e.telephone);
+  const fbk = lienWeb(e.facebook);
+
+  const liens = [
+    w && `<a class="wa" href="https://wa.me/${w}" target="_blank" rel="noopener">WhatsApp</a>`,
+    t && `<a href="tel:${t}">Appeler</a>`,
+    e.email && `<a href="mailto:${esc(e.email)}">Email</a>`,
+    fbk && `<a href="${esc(fbk)}" target="_blank" rel="noopener">Facebook</a>`
   ].filter(Boolean).join("");
+
   return `<article class="carte">
-    <div class="tete"><div class="ico">${ICONES[e.categorie]||"🏪"}</div><div><h3>${esc(e.nom)}</h3><span class="pill">${esc(e.categorie)}</span></div></div>
+    <div class="tete">
+      <div class="ico">${ICONES[e.categorie] || "🏪"}</div>
+      <div>
+        <h3>${esc(e.nom)}</h3>
+        <span class="pill">${esc(e.categorie)}</span>
+      </div>
+    </div>
     <p class="desc">${esc(e.description)}</p>
     <p class="lieu">📍 ${esc(e.adresse)}</p>
     <button class="btn sec petit" data-a="plus" data-v="${i}">Voir les détails</button>
     <div class="plus" id="plus${i}" hidden>
-      ${prods.length?`<h4>Produits et services</h4><ul>${prods.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>`:""}
-      ${evs.length?`<h4>Événements à venir</h4><ul>${evs.map(x=>`<li><strong>${dateFr(x.date)}</strong> : ${esc(x.titre)}</li>`).join("")}</ul>`:""}
-      ${liens?`<div class="contacts">${liens}</div>`:`<p class="aide" style="margin-top:10px">Pas encore de contact renseigné.</p>`}
-    </div></article>`;
+      ${prods.length ? `<h4>Produits et services</h4><ul>${prods.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>` : ""}
+      ${evs.length ? `<h4>Événements à venir</h4><ul>${evs.map(x=>`<li><strong>${dateFr(x.date)}</strong> : ${esc(x.titre)}</li>`).join("")}</ul>` : ""}
+      ${liens ? `<div class="contacts">${liens}</div>` : `<p class="aide">Pas encore de contact renseigné.</p>`}
+    </div>
+  </article>`;
 }
 
-function afficher(){
-  const q=$("recherche").value.toLowerCase().trim();
-  const r=entreprises.filter(e=>{
-    if(catActive!=="Toutes"&&e.categorie!==catActive)return false;
-    return [e.nom,e.categorie,e.description,e.adresse,(e.produits||[]).join(" ")].join(" ").toLowerCase().includes(q);
+function afficher() {
+  const q = $("recherche").value.toLowerCase().trim();
+
+  const r = entreprises.filter(e => {
+    if (catActive !== "Toutes" && e.categorie !== catActive) return false;
+    return [
+      e.nom, e.categorie, e.description, e.adresse,
+      (e.produits || []).join(" ")
+    ].join(" ").toLowerCase().includes(q);
   });
-  $("liste").innerHTML=r.map(carte).join("");
-  $("compte").textContent=r.length+(r.length>1?" entreprises":" entreprise");
-  $("vide").hidden=r.length>0;
-  $("vide").textContent=entreprises.length?"Aucune entreprise trouvée. Essayez un autre mot ou une autre catégorie.":"Aucune entreprise pour le moment. Soyez la première à vous inscrire !";
+
+  $("liste").innerHTML = r.map(carte).join("");
+  $("compte").textContent = r.length + (r.length > 1 ? " entreprises" : " entreprise");
+  $("vide").hidden = r.length > 0;
+  $("vide").textContent = entreprises.length
+    ? "Aucune entreprise trouvée. Essayez un autre mot ou une autre catégorie."
+    : "Aucune entreprise validée pour le moment. Soyez la première à vous inscrire !";
 }
 
-/* ---------- Connexion ---------- */
-function majAuth(){
-  const c=modeAuth==="connexion";
-  $("titreAuth").textContent=c?"Se connecter":"Créer un compte";
-  $("btnAuth").textContent=c?"Se connecter":"Créer mon compte";
-  $("mdp").autocomplete=c?"current-password":"new-password";
-  $("bascule").innerHTML=c?`Pas encore de compte ? <button data-a="bascule">Créer un compte</button>`:`Déjà un compte ? <button data-a="bascule">Se connecter</button>`;
-  message("msgAuth","","info");
+/* ============ AUTHENTIFICATION ============ */
+function majAuth() {
+  const c = modeAuth === "connexion";
+  $("titreAuth").textContent = c ? "Se connecter" : "Créer un compte";
+  $("btnAuth").textContent = c ? "Se connecter" : "Créer mon compte";
+  $("mdp").autocomplete = c ? "current-password" : "new-password";
+
+  $("bascule").innerHTML = c
+    ? `Pas encore de compte ? <button data-a="bascule">Créer un compte</button>`
+    : `Déjà un compte ? <button data-a="bascule">Se connecter</button>`;
+
+  message("msgAuth", "", "info");
 }
-function erreurFr(e){
-  const c=e.code||"";
-  if(c.includes("email-already"))return "Cette adresse email a déjà un compte. Choisissez « Se connecter ».";
-  if(c.includes("weak-password"))return "Mot de passe trop court : 6 caractères minimum.";
-  if(c.includes("invalid-email"))return "L'adresse email n'est pas valide.";
-  if(c.includes("invalid-credential")||c.includes("wrong-password")||c.includes("user-not-found"))return "Email ou mot de passe incorrect.";
-  if(c.includes("network"))return "Pas de connexion internet.";
-  if(c.includes("permission"))return "Action refusée. Vérifiez que vous êtes connecté.";
-  return "Une erreur est survenue. Réessayez.";
+
+function erreurFr(e) {
+  const m = e.message || "";
+
+  if (m.includes("already registered")) return "Cette adresse email possède déjà un compte.";
+  if (m.includes("Password should be at least")) return "Mot de passe trop court : 6 caractères minimum.";
+  if (m.includes("Invalid login")) return "Email ou mot de passe incorrect.";
+  if (m.includes("network")) return "Vérifiez votre connexion internet.";
+  if (m.includes("duplicate key")) return "Une entreprise portant ce nom existe déjà. Réessayez.";
+  return "Une erreur est survenue : " + m;
 }
-$("formAuth").addEventListener("submit",async ev=>{
+
+$("formAuth").addEventListener("submit", async ev => {
   ev.preventDefault();
-  if(!fb)return message("msgAuth","Les comptes ne sont pas encore activés sur ce site.","info");
-  try{
-    const f=modeAuth==="connexion"?fb.Au.signInWithEmailAndPassword:fb.Au.createUserWithEmailAndPassword;
-    await f(fb.auth,$("email").value.trim(),$("mdp").value);
-    $("formAuth").reset(); ouvrirEspace();
-  }catch(e){message("msgAuth",erreurFr(e),"err")}
+
+  if (!sb) return message("msgAuth", "Supabase n'est pas encore connecté.", "err");
+
+  const email = $("email").value.trim();
+  const password = $("mdp").value;
+
+  try {
+    let result;
+
+    if (modeAuth === "connexion") {
+      result = await sb.auth.signInWithPassword({ email, password });
+    } else {
+      result = await sb.auth.signUp({ email, password });
+    }
+
+    if (result.error) throw result.error;
+
+    if (result.data.session) {
+      user = result.data.session.user;
+      $("formAuth").reset();
+      majNav();
+      await ouvrirEspace();
+    } else {
+      message("msgAuth", "Compte créé ! Consultez votre email pour confirmer votre inscription, puis connectez-vous.", "ok");
+    }
+
+  } catch (e) {
+    message("msgAuth", erreurFr(e), "err");
+  }
 });
 
-/* ---------- Mon espace ---------- */
-function ligneEv(titre="",date=""){
-  const d=document.createElement("div"); d.className="ev";
-  d.innerHTML=`<input placeholder="Nom de l'événement" maxlength="80" value="${esc(titre)}"><input type="date" value="${esc(date)}"><button type="button" class="btn rouge petit" data-a="retirerEv">Retirer</button>`;
+/* ============ ESPACE ENTREPRISE ============ */
+function ligneEv(titre="", date="") {
+  const d = document.createElement("div");
+  d.className = "ev";
+  d.innerHTML = `
+    <input placeholder="Nom de l'événement" maxlength="80" value="${esc(titre)}">
+    <input type="date" value="${esc(date)}">
+    <button type="button" class="btn rouge petit" data-a="retirerEv">Retirer</button>
+  `;
   $("evenements").appendChild(d);
 }
-async function ouvrirEspace(){
-  if(!fb)return;
-  aller("espace"); message("msgEspace","","info");
-  $("qui").textContent="Connecté : "+user.email;
-  $("evenements").innerHTML="";
-  $("emailPub").value=user.email;
-  try{
-    const s=await fb.F.getDoc(fb.F.doc(fb.db,"entreprises",user.uid));
-    if(s.exists()){
-      const e=s.data();
-      ["nom","categorie","description","adresse","telephone","whatsapp","facebook"].forEach(k=>$(k).value=e[k]||"");
-      $("emailPub").value=e.email||"";
-      $("produits").value=(e.produits||[]).join("\n");
-      (e.evenements||[]).forEach(x=>ligneEv(x.titre,x.date));
+
+async function ouvrirEspace() {
+  if (!sb || !user) return;
+
+  aller("espace");
+  message("msgEspace", "", "info");
+
+  $("qui").textContent = "Connecté : " + user.email;
+  $("evenements").innerHTML = "";
+  $("formEntreprise").reset();
+  $("emailPub").value = user.email;
+  businessId = null;
+
+  try {
+    const { data: membre, error: erreurMembre } = await sb
+      .from("business_members")
+      .select("business_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (erreurMembre) throw erreurMembre;
+
+    if (!membre) return;
+
+    businessId = membre.business_id;
+
+    const { data: e, error } = await sb
+      .from("businesses")
+      .select("*")
+      .eq("id", businessId)
+      .single();
+
+    if (error) throw error;
+
+    $("nom").value = e.name || "";
+    $("categorie").value = e.category || CATS[0];
+    $("description").value = e.description || "";
+    $("adresse").value = e.address || "";
+    $("telephone").value = e.phone || "";
+    $("whatsapp").value = e.whatsapp || "";
+    $("emailPub").value = e.email || user.email;
+    $("facebook").value = e.facebook_url || "";
+
+    const { data: produits } = await sb
+      .from("products")
+      .select("name")
+      .eq("business_id", businessId);
+
+    $("produits").value = (produits || []).map(p => p.name).join("\n");
+
+    const { data: evenements } = await sb
+      .from("posts")
+      .select("title,published_at")
+      .eq("business_id", businessId)
+      .eq("post_type", "event");
+
+    (evenements || []).forEach(x => {
+      ligneEv(x.title, x.published_at?.slice(0,10) || "");
+    });
+
+    if (e.status === "pending") {
+      message("msgEspace", "Votre entreprise est en attente de validation. Elle ne sera visible publiquement qu'après approbation.", "info");
+    } else if (e.status === "verified") {
+      message("msgEspace", "Votre entreprise est publiée. Vous pouvez modifier ses informations.", "ok");
+    } else {
+      message("msgEspace", "Votre entreprise n'est pas publiée. Contactez l'administrateur de Zack.", "err");
     }
-  }catch(e){message("msgEspace",erreurFr(e),"err")}
+
+  } catch (e) {
+    message("msgEspace", erreurFr(e), "err");
+  }
 }
-$("formEntreprise").addEventListener("submit",async ev=>{
+
+/* ============ ENREGISTREMENT ENTREPRISE ============ */
+$("formEntreprise").addEventListener("submit", async ev => {
   ev.preventDefault();
-  const data={
-    nom:$("nom").value.trim(),categorie:$("categorie").value,description:$("description").value.trim(),
-    adresse:$("adresse").value.trim(),
-    produits:$("produits").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,50),
-    evenements:[...document.querySelectorAll("#evenements .ev")].map(r=>{const i=r.querySelectorAll("input");return{titre:i[0].value.trim(),date:i[1].value}}).filter(x=>x.titre&&x.date).slice(0,20),
-    telephone:$("telephone").value.trim(),whatsapp:$("whatsapp").value.trim(),email:$("emailPub").value.trim(),facebook:lienWeb($("facebook").value.trim()),
-    maj:Date.now()
-  };
-  if(!(data.telephone||data.whatsapp||data.email||data.facebook))return message("msgEspace","Ajoutez au moins un moyen de contact.","err");
-  try{
-    await fb.F.setDoc(fb.F.doc(fb.db,"entreprises",user.uid),data);
-    message("msgEspace","Enregistré. Votre entreprise est visible sur la page d'accueil.","ok");
-    await charger(); afficher();
-  }catch(e){message("msgEspace",erreurFr(e),"err")}
+
+  if (!sb || !user) {
+    return message("msgEspace", "Connectez-vous avant d'enregistrer votre entreprise.", "err");
+  }
+
+  const nom = $("nom").value.trim();
+  const categorie = $("categorie").value;
+  const description = $("description").value.trim();
+  const adresse = $("adresse").value.trim();
+  const telephone = $("telephone").value.trim();
+  const whatsapp = $("whatsapp").value.trim();
+  const email = $("emailPub").value.trim();
+  const facebook = lienWeb($("facebook").value.trim());
+
+  if (!(telephone || whatsapp || email || facebook)) {
+    return message("msgEspace", "Ajoutez au moins un moyen de contact.", "err");
+  }
+
+  try {
+    /* Création initiale : le statut est automatiquement pending */
+    if (!businessId) {
+      const slug = nom.normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") + "-" + Date.now().toString(36);
+
+      const { error } = await sb.rpc("create_business", {
+        p_name: nom,
+        p_slug: slug,
+        p_description: description || null,
+        p_category: categorie || null,
+        p_address: adresse || null,
+        p_neighborhood: null,
+        p_phone: telephone || null,
+        p_whatsapp: whatsapp || null,
+        p_email: email || null
+      });
+
+      if (error) throw error;
+
+      const { data: membre, error: erreurMembre } = await sb
+        .from("business_members")
+        .select("business_id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (erreurMembre) throw erreurMembre;
+      if (!membre) throw new Error("Entreprise créée, mais propriétaire introuvable.");
+
+      businessId = membre.business_id;
+    }
+
+    /* Mise à jour des informations */
+    const { error: erreurUpdate } = await sb
+      .from("businesses")
+      .update({
+        name: nom,
+        category: categorie,
+        description,
+        address: adresse,
+        phone: telephone,
+        whatsapp,
+        email,
+        facebook_url: facebook
+      })
+      .eq("id", businessId);
+
+    if (erreurUpdate) throw erreurUpdate;
+
+    /* Enregistrement des produits */
+    const listeProduits = $("produits").value
+      .split("\n")
+      .map(x => x.trim())
+      .filter(Boolean)
+      .slice(0,50);
+
+    const { error: erreurSuppressionProduits } = await sb
+      .from("products")
+      .delete()
+      .eq("business_id", businessId);
+
+    if (erreurSuppressionProduits) throw erreurSuppressionProduits;
+
+    if (listeProduits.length) {
+      const { error } = await sb.from("products").insert(
+        listeProduits.map(name => ({
+          business_id: businessId,
+          name
+        }))
+      );
+      if (error) throw error;
+    }
+
+    /* Enregistrement des événements */
+    const listeEvenements = [...document.querySelectorAll("#evenements .ev")]
+      .map(r => {
+        const i = r.querySelectorAll("input");
+        return { titre:i[0].value.trim(), date:i[1].value };
+      })
+      .filter(x => x.titre && x.date)
+      .slice(0,20);
+
+    const { error: erreurSuppressionEvents } = await sb
+      .from("posts")
+      .delete()
+      .eq("business_id", businessId)
+      .eq("post_type", "event");
+
+    if (erreurSuppressionEvents) throw erreurSuppressionEvents;
+
+    if (listeEvenements.length) {
+      const { error } = await sb.from("posts").insert(
+        listeEvenements.map(x => ({
+          business_id: businessId,
+          title: x.titre,
+          post_type: "event",
+          is_published: true,
+          published_at: new Date(x.date + "T12:00:00").toISOString()
+        }))
+      );
+      if (error) throw error;
+    }
+
+    await charger();
+    afficher();
+
+    message(
+      "msgEspace",
+      "Informations enregistrées ! Votre entreprise reste en attente de validation avant sa publication.",
+      "ok"
+    );
+
+  } catch (e) {
+    console.error(e);
+    message("msgEspace", erreurFr(e), "err");
+  }
 });
 
-/* ---------- Clics ---------- */
-const actions={
-  accueil:()=>aller("accueil"),
-  compte:()=>{if(user)ouvrirEspace();else{modeAuth="inscription";majAuth();aller("auth")}},
-  bascule:()=>{modeAuth=modeAuth==="connexion"?"inscription":"connexion";majAuth()},
-  cat:b=>{catActive=b.dataset.v;dessinerCategories();afficher()},
-  plus:b=>{const p=$("plus"+b.dataset.v);p.hidden=!p.hidden;b.textContent=p.hidden?"Voir les détails":"Masquer"},
-  ajoutEv:()=>ligneEv(),
-  retirerEv:b=>b.closest(".ev").remove(),
-  deconnexion:async()=>{await fb.Au.signOut(fb.auth);aller("accueil")}
+/* ============ ACTIONS ET NAVIGATION ============ */
+const actions = {
+  accueil: () => aller("accueil"),
+
+  compte: () => {
+    if (user) ouvrirEspace();
+    else {
+      modeAuth = "connexion";
+      majAuth();
+      aller("auth");
+    }
+  },
+
+  bascule: () => {
+    modeAuth = modeAuth === "connexion" ? "inscription" : "connexion";
+    majAuth();
+  },
+
+  cat: b => {
+    catActive = b.dataset.v;
+    dessinerCategories();
+    afficher();
+  },
+
+  plus: b => {
+    const p = $("plus" + b.dataset.v);
+    p.hidden = !p.hidden;
+    b.textContent = p.hidden ? "Voir les détails" : "Masquer";
+  },
+
+  ajoutEv: () => ligneEv(),
+
+  retirerEv: b => b.closest(".ev").remove(),
+
+  deconnexion: async () => {
+    if (sb) await sb.auth.signOut();
+    user = null;
+    businessId = null;
+    majNav();
+    aller("accueil");
+  }
 };
-document.addEventListener("click",e=>{const a=e.target.closest("[data-a]");if(a)actions[a.dataset.a]?.(a)});
-$("recherche").addEventListener("input",afficher);
+
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-a]");
+  if (a) actions[a.dataset.a]?.(a);
+});
+
+$("recherche").addEventListener("input", afficher);
 
 majAuth();
 demarrer();
