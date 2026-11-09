@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#102c50">
+<title>Zack - Les entreprises de Jérémie</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Arial,sans-serif;
+  background:#f5f7fb;
+  color:#172b45;
+}
+header{
+  background:#102c50;
+  color:white;
+  padding:20px;
+}
+.nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1100px;
+  margin:auto;
+}
+.logo{font-size:27px;font-weight:900;color:#58b8ff}
+.nav a{color:white;text-decoration:none;font-size:14px}
+.hero{
+  background:linear-gradient(135deg,#102c50,#1765a5);
+  color:white;
+  text-align:center;
+  padding:65px 18px 75px;
+}
+.hero h1{font-size:30px;margin-bottom:14px}
+.hero p{color:#dceaff;margin-bottom:25px}
+.search{
+  display:flex;
+  max-width:550px;
+  margin:auto;
+  background:white;
+  border-radius:10px;
+  padding:5px;
+}
+.search input{
+  flex:1;min-width:0;border:0;
+  padding:13px;font-size:15px;outline:none;
+}
+.search button{
+  border:0;background:#1686dc;color:white;
+  padding:12px 18px;border-radius:7px;
+  font-weight:bold;
+}
+main{max-width:1100px;margin:auto;padding:25px 17px}
+h2{font-size:21px;margin-bottom:18px}
+.categories{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;margin-bottom:35px;
+}
+.category{
+  background:white;padding:17px 5px;
+  border-radius:12px;text-align:center;
+  border:1px solid #e6ebf2;
+  cursor:pointer;font-size:13px;
+}
+.category span{display:block;font-size:25px;margin-bottom:8px}
+.category.active{border:2px solid #1686dc;background:#eaf5ff}
+.listings{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:17px;
+}
+.card{
+  background:white;border-radius:13px;
+  overflow:hidden;border:1px solid #e6ebf2;
+}
+.photo{
+  height:145px;background:#dce8f4;
+  display:flex;align-items:center;justify-content:center;
+  font-size:48px;
+}
+.card-content{padding:15px}
+.card h3{margin-bottom:8px;font-size:17px}
+.card p{font-size:13px;color:#68788b;margin-bottom:10px}
+.tag{font-size:11px;color:#1677be;font-weight:bold}
+.contact{
+  display:inline-block;margin-top:10px;
+  background:#e8f7ed;color:#168348;
+  padding:9px 13px;border-radius:7px;
+  text-decoration:none;font-size:13px;
+}
+.empty{padding:30px;text-align:center;color:#667}
+footer{
+  background:#102c50;color:white;
+  text-align:center;padding:25px;
+  margin-top:40px;font-size:13px;
+}
+@media(max-width:450px){
+  .hero h1{font-size:25px}
+  .categories{grid-template-columns:repeat(2,1fr)}
+  .search button{padding:10px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">ZACK.</div>
+    <a href="#entreprises">Découvrir les entreprises</a>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Tout Jérémie, à portée de main.</h1>
+  <p>Découvrez les entreprises, produits et services près de chez vous.</p>
+
+  <div class="search">
+    <input id="searchInput"
+      type="search"
+      placeholder="Que recherchez-vous ?">
+    <button onclick="searchBusinesses()">Rechercher</button>
+  </div>
+</section>
+
+<main>
+
+  <h2>Explorer les catégories</h2>
+
+  <div class="categories">
+    <div class="category active" onclick="filterCategory('Toutes',this)">
+      <span>🏪</span>Toutes
+    </div>
+    <div class="category" onclick="filterCategory('Alimentation',this)">
+      <span>🍎</span>Alimentation
+    </div>
+    <div class="category" onclick="filterCategory('Vêtements',this)">
+      <span>👕</span>Vêtements
+    </div>
+    <div class="category" onclick="filterCategory('Technologie',this)">
+      <span>💻</span>Technologie
+    </div>
+    <div class="category" onclick="filterCategory('Santé',this)">
+      <span>💊</span>Santé
+    </div>
+    <div class="category" onclick="filterCategory('Construction',this)">
+      <span>🏗️</span>Construction
+    </div>
+    <div class="category" onclick="filterCategory('Agriculture',this)">
+      <span>🌱</span>Agriculture
+    </div>
+    <div class="category" onclick="filterCategory('Autres',this)">
+      <span>📦</span>Autres
+    </div>
+  </div>
+
+  <section id="entreprises">
+    <h2>Entreprises à découvrir</h2>
+    <div class="listings" id="businessList">
+
+      <article class="card" data-category="Alimentation">
+        <div class="photo">🛒</div>
+        <div class="card-content">
+          <span class="tag">ALIMENTATION</span>
+          <h3>Exemple : Marché local</h3>
+          <p>Produits alimentaires et articles du quotidien.</p>
+          <p>📍 Jérémie, Haïti</p>
+          <a class="contact" href="#contact">Contacter</a>
+        </div>
+      </article>
+
+      <article class="card" data-category="Vêtements">
+        <div class="photo">👗</div>
+        <div class="card-content">
+          <span class="tag">VÊTEMENTS</span>
+          <h3>Exemple : Boutique mode</h3>
+          <p>Vêtements, chaussures et accessoires.</p>
+          <p>📍 Jérémie, Haïti</p>
+          <a class="contact" href="#contact">Contacter</a>
+        </div>
+      </article>
+
+      <article class="card" data-category="Technologie">
+        <div class="photo">📱</div>
+        <div class="card-content">
+          <span class="tag">TECHNOLOGIE</span>
+          <h3>Exemple : Tech Store</h3>
+          <p>Téléphones et accessoires électroniques.</p>
+          <p>📍 Jérémie, Haïti</p>
+          <a class="contact" href="#contact">Contacter</a>
+        </div>
+      </article>
+
+    </div>
+    <p class="empty" id="emptyMessage" hidden>
+      Aucune entreprise trouvée.
+    </p>
+  </section>
+
+  <section id="contact" style="margin-top:40px;text-align:center">
+    <h2>Vous avez une entreprise à Jérémie ?</h2>
+    <p style="color:#68788b;margin:12px 0">
+      Bientôt, vous pourrez créer votre propre vitrine sur Zack.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <strong>ZACK.</strong>
+  <p style="margin-top:8px">Découvrir Jérémie autrement.</p>
+  <p style="margin-top:8px">© 2026 Zack - Tous droits réservés.</p>
+</footer>
+
+<script>
+let currentCategory = "Toutes";
+
+function filterCategory(category,element){
+  currentCategory = category;
+
+  document.querySelectorAll(".category")
+    .forEach(item=>item.classList.remove("active"));
+
+  element.classList.add("active");
+  searchBusinesses();
+}
+
+function searchBusinesses(){
+  const query = document.getElementById("searchInput")
+    .value.toLowerCase().trim();
+
+  const cards = document.querySelectorAll(".card");
+  let visible = 0;
+
+  cards.forEach(card=>{
+    const text = card.innerText.toLowerCase();
+    const category = card.dataset.category;
+
+    const matchesCategory =
+      currentCategory === "Toutes" ||
+      category === currentCategory;
+
+    const matchesSearch = text.includes(query);
+
+    card.style.display =
+      matchesCategory && matchesSearch ? "" : "none";
+
+    if(matchesCategory && matchesSearch) visible++;
+  });
+
+  document.getElementById("emptyMessage").hidden = visible > 0;
+}
+
+document.getElementById("searchInput")
+  .addEventListener("input",searchBusinesses);
+</script>
+
+</body>
+</html>
