@@ -1,715 +1,761 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#ffffff">
-<title>Zack - Les entreprises de Jérémie</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bleu:#2563eb;--bleu2:#1d4ed8;--fond:#f6f7f9;--texte:#111827;--gris:#6b7280;--ligne:#e5e7eb;--vert:#16a34a;--ciel:#eff6ff;--rouge:#dc2626}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--fond);color:var(--texte);line-height:1.5}
-a,button,input,select,textarea{font:inherit}
-:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
-[hidden]{display:none!important}
-
-header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--ligne)}
-.nav{max-width:1000px;margin:auto;display:flex;justify-content:space-between;align-items:center;padding:12px 18px}
-.logo{font-size:24px;font-weight:800;color:var(--bleu);cursor:pointer;border:0;background:none}
-.btn{border:0;border-radius:10px;padding:11px 18px;font-weight:600;cursor:pointer;background:var(--bleu);color:#fff;font-size:15px}
-.btn:hover{background:var(--bleu2)}
-.btn.sec{background:#fff;color:var(--texte);border:1px solid var(--ligne)}
-.btn.sec:hover{background:var(--fond)}
-.btn.petit{padding:8px 12px;font-size:14px}
-.btn.rouge{background:#fff;color:var(--rouge);border:1px solid var(--ligne)}
-
-.hero{background:#fff;border-bottom:1px solid var(--ligne);padding:38px 18px 34px;text-align:center}
-.hero h1{font-size:clamp(26px,6vw,40px);line-height:1.2;margin-bottom:10px}
-.hero p{color:var(--gris);margin-bottom:22px}
-.search{display:flex;gap:8px;max-width:560px;margin:auto}
-.search input{flex:1;min-width:0}
-
-main{max-width:1000px;margin:auto;padding:22px 18px 10px}
-h2{font-size:20px;margin-bottom:12px}
-
-input,select,textarea{width:100%;border:1px solid #d1d5db;border-radius:10px;padding:12px;font-size:16px;background:#fff;color:var(--texte)}
-textarea{min-height:90px;resize:vertical}
-label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
-.aide{font-weight:400;color:var(--gris);font-size:13px}
-
-.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;background:#fff;border:1px solid var(--ligne);border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer;color:var(--texte)}
-.chip.on{background:var(--bleu);border-color:var(--bleu);color:#fff}
-.compte{color:var(--gris);font-size:14px;margin-bottom:12px}
-
-.liste{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;align-items:start}
-.carte{background:#fff;border:1px solid var(--ligne);border-radius:14px;padding:16px}
-.tete{display:flex;gap:12px;align-items:center;margin-bottom:10px}
-.ico{flex:0 0 48px;height:48px;border-radius:50%;background:var(--ciel);display:flex;align-items:center;justify-content:center;font-size:24px}
-.carte h3{font-size:17px;line-height:1.25}
-.pill{font-size:12px;color:var(--bleu);font-weight:600}
-.desc{font-size:14px;color:#374151;margin-bottom:8px}
-.lieu{font-size:13px;color:var(--gris);margin-bottom:12px}
-.plus{border-top:1px solid var(--ligne);margin-top:12px;padding-top:12px;font-size:14px}
-.plus h4{font-size:14px;margin:10px 0 4px}
-.plus ul{padding-left:18px}
-.contacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.contacts a{text-decoration:none;font-size:14px;font-weight:600;padding:9px 12px;border-radius:9px;background:var(--ciel);color:var(--bleu)}
-.contacts a.wa{background:#dcfce7;color:#166534}
-.vide{padding:34px 10px;text-align:center;color:var(--gris)}
-
-.boite{background:#fff;border:1px solid var(--ligne);border-radius:14px;padding:22px;max-width:560px;margin:0 auto}
-.msg{margin-top:12px;font-size:14px;padding:10px 12px;border-radius:9px}
-.msg.err{background:#fee2e2;color:#991b1b}
-.msg.ok{background:#dcfce7;color:#166534}
-.msg.info{background:var(--ciel);color:#1e40af}
-.bascule{margin-top:14px;text-align:center;font-size:14px;color:var(--gris)}
-.bascule button{border:0;background:none;color:var(--bleu);font-weight:600;cursor:pointer}
-.ev{display:grid;grid-template-columns:1fr 150px auto;gap:8px;margin-bottom:8px}
-.rangee{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
-
-.cta{margin:34px auto 0;max-width:560px;text-align:center;background:var(--ciel);border-radius:14px;padding:22px}
-.cta p{color:var(--gris);margin:6px 0 14px;font-size:14px}
-footer{text-align:center;color:var(--gris);font-size:13px;padding:30px 18px}
-@media(max-width:520px){.ev{grid-template-columns:1fr 1fr}.ev button{grid-column:1/3}}
+:root{--b:#123B5D;--t:#0E9F9A;--o:#F4A340;--g:#F5F7FA;--a:#243447}
+*{box-sizing:border-box}
+body{margin:0;font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--g);color:var(--a);line-height:1.5}
+a{color:var(--b)}
+header{background:#fff;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 14px}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--b);color:#fff;font-weight:700;font-size:22px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:cover}
+.brand{font-weight:700;color:var(--b);font-size:19px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;flex:1}
+nav{display:flex;align-items:center;gap:14px}
+nav a{text-decoration:none;font-weight:500;font-size:14px;color:var(--a)}
+nav a.cta{background:var(--t);color:#fff;padding:8px 12px;border-radius:10px}
+@media(max-width:640px){nav .hide{display:none}}
+#ann{background:var(--o);color:#fff;text-align:center;padding:8px;font-size:14px}
+.c{max-width:900px;margin:0 auto;padding:14px}
+.hero{background:linear-gradient(160deg,var(--b) 0%,#0b2a44 100%);color:#fff;padding:34px 16px 46px;position:relative}
+.hero:after{content:"";position:absolute;left:0;right:0;bottom:0;height:8px;background:linear-gradient(90deg,var(--t),var(--o))}
+.hero .in{max-width:900px;margin:0 auto}
+.hero h1{margin:0 0 8px;font-size:28px;line-height:1.2;font-weight:700;max-width:560px}
+.hero p{margin:0 0 18px;opacity:.9;max-width:520px}
+.sb{display:flex;background:#fff;border-radius:12px;padding:5px;max-width:620px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.sb input{border:0;margin:0;flex:1;min-width:0;background:transparent;padding:10px;font-size:16px;color:var(--a)}
+.sb input:focus{outline:0}
+.sb button{border:0;background:var(--t);color:#fff;border-radius:9px;padding:0 18px;font-weight:600;font-family:inherit;font-size:15px;cursor:pointer}
+.slg{margin-top:16px;font-weight:600;font-size:14px}
+h2{font-size:18px;color:var(--b);margin:22px 0 10px;font-weight:600}
+.lk{font-size:13px;color:var(--t);cursor:pointer;font-weight:500;margin-left:8px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.tile{background:#fff;border-radius:14px;padding:12px 6px;text-align:center;font-size:12px;font-weight:500;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.08);border:2px solid transparent}
+.tile span{display:block;font-size:24px;margin-bottom:4px}
+.tile.on{border-color:var(--t);color:var(--b)}
+.row{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+.row>.card{flex:none;width:240px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.card{background:#fff;border-radius:14px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);display:block;color:inherit;text-decoration:none}
+.card b{display:block}.mut{color:#6b7280;font-size:13px}
+.bz{display:flex;gap:10px;align-items:center}
+.ini{width:44px;height:44px;flex:none;border-radius:12px;background:var(--b);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ini img{width:100%;height:100%;object-fit:cover}
+.bd{display:inline-block;font-size:12px;border-radius:10px;padding:2px 8px;margin-top:4px;background:#e5e7eb}
+.bd.ok{background:#d1fae5;color:#065f46}.bd.no{background:#fee2e2;color:#991b1b}.bd.pe{background:#fef3c7;color:#92400e}
+.btn{display:inline-block;border:0;border-radius:10px;padding:10px 14px;background:var(--b);color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;text-decoration:none;margin:3px 3px 3px 0}
+.btn.t{background:var(--t)}.btn.o{background:var(--o)}.btn.l{background:#fff;color:var(--b);border:1px solid var(--b)}
+input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;font-size:16px;margin:4px 0 10px;font-family:inherit;background:#fff}
+label{font-size:14px;font-weight:600}
+.box{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px}
+.cover{height:140px;background:linear-gradient(135deg,var(--b),var(--t));background-size:cover;background-position:center}
+table{border-collapse:collapse;width:100%;font-size:14px}td{padding:4px 0;border-bottom:1px solid #f3f4f6}
+.pimg{width:100%;height:110px;object-fit:cover;border-radius:10px;margin-bottom:6px;background:#e5e7eb}
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.why .box{display:flex;gap:12px;align-items:flex-start;margin:0}
+.why b{color:var(--b);font-size:15px}
+.ic{flex:none;width:42px;height:42px;border-radius:50%;background:var(--t);color:#fff;display:flex;align-items:center;justify-content:center}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--a);color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:30;max-width:90%}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:20;padding:14px}
+#modal .box{max-width:420px;width:100%;margin:0;max-height:90vh;overflow:auto}
+footer{text-align:center;color:#6b7280;font-size:13px;padding:22px 14px;background:#fff;margin-top:20px}
+footer .sl{font-weight:600;font-size:14px;margin-bottom:4px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
 </style>
 </head>
 <body>
+<header id="hd"></header>
+<div id="ann" style="display:none"></div>
+<main id="app"><div class="c">Chargement…</div></main>
+<footer id="ft"></footer>
+<div id="toast"></div>
+<div id="modal"></div>
+<script>
+const SB_URL="https://hwuwqalazmrmdxseawnm.supabase.co";
+const SB_KEY="sb_publishable_3pGbQyThjZyO3FpksGtt1g_edpPkzN5";
+const TZ="America/Port-au-Prince";
+const ADMIN_EMAIL="kingscar509@gmail.com";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+let sb=null;
+const S={set:{},cats:[],biz:[],hours:{},promos:[],events:[],posts:[],user:null,q:"",cat:"",mode:"in"};
 
-<header><div class="nav">
-  <button class="logo" data-a="accueil">Zack</button>
-  <button class="btn sec petit" id="btnNav" data-a="compte">Se connecter</button>
-</div></header>
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.i);toast.i=setTimeout(()=>t.style.display="none",4000)}
+function modal(h){const m=$("#modal");m.innerHTML='<div class="box">'+h+'</div>';m.style.display="flex"}
+function closeModal(){$("#modal").style.display="none"}
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
 
-<!-- ACCUEIL -->
-<div id="vue-accueil">
-  <section class="hero">
-    <h1>Les entreprises de Jérémie, au même endroit</h1>
-    <p>Trouvez des produits, des services et des événements près de chez vous.</p>
-    <div class="search"><input id="recherche" type="search" placeholder="Que recherchez-vous ?" aria-label="Rechercher"></div>
-  </section>
-  <main>
-    <div class="chips" id="categories"></div>
-    <p class="compte" id="compte"></p>
-    <div class="liste" id="liste"></div>
-    <p class="vide" id="vide" hidden></p>
-    <div class="cta">
-      <h2>Vous avez une entreprise à Jérémie ?</h2>
-      <p>Créez un compte gratuit et présentez vos produits, vos services et vos événements.</p>
-      <button class="btn" data-a="compte">Ajouter mon entreprise</button>
-    </div>
-  </main>
-</div>
-
-<!-- CONNEXION -->
-<div id="vue-auth" hidden><main>
-  <div class="boite">
-    <h2 id="titreAuth">Se connecter</h2>
-    <form id="formAuth">
-      <label for="email">Adresse email</label>
-      <input id="email" type="email" autocomplete="email" required>
-      <label for="mdp">Mot de passe <span class="aide">(6 caractères minimum)</span></label>
-      <input id="mdp" type="password" autocomplete="current-password" required minlength="6">
-      <button class="btn" style="width:100%;margin-top:18px" id="btnAuth">Se connecter</button>
-    </form>
-    <div class="msg" id="msgAuth" hidden></div>
-    <p class="bascule" id="bascule"></p>
-  </div>
-</main></div>
-
-<!-- MON ESPACE -->
-<div id="vue-espace" hidden><main>
-  <div class="boite" style="max-width:640px">
-    <div class="rangee"><h2 style="margin:0">Mon entreprise</h2><button class="btn rouge petit" data-a="deconnexion">Se déconnecter</button></div>
-    <p class="aide" id="qui"></p>
-    <form id="formEntreprise">
-      <label for="nom">Nom de l'entreprise</label>
-      <input id="nom" required maxlength="80">
-      <label for="categorie">Catégorie</label>
-      <select id="categorie" required></select>
-      <label for="description">Description <span class="aide">(ce que vous faites)</span></label>
-      <textarea id="description" maxlength="400"></textarea>
-      <label for="adresse">Adresse</label>
-      <input id="adresse" required maxlength="120" placeholder="Ex : Rue Nationale, Jérémie">
-      <label for="produits">Produits et services <span class="aide">(un par ligne)</span></label>
-      <textarea id="produits" placeholder="Riz local&#10;Livraison à domicile"></textarea>
-
-      <label>Événements à venir</label>
-      <div id="evenements"></div>
-      <button type="button" class="btn sec petit" data-a="ajoutEv">+ Ajouter un événement</button>
-
-      <label for="telephone">Téléphone</label>
-      <input id="telephone" type="tel" placeholder="Ex : 37 00 00 00">
-      <label for="whatsapp">WhatsApp <span class="aide">(avec l'indicatif, ex : 50937000000)</span></label>
-      <input id="whatsapp" type="tel">
-      <label for="emailPub">Email de contact</label>
-      <input id="emailPub" type="email">
-      <label for="facebook">Page Facebook <span class="aide">(lien complet)</span></label>
-      <input id="facebook" type="url" placeholder="https://facebook.com/...">
-
-      <button class="btn" style="width:100%;margin-top:20px">Enregistrer et publier</button>
-    </form>
-    <div class="msg" id="msgEspace" hidden></div>
-  </div>
-</main></div>
-
-<footer>Zack · Découvrir Jérémie autrement · © 2026</footer>
-
-
-<script type="module">
-/* ============ CONNEXION SUPABASE ============ */
-const SUPABASE_URL = "https://hwuwqalazmrmdxseawnm.supabase.co";
-const SUPABASE_KEY = "sb_publishable_3pGbQyThjZyO3FpksGtt1g_edpPkzN5";
-
-let sb = null;
-let user = null;
-let entreprises = [];
-let businessId = null;
-let catActive = "Toutes";
-let modeAuth = "connexion";
-
-const ICONES = {
-  Alimentation:"🍎", Vêtements:"👕", Technologie:"💻",
-  Santé:"💊", Construction:"🏗️", Agriculture:"🌱",
-  Services:"🛠️", Autres:"📦"
-};
-const CATS = Object.keys(ICONES);
-const $ = id => document.getElementById(id);
-
-const esc = t => {
-  const d = document.createElement("div");
-  d.textContent = t ?? "";
-  return d.innerHTML.replace(/"/g, "&quot;");
-};
-const chiffres = t => String(t || "").replace(/\D/g, "");
-const lienWeb = t => /^https?:\/\//i.test(t || "") ? t : "";
-const aujourdhui = () => new Date().toISOString().slice(0,10);
-const dateFr = d => new Date(d+"T00:00").toLocaleDateString("fr-FR", {
-  day:"numeric", month:"long", year:"numeric"
-});
-
-function message(id, texte, type) {
-  const m = $(id);
-  m.textContent = texte;
-  m.className = "msg " + type;
-  m.hidden = !texte;
+/* ---------- chargement de Supabase (sources de secours) ---------- */
+function loadScript(u){return new Promise((ok,ko)=>{const s=document.createElement("script");s.src=u;s.onload=ok;s.onerror=ko;document.head.appendChild(s)})}
+async function initSb(){
+  try{await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js");if(window.supabase)return window.supabase.createClient(SB_URL,SB_KEY)}catch(e){}
+  for(const u of ["https://esm.sh/@supabase/supabase-js@2","https://esm.run/@supabase/supabase-js@2"]){
+    try{const m=await import(u);return m.createClient(SB_URL,SB_KEY)}catch(e){}
+  }
+  return null;
 }
 
-function aller(vue) {
-  ["accueil","auth","espace"].forEach(v => {
-    $("vue-"+v).hidden = v !== vue;
-  });
-  window.scrollTo(0,0);
+/* ---------- heures (fuseau Haïti) ---------- */
+function nowPAP(){
+  const p=new Intl.DateTimeFormat("en-US",{timeZone:TZ,weekday:"short",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
+  const g=t=>p.find(x=>x.type===t).value;
+  return{d:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(g("weekday")),m:(+g("hour"))*60+(+g("minute"))};
 }
-
-function majNav() {
-  $("btnNav").textContent = user ? "Mon espace" : "Se connecter";
+const tm=s=>{if(!s)return null;const a=s.split(":");return +a[0]*60+ +a[1]};
+function isOpen(id){
+  const h=S.hours[id];if(!h||!h.length)return null;
+  const n=nowPAP(),f=x=>x&&!x.is_closed&&x.opening_time&&x.closing_time;
+  const t=h.find(x=>x.day_of_week===n.d);
+  if(f(t)){const o=tm(t.opening_time),c=tm(t.closing_time);if(c>o?(n.m>=o&&n.m<c):n.m>=o)return true}
+  const y=h.find(x=>x.day_of_week===(n.d+6)%7);
+  if(f(y)){const o=tm(y.opening_time),c=tm(y.closing_time);if(c<=o&&n.m<c)return true}
+  return false;
 }
+const fmt=x=>new Date(x).toLocaleString("fr-FR",{timeZone:TZ,day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+const hh=s=>s?s.slice(0,5):"";
 
-/* ============ DÉMARRAGE ============ */
-async function demarrer() {
-  $("categorie").innerHTML = CATS.map(c =>
-    `<option>${c}</option>`
-  ).join("");
+/* ---------- préférences locales ---------- */
+function pref(cat){if(!cat)return;try{const p=JSON.parse(localStorage.getItem("zk_pref")||"{}");p[cat]=(p[cat]||0)+1;localStorage.setItem("zk_pref",JSON.stringify(p))}catch(e){}}
+function getPref(){try{return JSON.parse(localStorage.getItem("zk_pref")||"{}")}catch(e){return{}}}
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 
-  dessinerCategories();
-
-  try {
-    if (!SUPABASE_KEY || SUPABASE_KEY === "COLLE_TA_CLE_PUBLISHABLE_ICI") {
-      throw new Error("Clé Supabase manquante.");
-    }
-
-    const { createClient } = await import(
-      "https://esm.sh/@supabase/supabase-js@2"
-    );
-
-    sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    const { data } = await sb.auth.getSession();
-    user = data.session?.user || null;
-
-    sb.auth.onAuthStateChange((_event, session) => {
-      user = session?.user || null;
-      majNav();
-    });
-
-    await charger();
-    afficher();
-    majNav();
-
-  } catch (e) {
-    console.error(e);
-    entreprises = [];
-    afficher();
-    majNav();
-    message("msgAuth", "Connexion à Supabase impossible. Vérifiez la configuration.", "err");
-  }
-}
-
-/* ============ CHARGER LES ENTREPRISES VALIDÉES ============ */
-async function charger() {
-  if (!sb) {
-    entreprises = [];
-    return;
-  }
-
-  const { data, error } = await sb
-    .from("businesses")
-    .select("*")
-    .eq("status", "verified")
-    .order("created_at", { ascending:false });
-
-  if (error) {
-    console.error(error);
-    entreprises = [];
-    return;
-  }
-
-  const ids = (data || []).map(e => e.id);
-
-  if (!ids.length) {
-    entreprises = [];
-    return;
-  }
-
-  const [p, ev] = await Promise.all([
-    sb.from("products")
-      .select("business_id,name")
-      .in("business_id", ids)
-      .eq("is_available", true),
-
-    sb.from("posts")
-      .select("business_id,title,published_at,post_type")
-      .in("business_id", ids)
-      .eq("is_published", true)
-      .eq("post_type", "event")
+/* ---------- données ---------- */
+async function load(){
+  const r=await Promise.all([
+    sb.from("site_settings").select("key,value"),
+    sb.from("categories").select("name,icon").eq("is_active",true).order("display_order"),
+    sb.from("businesses").select("*").eq("status","verified").order("created_at",{ascending:false}),
+    sb.from("business_hours").select("*"),
+    sb.from("promotions").select("*"),
+    sb.from("business_events").select("*").order("start_at"),
+    sb.from("posts").select("*").order("published_at",{ascending:false}).limit(60)
   ]);
-
-  entreprises = (data || []).map(e => ({
-    id: e.id,
-    nom: e.name,
-    categorie: e.category,
-    description: e.description,
-    adresse: e.address,
-    telephone: e.phone,
-    whatsapp: e.whatsapp,
-    email: e.email,
-    facebook: e.facebook_url,
-    produits: (p.data || [])
-      .filter(x => x.business_id === e.id)
-      .map(x => x.name),
-    evenements: (ev.data || [])
-      .filter(x => x.business_id === e.id)
-      .map(x => ({
-        titre: x.title,
-        date: x.published_at?.slice(0,10) || ""
-      }))
-  }));
+  (r[0].data||[]).forEach(x=>S.set[x.key]=x.value);
+  S.cats=r[1].data||[];
+  S.biz=r[2].data||[];
+  const ids=new Set(S.biz.map(b=>b.id)),now=Date.now();
+  S.hours={};(r[3].data||[]).forEach(x=>{if(ids.has(x.business_id))(S.hours[x.business_id]=S.hours[x.business_id]||[]).push(x)});
+  S.promos=(r[4].data||[]).filter(p=>ids.has(p.business_id)&&p.is_active&&!p.archived_at&&new Date(p.start_at)<=now&&(!p.end_at||new Date(p.end_at)>now));
+  S.events=(r[5].data||[]).filter(e=>ids.has(e.business_id)&&e.is_published&&!e.archived_at&&new Date(e.end_at||e.start_at)>=now);
+  S.posts=(r[6].data||[]).filter(p=>ids.has(p.business_id)&&p.is_published&&!p.archived_at&&(!p.expires_at||new Date(p.expires_at)>now));
+}
+function applyTheme(){
+  const t=S.set.theme||{},r=document.documentElement.style;
+  [["bleu_profond","--b"],["turquoise","--t"],["orange_dore","--o"],["gris_clair","--g"],["anthracite","--a"]].forEach(k=>{if(t[k[0]])r.setProperty(k[1],t[k[0]])});
+  const name=S.set.site_name||"Zack",lg=S.set.logo||{};
+  document.title=name+" – "+(S.set.tagline||"");
+  $("#hd").innerHTML='<div class="logo">'+(lg.type==="image"&&lg.url?'<img src="'+esc(lg.url)+'" alt="">':esc(lg.text||"Z"))+'</div><a class="brand" href="#">'+esc(name)+'</a><nav><a class="hide" href="#entreprises">Entreprises</a><a class="hide" href="#categories">Catégories</a><a href="#/pro">'+(S.user?"Mon espace":"Connexion")+'</a><a class="cta hide" href="#/pro">Inscrire mon entreprise</a></nav>';
+  const a=S.set.announcement||{};
+  $("#ann").style.display=a.enabled&&a.text?"block":"none";$("#ann").textContent=a.text||"";
+  const c=S.set.contact||{},p=[];
+  if(c.phone)p.push(esc(c.phone));if(c.email)p.push(esc(c.email));if(c.address)p.push(esc(c.address));
+  $("#ft").innerHTML='<div class="sl">'+slogan(false)+'</div>'+esc(S.set.subtitle||"")+"<br>"+(p.length?p.join(" · ")+"<br>":"")+"© "+esc(name);
 }
 
-/* ============ ACCUEIL ============ */
-function dessinerCategories() {
-  $("categories").innerHTML = ["Toutes", ...CATS].map(c =>
-    `<button class="chip${c===catActive?" on":""}" data-a="cat" data-v="${c}">
-      ${ICONES[c] || "🏪"} ${c}
-    </button>`
-  ).join("");
+/* ---------- cartes ---------- */
+const initial=b=>b.logo_url?'<img src="'+esc(b.logo_url)+'" alt="">':esc((b.name||"?")[0].toUpperCase());
+const place=b=>[b.street,b.city].filter(Boolean).join(", ")||b.address||b.neighborhood||"";
+function openBadge(id){const o=isOpen(id);return o===true?'<span class="bd ok">Ouvert maintenant</span>':o===false?'<span class="bd no">Fermé</span>':""}
+function card(b){
+  return '<a class="card" href="#e/'+esc(b.slug)+'"><div class="bz"><div class="ini">'+initial(b)+'</div><div><b>'+esc(b.name)+'</b><span class="mut">'+esc(b.category||"")+'</span></div></div><div class="mut" style="margin-top:6px">'+esc(place(b))+'</div>'+openBadge(b.id)+'</a>';
+}
+const bn=id=>{const b=S.biz.find(x=>x.id===id);return b?b:null};
+function promoCard(p){
+  const b=bn(p.business_id);if(!b)return"";
+  const d=p.discount_type==="percentage"&&p.discount_value!=null?"-"+p.discount_value+" %":p.discount_type==="fixed"&&p.discount_value!=null?"-"+p.discount_value+" HTG":"Offre spéciale";
+  return '<a class="card" href="#e/'+esc(b.slug)+'"><span class="bd pe">'+esc(d)+'</span><b>'+esc(p.title)+'</b><span class="mut">'+esc(b.name)+'</span>'+(p.end_at?'<div class="mut">Jusqu’au '+fmt(p.end_at)+'</div>':"")+'</a>';
+}
+function eventCard(e){
+  const b=bn(e.business_id);if(!b)return"";
+  return '<a class="card" href="#e/'+esc(b.slug)+'"><b>'+esc(e.title)+'</b><span class="mut">'+fmt(e.start_at)+(e.location?" · "+esc(e.location):"")+'</span><div class="mut">'+esc(b.name)+'</div></a>';
+}
+const sec=(t,items,cls)=>items.length?'<h2>'+t+'</h2><div class="'+(cls||"row")+'">'+items.join("")+'</div>':"";
+
+/* ---------- accueil ---------- */
+function filt(){
+  const q=norm(S.q).trim();
+  return S.biz.filter(b=>(!S.cat||b.category===S.cat)&&(!q||norm([b.name,b.category,b.street,b.city,b.neighborhood,b.address].join(" ")).includes(q)));
+}
+function pourToi(){
+  const day=30*864e5,pf=getPref();
+  let nouv=S.biz.filter(b=>Date.now()-new Date(b.created_at)<day).slice(0,6);
+  if(!nouv.length)nouv=S.biz.slice(0,4);
+  const ouvert=shuffle(S.biz.filter(b=>isOpen(b.id)===true)).slice(0,6);
+  const sel=S.biz.map(b=>[(pf[b.category]||0)*2+Math.random(),b]).sort((x,y)=>y[0]-x[0]).slice(0,4).map(x=>x[1]);
+  return sec("Nouveautés",nouv.map(card))+
+    sec("Promotions en cours",S.promos.slice(0,8).map(promoCard))+
+    sec("Événements à venir",S.events.slice(0,8).map(eventCard))+
+    sec("Ouvert maintenant",ouvert.map(card))+
+    sec(Object.keys(pf).length?"Sélection pour toi":"Sélection du moment",sel.map(card));
+}
+function slogan(d){
+  const cols=d?["#fff","#2dd4bf","var(--o)"]:["var(--b)","var(--t)","var(--o)"];
+  return (S.set.tagline||"").split(/\s+/).filter(Boolean).map((w,i)=>'<span style="color:'+cols[i%3]+'">'+esc(w)+'</span>').join(" ");
+}
+const IC={store:"M3 9l1-5h16l1 5M3 9v11h18V9M3 9c0 2 4 2 4 0 0 2 5 2 5 0 0 2 5 2 5 0 0 2 4 2 4 0M9 20v-6h6v6",phone:"M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z",growth:"M3 17l6-6 4 4 8-8M15 7h6v6",share:"M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zM18 22a3 3 0 100-6 3 3 0 000 6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4"};
+const ico=n=>'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+IC[n]+'"/></svg>';
+const WHY=[["store","Annuaire des entreprises","Trouvez facilement les entreprises près de vous."],["phone","Connexion directe","Contactez en un clic par téléphone, WhatsApp ou email."],["growth","Visibilité et croissance","Développez votre activité et atteignez plus de clients."],["share","Opportunités locales","Découvrez des services, des produits et des partenaires."]];
+function home(){
+  document.title=(S.set.site_name||"Zack")+" – "+(S.set.tagline||"");
+  const h=S.set.hero||{},hs=S.set.home_sections||{};
+  let x='<div class="hero"><div class="in"><h1>'+esc(h.title||S.set.site_name||"Zack")+'</h1><p>'+esc(h.text||"")+'</p><div class="sb"><input id="q" placeholder="Nom, catégorie, rue ou ville…" value="'+esc(S.q)+'" oninput="S.q=this.value;renderRes()" onkeydown="if(event.key===\'Enter\')goRes()"><button onclick="goRes()">Rechercher</button></div><div class="slg">'+slogan(true)+'</div></div></div><div class="c">';
+  if(hs.categories!==false)x+='<h2 id="categories" style="margin-top:6px">Catégories populaires</h2><div class="tiles" id="tiles"></div>';
+  if(hs.cta!==false)x+='<div class="box" style="margin-top:16px"><b>Vous avez une entreprise à Jérémie ?</b><div class="mut">Créez sa carte d’identité numérique.</div><a class="btn o" href="#/pro">Inscrire mon entreprise</a></div>';
+  x+='<div id="pt"></div>';
+  if(hs.liste!==false)x+='<h2 id="entreprises"><span id="rt"></span></h2><div class="grid" id="res"></div>';
+  x+='<h2>Pourquoi Zack ?</h2><div class="why">'+WHY.map(w=>'<div class="box"><div class="ic">'+ico(w[0])+'</div><div><b>'+w[1]+'</b><div class="mut">'+w[2]+'</div></div></div>').join("")+'</div></div>';
+  $("#app").innerHTML=x;renderTiles();renderRes();
+}
+function renderTiles(){
+  const el=$("#tiles");if(!el)return;
+  el.innerHTML=S.cats.map((c,i)=>'<div class="tile'+(S.cat===c.name?" on":"")+'" onclick="setCat('+i+')"><span>'+esc(c.icon||"🏪")+'</span>'+esc(c.name)+'</div>').join("");
+}
+function setCat(i){
+  const n=S.cats[i].name;S.cat=S.cat===n?"":n;renderTiles();renderRes();
+  if(S.cat)goRes();
+}
+function goRes(){const el=document.getElementById("entreprises");if(el)el.scrollIntoView({behavior:"smooth"})}
+function clearF(){S.q="";S.cat="";const q=$("#q");if(q)q.value="";renderTiles();renderRes()}
+function renderRes(){
+  const r=filt(),searching=S.q.trim()||S.cat,hs=S.set.home_sections||{};
+  const pt=$("#pt");if(pt)pt.innerHTML=(!searching&&hs.pour_toi!==false)?'<h2>Pour toi</h2>'+pourToi():"";
+  const rt=$("#rt");if(rt)rt.innerHTML=searching?r.length+" résultat"+(r.length>1?"s":"")+' <span class="lk" onclick="clearF()">Tout afficher</span>':"Toutes les entreprises";
+  const el=$("#res");if(el)el.innerHTML=r.length?r.map(card).join(""):'<div class="mut">Aucune entreprise trouvée.</div>';
 }
 
-function carte(e,i) {
-  const prods = (e.produits || []).filter(Boolean);
-  const evs = (e.evenements || [])
-    .filter(x => x.titre && x.date >= aujourdhui());
-
-  const w = chiffres(e.whatsapp);
-  const t = chiffres(e.telephone);
-  const fbk = lienWeb(e.facebook);
-
-  const liens = [
-    w && `<a class="wa" href="https://wa.me/${w}" target="_blank" rel="noopener">WhatsApp</a>`,
-    t && `<a href="tel:${t}">Appeler</a>`,
-    e.email && `<a href="mailto:${esc(e.email)}">Email</a>`,
-    fbk && `<a href="${esc(fbk)}" target="_blank" rel="noopener">Facebook</a>`
-  ].filter(Boolean).join("");
-
-  return `<article class="carte">
-    <div class="tete">
-      <div class="ico">${ICONES[e.categorie] || "🏪"}</div>
-      <div>
-        <h3>${esc(e.nom)}</h3>
-        <span class="pill">${esc(e.categorie)}</span>
-      </div>
-    </div>
-    <p class="desc">${esc(e.description)}</p>
-    <p class="lieu">📍 ${esc(e.adresse)}</p>
-    <button class="btn sec petit" data-a="plus" data-v="${i}">Voir les détails</button>
-    <div class="plus" id="plus${i}" hidden>
-      ${prods.length ? `<h4>Produits et services</h4><ul>${prods.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>` : ""}
-      ${evs.length ? `<h4>Événements à venir</h4><ul>${evs.map(x=>`<li><strong>${dateFr(x.date)}</strong> : ${esc(x.titre)}</li>`).join("")}</ul>` : ""}
-      ${liens ? `<div class="contacts">${liens}</div>` : `<p class="aide">Pas encore de contact renseigné.</p>`}
-    </div>
-  </article>`;
+/* ---------- fiche entreprise ---------- */
+const digits=s=>String(s||"").replace(/\D/g,"");
+function waLink(s){let d=digits(s);if(d.length===8)d="509"+d;return"https://wa.me/"+d}
+const shareUrl=b=>location.origin+location.pathname+"#e/"+b.slug;
+async function fiche(slug){
+  const b=S.biz.find(x=>x.slug===slug);
+  if(!b){$("#app").innerHTML='<div class="c"><div class="box">Entreprise introuvable, ou pas encore validée.</div><a class="btn" href="#">Retour à l’accueil</a></div>';return}
+  pref(b.category);document.title=b.name+" – "+(S.set.site_name||"Zack");
+  $("#app").innerHTML='<div class="cover"'+(b.cover_url?' style="background-image:url(\''+esc(b.cover_url)+'\')"':"")+'></div><div class="c" id="fc"><div class="box">Chargement…</div></div>';
+  const r=await Promise.all([
+    sb.from("products").select("*").eq("business_id",b.id).eq("is_available",true),
+    sb.from("product_images").select("*").eq("business_id",b.id).order("display_order"),
+    sb.from("services").select("*").eq("business_id",b.id).eq("is_available",true),
+    sb.from("business_media").select("*").eq("business_id",b.id).order("display_order"),
+    sb.from("reviews").select("rating,title,content,created_at,owner_response").eq("business_id",b.id).eq("status","approved").order("created_at",{ascending:false})
+  ]);
+  if(location.hash!=="#e/"+slug)return;
+  const imgs={},al={};ZI=[];GAL=(r[3].data||[]).filter(m=>m.media_type==="image").map(m=>m.media_url);(r[1].data||[]).slice().sort((x,y)=>(y.is_primary?1:0)-(x.is_primary?1:0)).forEach(i=>{if(!imgs[i.product_id])imgs[i.product_id]=i.image_url;(al[i.product_id]=al[i.product_id]||[]).push(i.image_url)});
+  const prod=(r[0].data||[]).map(p=>{const u=imgs[p.id]||p.image_url;const z=al[p.id]&&al[p.id].length?(ZI.push(al[p.id]),' onclick="zoom('+(ZI.length-1)+')" style="cursor:zoom-in"'):"";return'<div class="card"'+z+'>'+(u?'<img class="pimg" loading="lazy" src="'+esc(u)+'" alt="">':"")+'<b>'+esc(p.name)+'</b>'+(p.price!=null?'<span class="mut">'+esc(p.price)+" "+esc(p.currency)+"</span>":"")+(p.description?'<div class="mut">'+esc(p.description)+"</div>":"")+"</div>"});
+  const serv=(r[2].data||[]).map(p=>'<div class="card"><b>'+esc(p.name)+'</b>'+(p.price!=null?'<span class="mut">'+esc(p.price)+" "+esc(p.currency)+"</span>":"")+(p.description?'<div class="mut">'+esc(p.description)+"</div>":"")+"</div>");
+  const pro=S.promos.filter(p=>p.business_id===b.id).map(promoCard);
+  const ev=S.events.filter(e=>e.business_id===b.id).map(eventCard);
+  const po=S.posts.filter(p=>p.business_id===b.id).slice(0,5).map(p=>'<div class="card">'+(p.title?'<b>'+esc(p.title)+'</b>':"")+'<div>'+esc(p.content)+'</div><div class="mut">'+(p.published_at?fmt(p.published_at):"")+"</div></div>");
+  const H=S.hours[b.id]||[],days=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+  const hrs=H.length?'<table>'+[1,2,3,4,5,6,0].map(d=>{const x=H.find(y=>y.day_of_week===d);return"<tr><td>"+days[d]+"</td><td>"+(!x||x.is_closed||!x.opening_time?"Fermé":hh(x.opening_time)+" – "+hh(x.closing_time))+"</td></tr>"}).join("")+"</table>":"";
+  const ct=[];
+  if(b.phone)ct.push('<a class="btn" href="tel:'+esc(digits(b.phone))+'">Appeler</a>');
+  if(b.whatsapp)ct.push('<a class="btn t" target="_blank" rel="noopener" href="'+esc(waLink(b.whatsapp))+'">WhatsApp</a>');
+  if(b.email)ct.push('<a class="btn l" href="mailto:'+esc(b.email)+'">Email</a>');
+  [["website","Site web"],["facebook_url","Facebook"],["instagram_url","Instagram"],["tiktok_url","TikTok"],["youtube_url","YouTube"]].forEach(k=>{if(b[k[0]])ct.push('<a class="btn l" target="_blank" rel="noopener" href="'+esc(b[k[0]])+'">'+k[1]+'</a>')});
+  $("#fc").innerHTML='<div class="box"><div class="bz"><div class="ini">'+initial(b)+'</div><div><h1 style="margin:0;font-size:21px">'+esc(b.name)+'</h1><span class="mut">'+esc(b.category||"")+'</span></div></div>'+openBadge(b.id)+
+    (b.description?'<p>'+esc(b.description)+'</p>':"")+(place(b)?'<div class="mut">📍 '+esc(place(b))+(b.neighborhood?" ("+esc(b.neighborhood)+")":"")+'</div>':"")+
+    '<div style="margin-top:8px">'+ct.join("")+'</div><div><button class="btn l" onclick="share(\''+esc(b.slug)+'\')">Partager</button><button class="btn l" onclick="qr(\''+esc(b.slug)+'\')">QR code</button><button class="btn l" onclick="report(\''+b.id+'\')">Signaler</button></div></div>'+
+    (hrs?'<div class="box"><b>Horaires</b>'+hrs+'</div>':"")+sec("Promotions",pro)+sec("Événements",ev)+sec("Nouvelles",po,"grid")+sec("Galerie",GAL.map(u=>'<img class="pimg" loading="lazy" style="cursor:zoom-in;height:130px" onclick="zoomG()" src="'+esc(u)+'" alt="">'),"grid")+sec("Produits",prod,"grid")+sec("Services",serv,"grid")+revHtml(b,r[4].data||[])+'<a class="btn" href="#">← Retour</a>';
+}
+async function share(slug){
+  const b=S.biz.find(x=>x.slug===slug),u=shareUrl(b);
+  try{if(navigator.share){await navigator.share({title:b.name,text:b.name+" sur "+(S.set.site_name||"Zack"),url:u});return}}catch(e){if(e.name==="AbortError")return}
+  try{await navigator.clipboard.writeText(u);toast("Lien copié")}catch(e){prompt("Copie ce lien :",u)}
+}
+async function qr(slug){
+  const b=S.biz.find(x=>x.slug===slug),u=shareUrl(b);
+  modal('<b>QR code – '+esc(b.name)+'</b><div id="qrb" style="text-align:center;margin:10px 0">Création…</div><div class="mut" style="word-break:break-all">'+esc(u)+'</div><button class="btn l" onclick="closeModal()">Fermer</button>');
+  let ok=!!window.qrcode;
+  for(const s of ["https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js","https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"]){
+    if(ok)break;try{await loadScript(s);ok=!!window.qrcode}catch(e){}
+  }
+  if(!ok){$("#qrb").textContent="Impossible de charger le générateur de QR code. Vérifie ta connexion.";return}
+  const q=qrcode(0,"M");q.addData(u);q.make();
+  $("#qrb").innerHTML='<img alt="QR code" style="width:230px;height:230px;image-rendering:pixelated" src="'+q.createDataURL(8,16)+'"><br><a class="btn t" download="qr-'+esc(b.slug)+'.gif" href="'+q.createDataURL(8,16)+'">Télécharger</a>';
+}
+function report(id){
+  modal('<b>Signaler cette entreprise</b><label>Motif</label><select id="rr"><option value="inappropriate">Contenu inapproprié</option><option value="false_info">Informations fausses</option><option value="scam">Arnaque</option><option value="closed">Entreprise fermée</option><option value="other">Autre</option></select><label>Détails (500 caractères max)</label><textarea id="rd" maxlength="500" rows="3"></textarea><button class="btn" onclick="sendReport(\''+id+'\')">Envoyer</button><button class="btn l" onclick="closeModal()">Annuler</button>');
+}
+async function sendReport(id){
+  const d=$("#rd").value.trim();
+  const r=await sb.from("reports").insert({business_id:id,target_type:"business",target_id:id,reason:$("#rr").value,details:d||null});
+  if(r.error){toast("Erreur : "+r.error.message);return}
+  closeModal();toast("Merci, ton signalement est envoyé.");
 }
 
-function afficher() {
-  const q = $("recherche").value.toLowerCase().trim();
-
-  const r = entreprises.filter(e => {
-    if (catActive !== "Toutes" && e.categorie !== catActive) return false;
-    return [
-      e.nom, e.categorie, e.description, e.adresse,
-      (e.produits || []).join(" ")
-    ].join(" ").toLowerCase().includes(q);
+/* ---------- compte et espace propriétaire ---------- */
+function authView(){
+  const up=S.mode==="up";
+  $("#app").innerHTML='<div class="c"><div class="box"><div class="tabs"><button class="btn'+(up?" l":"")+'" onclick="S.mode=\'in\';authView()">Connexion</button><button class="btn'+(up?"":" l")+'" onclick="S.mode=\'up\';authView()">Créer un compte</button></div>'+
+    (up?'<label>Nom complet</label><input id="fn" autocomplete="name">':"")+'<label>Email</label><input id="em" type="email" autocomplete="email"><label>Mot de passe</label><input id="pw" type="password" autocomplete="'+(up?"new":"current")+'-password"><button class="btn" onclick="doAuth()">'+(up?"Créer mon compte":"Me connecter")+'</button>'+(up?"":'<div><span class="lk" style="margin:0" onclick="resetPw()">Mot de passe oublié ?</span></div>')+'</div></div>';
+}
+async function doAuth(){
+  const e=$("#em").value.trim(),p=$("#pw").value;
+  if(!e||!p){toast("Email et mot de passe requis.");return}
+  try{
+    if(S.mode==="up"){
+      if(p.length<6){toast("Mot de passe : 6 caractères minimum.");return}
+      const r=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:($("#fn").value||"").trim()}}});
+      if(r.error)throw r.error;
+      if(!r.data.session){toast("Compte créé. Confirme ton email puis connecte-toi.");S.mode="in";authView()}
+    }else{
+      const r=await sb.auth.signInWithPassword({email:e,password:p});
+      if(r.error)throw r.error;
+    }
+  }catch(x){toast(x.message)}
+}
+async function logout(){await sb.auth.signOut();location.hash="";}
+const STAT={pending:["pe","En attente de validation"],verified:["ok","Validée"],rejected:["no","Refusée"],suspended:["no","Suspendue"]};
+const catOpts=sel=>'<option value="">Choisir…</option>'+S.cats.map(c=>'<option'+(c.name===sel?" selected":"")+' value="'+esc(c.name)+'">'+esc(c.icon||"")+" "+esc(c.name)+"</option>").join("");
+const FIELDS=[["name","Nom de l’entreprise"],["description","Description","t"],["street","Rue"],["city","Ville"],["phone","Téléphone"],["whatsapp","WhatsApp"],["email","Email"],["facebook_url","Facebook"]];
+function bizForm(b,i){
+  b=b||{};
+  let x='<label>Catégorie</label><select id="f'+i+'_category">'+catOpts(b.category)+'</select>';
+  FIELDS.forEach(f=>{x+='<label>'+f[1]+'</label>'+(f[2]?'<textarea id="f'+i+'_'+f[0]+'" rows="3">'+esc(b[f[0]]||"")+'</textarea>':'<input id="f'+i+'_'+f[0]+'" value="'+esc(b[f[0]]||"")+'">')});
+  return x;
+}
+function vals(i){
+  const v={category:$("#f"+i+"_category").value||null};
+  FIELDS.forEach(f=>{const s=$("#f"+i+"_"+f[0]).value.trim();v[f[0]]=s||null});
+  return v;
+}
+async function account(){
+  if(!S.user){authView();return}
+  $("#app").innerHTML='<div class="c"><div class="box">Chargement…</div></div>';
+  const m=await sb.from("business_members").select("business_id,role").eq("user_id",S.user.id);
+  const ids=(m.data||[]).map(x=>x.business_id);
+  let list=[],evs=[],hrs=[];
+  if(ids.length){
+    list=(await sb.from("businesses").select("*").in("id",ids)).data||[];
+    hrs=(await sb.from("business_hours").select("*").in("business_id",ids)).data||[];
+    evs=(await sb.from("business_events").select("*").in("business_id",ids).order("start_at",{ascending:false})).data||[];
+  }
+  let x='<div class="c"><div class="box"><b>'+esc(S.user.email)+'</b><br><button class="btn l" onclick="logout()">Me déconnecter</button></div>';
+  list.forEach((b,k)=>{
+    const st=STAT[b.status]||["", b.status];
+    x+='<div class="box"><h2 style="margin-top:0">'+esc(b.name)+'</h2><span class="bd '+st[0]+'">'+esc(st[1])+'</span>'+
+      (b.status==="verified"?' <a href="#e/'+esc(b.slug)+'">Voir la fiche</a>':"")+bizForm(b,k)+
+      '<button class="btn" onclick="saveBiz(\''+b.id+'\','+k+')">Enregistrer</button>'+
+      '<h2>Catalogue et photos</h2><button class="btn t" onclick="mgr(\''+b.id+'\',\'produits\')">Produits</button><button class="btn t" onclick="mgr(\''+b.id+'\',\'services\')">Services</button><button class="btn t" onclick="mgr(\''+b.id+'\',\'galerie\')">Galerie</button><button class="btn t" onclick="mgr(\''+b.id+'\',\'publications\')">Publications</button><button class="btn t" onclick="mgr(\''+b.id+'\',\'promotions\')">Promotions</button><button class="btn t" onclick="mgr(\''+b.id+'\',\'evenements\')">Événements</button><button class="btn t" onclick="mgr(\''+b.id+'\',\'archives\')">Archives</button><button class="btn t" onclick="mgr(\''+b.id+'\',\'avis\')">Avis</button><h2>Horaires</h2>'+hoursForm(b.id,hrs.filter(h=>h.business_id===b.id))+'<button class="btn t" onclick="saveHours(\''+b.id+'\')">Enregistrer les horaires</button><h2>Événements</h2>'+evs.filter(e=>e.business_id===b.id).map(e=>'<div class="mut">'+esc(e.title)+" – "+fmt(e.start_at)+' <a href="#/pro" onclick="delEvent(\''+e.id+'\');return false">supprimer</a></div>').join("")+
+      '<label>Titre</label><input id="et'+k+'"><label>Date et heure</label><input id="ed'+k+'" type="datetime-local"><label>Lieu</label><input id="el'+k+'"><button class="btn t" onclick="addEvent(\''+b.id+'\','+k+')">Ajouter l’événement</button></div>';
   });
-
-  $("liste").innerHTML = r.map(carte).join("");
-  $("compte").textContent = r.length + (r.length > 1 ? " entreprises" : " entreprise");
-  $("vide").hidden = r.length > 0;
-  $("vide").textContent = entreprises.length
-    ? "Aucune entreprise trouvée. Essayez un autre mot ou une autre catégorie."
-    : "Aucune entreprise validée pour le moment. Soyez la première à vous inscrire !";
+  x+='<div class="box"><h2 style="margin-top:0">Nouvelle entreprise</h2>'+bizForm(null,"n")+'<button class="btn o" onclick="newBiz()">Envoyer pour validation</button></div></div>';
+  $("#app").innerHTML=x;
+}
+function slugify(s){return norm(s).replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"entreprise"}
+async function newBiz(){
+  const v=vals("n");
+  if(!v.name){toast("Le nom est obligatoire.");return}
+  const slug=slugify(v.name)+"-"+Math.random().toString(36).slice(2,8);
+  const addr=[v.street,v.city].filter(Boolean).join(", ")||null;
+  const r=await sb.rpc("create_business",{p_name:v.name,p_slug:slug,p_description:v.description,p_category:v.category,p_address:addr,p_neighborhood:null,p_phone:v.phone,p_whatsapp:v.whatsapp,p_email:v.email});
+  if(r.error){toast("Erreur : "+r.error.message);return}
+  const u=await sb.from("businesses").update({street:v.street,city:v.city,facebook_url:v.facebook_url}).eq("id",r.data);
+  if(u.error)toast("Entreprise créée, mais rue/ville non enregistrées : "+u.error.message);
+  else toast("Entreprise envoyée. Elle sera visible après validation.");
+  account();
+}
+async function saveBiz(id,k){
+  const v=vals(k);
+  if(!v.name){toast("Le nom est obligatoire.");return}
+  v.address=[v.street,v.city].filter(Boolean).join(", ")||null;
+  const r=await sb.from("businesses").update(v).eq("id",id);
+  if(r.error){toast("Erreur : "+r.error.message);return}
+  toast("Enregistré.");
+}
+async function addEvent(id,k){
+  const t=$("#et"+k).value.trim(),d=$("#ed"+k).value;
+  if(!t||!d){toast("Titre et date obligatoires.");return}
+  const r=await sb.from("business_events").insert({business_id:id,title:t,start_at:new Date(d).toISOString(),location:$("#el"+k).value.trim()||null,is_published:true});
+  if(r.error){toast("Erreur : "+r.error.message);return}
+  toast("Événement ajouté.");account();
+}
+async function delEvent(id){
+  if(!confirm("Supprimer cet événement ?"))return;
+  const r=await sb.from("business_events").delete().eq("id",id);
+  if(r.error){toast("Erreur : "+r.error.message);return}
+  account();
 }
 
-/* ============ AUTHENTIFICATION ============ */
-function majAuth() {
-  const c = modeAuth === "connexion";
-  $("titreAuth").textContent = c ? "Se connecter" : "Créer un compte";
-  $("btnAuth").textContent = c ? "Se connecter" : "Créer mon compte";
-  $("mdp").autocomplete = c ? "current-password" : "new-password";
 
-  $("bascule").innerHTML = c
-    ? `Pas encore de compte ? <button data-a="bascule">Créer un compte</button>`
-    : `Déjà un compte ? <button data-a="bascule">Se connecter</button>`;
-
-  message("msgAuth", "", "info");
+/* ---------- horaires (espace pro) ---------- */
+const DJ=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+function hoursForm(id,H){
+  return '<table>'+[1,2,3,4,5,6,0].map(d=>{
+    const x=(H||[]).find(y=>y.day_of_week===d)||{},k=id+"_"+d;
+    return '<tr><td>'+DJ[d]+'</td><td><input type="time" id="ho_'+k+'" value="'+hh(x.opening_time)+'" style="margin:0;width:100px"></td><td><input type="time" id="hf_'+k+'" value="'+hh(x.closing_time)+'" style="margin:0;width:100px"></td><td><label><input type="checkbox" id="hc_'+k+'" style="width:auto;margin:0 4px 0 0"'+(x.is_closed?" checked":"")+'>Fermé</label></td></tr>';
+  }).join("")+'</table>';
+}
+async function saveHours(id){
+  const g=x=>document.getElementById(x),rows=[];
+  for(const d of [0,1,2,3,4,5,6]){
+    const k=id+"_"+d,cl=g("hc_"+k).checked,o=g("ho_"+k).value,f=g("hf_"+k).value;
+    if(!cl&&(!o||!f)){toast("Indique l’ouverture et la fermeture pour "+DJ[d]+", ou coche Fermé.");return}
+    rows.push({business_id:id,day_of_week:d,is_closed:cl,opening_time:o||null,closing_time:f||null});
+  }
+  const ex=await sb.from("business_hours").select("id,day_of_week").eq("business_id",id);
+  if(ex.error){toast("Erreur : "+ex.error.message);return}
+  let err=null;
+  for(const r of rows){
+    const e=(ex.data||[]).find(y=>y.day_of_week===r.day_of_week);
+    const q=e?await sb.from("business_hours").update(r).eq("id",e.id):await sb.from("business_hours").insert(r);
+    if(q.error){err=q.error;break}
+  }
+  if(err){toast("Erreur : "+err.message);return}
+  toast("Horaires enregistrés.");load();
 }
 
-function erreurFr(e) {
-  const m = e.message || "";
-
-  if (m.includes("already registered")) return "Cette adresse email possède déjà un compte.";
-  if (m.includes("Password should be at least")) return "Mot de passe trop court : 6 caractères minimum.";
-  if (m.includes("Invalid login")) return "Email ou mot de passe incorrect.";
-  if (m.includes("network")) return "Vérifiez votre connexion internet.";
-  if (m.includes("duplicate key")) return "Une entreprise portant ce nom existe déjà. Réessayez.";
-  return "Une erreur est survenue : " + m;
+/* ---------- mot de passe oublié ---------- */
+async function resetPw(){
+  const e=($("#em")||{}).value;
+  if(!e||!e.trim()){toast("Écris ton email, puis clique à nouveau.");return}
+  const r=await sb.auth.resetPasswordForEmail(e.trim(),{redirectTo:location.origin+location.pathname});
+  toast(r.error?"Erreur : "+r.error.message:"Email envoyé. Ouvre le lien reçu pour choisir un nouveau mot de passe.");
+}
+function recoveryView(){
+  $("#app").innerHTML='<div class="c"><div class="box"><b>Nouveau mot de passe</b><input id="np" type="password" autocomplete="new-password"><button class="btn" onclick="setPw()">Enregistrer</button></div></div>';
+}
+async function setPw(){
+  const p=$("#np").value;if(p.length<6){toast("6 caractères minimum.");return}
+  const r=await sb.auth.updateUser({password:p});
+  if(r.error){toast(r.error.message);return}
+  toast("Mot de passe changé.");location.hash="#/pro";
 }
 
-$("formAuth").addEventListener("submit", async ev => {
-  ev.preventDefault();
-
-  if (!sb) return message("msgAuth", "Supabase n'est pas encore connecté.", "err");
-
-  const email = $("email").value.trim();
-  const password = $("mdp").value;
-
-  try {
-    let result;
-
-    if (modeAuth === "connexion") {
-      result = await sb.auth.signInWithPassword({ email, password });
-    } else {
-      result = await sb.auth.signUp({ email, password });
-    }
-
-    if (result.error) throw result.error;
-
-    if (result.data.session) {
-      user = result.data.session.user;
-      $("formAuth").reset();
-      majNav();
-      await ouvrirEspace();
-    } else {
-      message("msgAuth", "Compte créé ! Consultez votre email pour confirmer votre inscription, puis connectez-vous.", "ok");
-    }
-
-  } catch (e) {
-    message("msgAuth", erreurFr(e), "err");
+/* ---------- administration (#/admin) ---------- */
+const AST={pending:"En attente",verified:"Validées",rejected:"Refusées",suspended:"Suspendues"};
+const RL={inappropriate:"Contenu inapproprié",false_info:"Informations fausses",scam:"Arnaque",closed:"Entreprise fermée",other:"Autre"};
+async function admin(tab){
+  if(!S.user){S.mode="in";authView();toast("Connecte-toi avec un compte administrateur.");return}
+  if(!S.ap){
+    $("#app").innerHTML='<div class="c"><div class="box">Vérification des droits…</div></div>';
+    const P=["businesses","content","settings","categories","reports"];
+    const rs=await Promise.all(P.map(x=>sb.rpc("is_zack_admin",{perm:x})).concat([sb.rpc("is_main_admin")]));
+    S.ap={};P.forEach((x,i)=>S.ap[x]=rs[i].data===true);S.main=rs[5].data===true;
+    if(S.main)P.forEach(x=>S.ap[x]=true);
   }
-});
-
-/* ============ ESPACE ENTREPRISE ============ */
-function ligneEv(titre="", date="") {
-  const d = document.createElement("div");
-  d.className = "ev";
-  d.innerHTML = `
-    <input placeholder="Nom de l'événement" maxlength="80" value="${esc(titre)}">
-    <input type="date" value="${esc(date)}">
-    <button type="button" class="btn rouge petit" data-a="retirerEv">Retirer</button>
-  `;
-  $("evenements").appendChild(d);
+  if(!Object.keys(S.ap).some(k=>S.ap[k])){S.ap=null;$("#app").innerHTML='<div class="c"><div class="box">Accès réservé aux administrateurs Zack.</div><a class="btn" href="#">Accueil</a></div>';return}
+  const T=[["entreprises","Entreprises","businesses"],["avis","Avis","content"],["signalements","Signalements","reports"],["categories","Catégories","categories"],["utilisateurs","Utilisateurs","businesses"],["parametres","Paramètres","settings"],["journal","Journal",null]].filter(t=>t[2]?S.ap[t[2]]:S.main);
+  const ok=n=>T.some(t=>t[0]===n);
+  tab=ok(tab)?tab:ok(S.atab)?S.atab:T[0][0];S.atab=tab;
+  $("#app").innerHTML='<div class="c"><h2 style="margin-top:0">Administration</h2><div class="tabs">'+T.map(t=>'<button class="btn'+(t[0]===tab?"":" l")+'" onclick="admin(\''+t[0]+'\')">'+t[1]+'</button>').join("")+'</div><div id="mb">Chargement…</div></div>';
+  await({entreprises:aEnt,avis:aAvis,signalements:aRep,categories:aCat,utilisateurs:aUsers,parametres:aSet,journal:aLog})[tab]();
+}
+const aref=()=>admin(S.atab);
+async function aEnt(){
+  const r=await Promise.all([sb.from("businesses").select("id,name,slug,status,category,street,city,created_at").order("created_at",{ascending:false}),sb.from("profiles").select("id",{count:"exact",head:true})]);
+  if(r[0].error)return fail(r[0]);
+  S.adm=r[0].data||[];S.admUsers=r[1].error?null:r[1].count;if(S.af===undefined)S.af="pending";S.aq="";
+  const c={};S.adm.forEach(b=>c[b.status]=(c[b.status]||0)+1);
+  $("#mb").innerHTML='<div class="grid">'+Object.keys(AST).map(k=>'<div class="box" style="margin:0"><b style="font-size:22px">'+(c[k]||0)+'</b><div class="mut">'+AST[k]+'</div></div>').join("")+'<div class="box" style="margin:0"><b style="font-size:22px">'+(S.admUsers==null?"Indisponible":S.admUsers)+'</b><div class="mut">Utilisateurs</div></div></div><h2>Entreprises</h2><select onchange="S.af=this.value;adminList()"><option value="">Tous les statuts</option>'+Object.keys(AST).map(k=>'<option value="'+k+'"'+(S.af===k?" selected":"")+'>'+AST[k]+'</option>').join("")+'</select><input placeholder="Rechercher…" oninput="S.aq=this.value;adminList()"><div id="al"></div>';
+  adminList();
+}
+const abtn=(id,s,t,c)=>`<button class="btn ${c}" onclick="askSet('${id}','${s}')">${t}</button>`;
+function adminList(){
+  const q=norm(S.aq).trim(),l=S.adm.filter(b=>(!S.af||b.status===S.af)&&(!q||norm(b.name+" "+b.category+" "+b.city).includes(q)));
+  $("#al").innerHTML=l.length?l.map(b=>{
+    const st=STAT[b.status]||["",b.status];
+    const act=b.status==="pending"?abtn(b.id,"verified","Valider","t")+abtn(b.id,"rejected","Refuser","l"):b.status==="verified"?abtn(b.id,"suspended","Suspendre","o"):abtn(b.id,"verified","Réactiver","t");
+    return `<div class="box"><b>${esc(b.name)}</b> <span class="bd ${st[0]}">${esc(st[1])}</span><div class="mut">${esc(b.category||"")} · ${esc(place(b))}</div>${act}<button class="btn l" onclick="owners('${b.id}')">Contacts</button>${b.status==="verified"?` <a href="#e/${esc(b.slug)}">Voir la fiche</a>`:""}</div>`;
+  }).join(""):'<div class="mut">Aucune entreprise.</div>';
+}
+function askSet(id,st){
+  if(st==="verified"){doSet(id,st,null);return}
+  modal(`<b>${st==="rejected"?"Refuser":"Suspendre"} cette entreprise</b><label>Motif (enregistré dans le journal)</label><textarea id="rs_m" rows="3" maxlength="1000"></textarea><button class="btn" onclick="doSet('${id}','${st}',$('#rs_m').value)">Confirmer</button><button class="btn l" onclick="closeModal()">Annuler</button>`);
+}
+function doSet(id,st,why){run(async()=>{
+  const r=await sb.rpc("admin_set_business_status",{p_business_id:id,p_status:st,p_reason:(why||"").trim()||null});
+  if(r.error)throw r.error;
+  closeModal();toast("Statut mis à jour.");load();aref();
+})}
+function owners(id){run(async()=>{
+  const r=await sb.rpc("admin_business_owners",{p_business_id:id});if(r.error)throw r.error;
+  modal('<b>Contacts du propriétaire</b>'+((r.data||[]).map(m=>{
+    const w=digits(m.phone);
+    return `<div class="box" style="margin:8px 0"><b>${esc(m.full_name||"Sans nom")}</b> <span class="mut">${esc(m.member_role)}</span><div>${m.phone?`<a class="btn" href="tel:${esc(w)}">Appeler</a><a class="btn t" target="_blank" rel="noopener" href="${esc(waLink(m.phone))}">WhatsApp</a>`:""}${m.email?`<a class="btn l" href="mailto:${esc(m.email)}">Email</a>`:""}${!m.phone&&!m.email?'<span class="mut">Aucun contact renseigné.</span>':""}</div></div>`;
+  }).join("")||'<div class="mut">Aucun membre.</div>')+'<button class="btn l" onclick="closeModal()">Fermer</button>');
+})}
+async function aAvis(){
+  const r=await Promise.all([sb.from("reviews").select("*").order("created_at",{ascending:false}).limit(100),sb.from("businesses").select("id,name")]);
+  if(r[0].error)return fail(r[0]);
+  const nm={};(r[1].data||[]).forEach(b=>nm[b.id]=b.name);
+  const l=r[0].data.slice().sort((x,y)=>(y.status==="pending")-(x.status==="pending"));
+  $("#mb").innerHTML=l.map(x=>{const st=RS[x.status]||["",x.status];return `<div class="box"><b>${esc(nm[x.business_id]||"")}</b> <span style="color:var(--o)">${"★".repeat(x.rating)}${"☆".repeat(5-x.rating)}</span> <span class="bd ${st[0]}">${st[1]}</span><div>${esc(x.content)}</div><div class="mut">${fmt(x.created_at)}</div><button class="btn t" onclick="revSet('${x.id}','approved')">Publier</button><button class="btn l" onclick="revSet('${x.id}','rejected')">Refuser</button><button class="btn l" onclick="delRev('${x.id}')">Supprimer</button></div>`}).join("")||'<div class="mut">Aucun avis.</div>';
+}
+function revSet(id,st){run(async()=>{const r=await sb.from("reviews").update({status:st}).eq("id",id).select("id");if(r.error)throw r.error;if(!r.data.length){toast("Droits insuffisants.");return}aref()})}
+function delRev(id){run(async()=>{if(!confirm("Supprimer cet avis ?"))return;const r=await sb.from("reviews").delete().eq("id",id);if(r.error)throw r.error;aref()})}
+async function aRep(){
+  const r=await Promise.all([sb.from("reports").select("*").order("created_at",{ascending:false}).limit(100),sb.from("businesses").select("id,name,slug,status")]);
+  if(r[0].error)return fail(r[0]);
+  const bz={};(r[1].data||[]).forEach(b=>bz[b.id]=b);
+  const TB={post:["posts","title"],product:["products","name"],promotion:["promotions","title"],service:["services","name"]},tx={};
+  await Promise.all(r[0].data.filter(x=>TB[x.target_type]&&x.target_id).map(async x=>{const g=await sb.from(TB[x.target_type][0]).select("*").eq("id",x.target_id).maybeSingle();tx[x.id]=g.data?(g.data[TB[x.target_type][1]]||g.data.content||"(sans titre)"):null}));
+  const l=r[0].data.slice().sort((x,y)=>(y.status==="open")-(x.status==="open"));
+  const SL={open:["pe","À traiter"],reviewed:["ok","Examiné"],dismissed:["","Rejeté"]};
+  $("#mb").innerHTML=l.map(x=>{const b=bz[x.business_id]||{},st=SL[x.status]||["",x.status],isB=x.target_type==="business";
+    return `<div class="box"><b>${esc(b.name||"Entreprise")}</b> <span class="bd ${st[0]}">${st[1]}</span><div class="mut">${esc(RL[x.reason]||x.reason)} · ${esc(x.target_type)} · ${fmt(x.created_at)}</div>${x.details?`<div>${esc(x.details)}</div>`:""}${!isB?`<div class="mut">Contenu visé : ${tx[x.id]==null?"introuvable (déjà supprimé ?)":esc(String(tx[x.id]).slice(0,120))}</div>`:""}<div>${b.slug&&b.status==="verified"?`<a class="btn l" href="#e/${esc(b.slug)}">Voir la fiche</a>`:""}${!isB&&tx[x.id]!=null?`<button class="btn o" onclick="delTarget('${x.id}','${TB[x.target_type][0]}','${x.target_id}')">Supprimer le contenu</button>`:""}${isB&&S.ap.businesses&&b.status==="verified"?`<button class="btn o" onclick="askSet('${x.business_id}','suspended')">Suspendre</button>`:""}${x.status==="open"?`<button class="btn t" onclick="repSet('${x.id}','reviewed')">Marquer examiné</button><button class="btn l" onclick="repSet('${x.id}','dismissed')">Rejeter</button>`:""}</div></div>`}).join("")||'<div class="mut">Aucun signalement.</div>';
+}
+function repSet(id,st){run(async()=>{const r=await sb.from("reports").update({status:st,handled_by:S.user.id,handled_at:nowIso()}).eq("id",id).select("id");if(r.error)throw r.error;if(!r.data.length){toast("Droits insuffisants.");return}aref()})}
+function delTarget(rid,t,id){run(async()=>{
+  if(!confirm("Supprimer définitivement ce contenu ?"))return;
+  const d=await sb.from(t).delete().eq("id",id).select("id");if(d.error)throw d.error;if(!d.data.length){toast("Rien supprimé : droits insuffisants.");return}
+  await sb.from("reports").update({status:"reviewed",handled_by:S.user.id,handled_at:nowIso()}).eq("id",rid);
+  toast("Contenu supprimé.");aref();
+})}
+async function aCat(){
+  const r=await sb.from("categories").select("*").order("display_order");if(r.error)return fail(r);
+  $("#mb").innerHTML='<div class="box"><b>Nouvelle catégorie</b><label>Nom</label><input id="cn_n"><label>Icône (émoji)</label><input id="cn_i"><label>Ordre</label><input id="cn_o" type="number" value="'+(r.data.length+1)+'"><button class="btn" onclick="addCat()">Ajouter</button></div>'+r.data.map(c=>`<div class="box"><input id="c_n${c.id}" value="${esc(c.name)}"><input id="c_i${c.id}" value="${esc(c.icon||"")}" style="width:80px"><input id="c_o${c.id}" type="number" value="${c.display_order||0}" style="width:90px"> ${c.is_active?"":'<span class="bd no">Désactivée</span>'}<div><button class="btn t" onclick="saveCat('${c.id}')">Enregistrer</button><button class="btn l" onclick="togCat('${c.id}',${!c.is_active})">${c.is_active?"Désactiver":"Réactiver"}</button></div></div>`).join("");
+}
+function addCat(){run(async()=>{const n=$("#cn_n").value.trim();if(!n){toast("Le nom est obligatoire.");return}const r=await sb.from("categories").insert({name:n,icon:$("#cn_i").value.trim()||null,display_order:Number($("#cn_o").value)||0,is_active:true});if(r.error)throw r.error;load();aref()})}
+function saveCat(id){run(async()=>{const n=$("#c_n"+id).value.trim();if(!n){toast("Le nom est obligatoire.");return}const r=await sb.from("categories").update({name:n,icon:$("#c_i"+id).value.trim()||null,display_order:Number($("#c_o"+id).value)||0}).eq("id",id);if(r.error)throw r.error;toast("Enregistré.");load()})}
+function togCat(id,v){run(async()=>{const r=await sb.from("categories").update({is_active:v}).eq("id",id);if(r.error)throw r.error;load();aref()})}
+async function aUsers(){
+  const r=await sb.from("profiles").select("*").order("created_at",{ascending:false}).limit(200);if(r.error)return fail(r);
+  $("#mb").innerHTML='<div class="mut">'+r.data.length+' compte(s) affiché(s). Les emails ne sont pas lisibles ici ; ils apparaissent dans « Contacts » d’une entreprise.</div>'+(r.data.map(u=>`<div class="box"><b>${esc(u.full_name||"Sans nom")}</b>${u.phone?` · ${esc(u.phone)}`:""}<div class="mut">Inscrit le ${fmt(u.created_at)}</div></div>`).join("")||"");
+}
+const cin=(id,v)=>`<input id="${id}" type="color" value="${esc(v)}" style="height:44px">`;
+function aSet(){
+  const t=S.set.theme||{},h=S.set.hero||{},a=S.set.announcement||{},c=S.set.contact||{};
+  $("#mb").innerHTML=`<div class="box"><label>Nom du site</label><input id="st_n" value="${esc(S.set.site_name||"")}"><label>Slogan</label><input id="st_t" value="${esc(S.set.tagline||"")}"><label>Sous-titre</label><input id="st_s" value="${esc(S.set.subtitle||"")}"><label>Titre de l’accueil</label><input id="st_ht" value="${esc(h.title||"")}"><label>Texte de l’accueil</label><textarea id="st_hx" rows="2">${esc(h.text||"")}</textarea><label>Couleurs : bleu, turquoise, orange, gris clair, anthracite</label>${cin("st_c1",t.bleu_profond||"#123B5D")}${cin("st_c2",t.turquoise||"#0E9F9A")}${cin("st_c3",t.orange_dore||"#F4A340")}${cin("st_c4",t.gris_clair||"#F5F7FA")}${cin("st_c5",t.anthracite||"#243447")}<label><input id="st_ae" type="checkbox" style="width:auto;margin:0 6px 0 0"${a.enabled?" checked":""}>Afficher une annonce</label><input id="st_at" placeholder="Texte de l’annonce" value="${esc(a.text||"")}"><label>Téléphone de contact</label><input id="st_cp" value="${esc(c.phone||"")}"><label>Email de contact</label><input id="st_ce" value="${esc(c.email||"")}"><label>Adresse de contact</label><input id="st_ca" value="${esc(c.address||"")}"><button class="btn" onclick="saveSet()">Enregistrer</button></div>`;
+}
+function saveSet(){run(async()=>{
+  const v=x=>$("#"+x).value.trim(),n=(x)=>v(x)||null;
+  const rows=[["site_name",v("st_n")],["tagline",v("st_t")],["subtitle",v("st_s")],
+   ["theme",{bleu_profond:v("st_c1"),turquoise:v("st_c2"),orange_dore:v("st_c3"),gris_clair:v("st_c4"),anthracite:v("st_c5")}],
+   ["hero",Object.assign({},S.set.hero,{title:v("st_ht"),text:v("st_hx")})],
+   ["announcement",{enabled:$("#st_ae").checked,text:v("st_at")}],
+   ["contact",Object.assign({},S.set.contact,{phone:n("st_cp"),email:n("st_ce"),address:n("st_ca")})]
+  ].map(x=>({key:x[0],value:x[1],updated_by:S.user.id}));
+  const r=await sb.from("site_settings").upsert(rows,{onConflict:"key"});if(r.error)throw r.error;
+  rows.forEach(x=>S.set[x.key]=x.value);applyTheme();toast("Paramètres enregistrés.");
+})}
+async function aLog(){
+  const r=await sb.from("admin_audit_log").select("*").order("created_at",{ascending:false}).limit(100);if(r.error)return fail(r);
+  $("#mb").innerHTML=r.data.map(x=>`<div class="box"><b>${esc(x.action)}</b> <span class="mut">${fmt(x.created_at)} · ${esc(x.target_table||"")}</span><div class="mut" style="word-break:break-all">${esc(JSON.stringify(x.details||{}))}</div></div>`).join("")||'<div class="mut">Journal vide.</div>';
 }
 
-async function ouvrirEspace() {
-  if (!sb || !user) return;
-
-  aller("espace");
-  message("msgEspace", "", "info");
-
-  $("qui").textContent = "Connecté : " + user.email;
-  $("evenements").innerHTML = "";
-  $("formEntreprise").reset();
-  $("emailPub").value = user.email;
-  businessId = null;
-
-  try {
-    const { data: membre, error: erreurMembre } = await sb
-      .from("business_members")
-      .select("business_id")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
-
-    if (erreurMembre) throw erreurMembre;
-
-    if (!membre) return;
-
-    businessId = membre.business_id;
-
-    const { data: e, error } = await sb
-      .from("businesses")
-      .select("*")
-      .eq("id", businessId)
-      .single();
-
-    if (error) throw error;
-
-    $("nom").value = e.name || "";
-    $("categorie").value = e.category || CATS[0];
-    $("description").value = e.description || "";
-    $("adresse").value = e.address || "";
-    $("telephone").value = e.phone || "";
-    $("whatsapp").value = e.whatsapp || "";
-    $("emailPub").value = e.email || user.email;
-    $("facebook").value = e.facebook_url || "";
-
-    const { data: produits } = await sb
-      .from("products")
-      .select("name")
-      .eq("business_id", businessId);
-
-    $("produits").value = (produits || []).map(p => p.name).join("\n");
-
-    const { data: evenements } = await sb
-      .from("posts")
-      .select("title,published_at")
-      .eq("business_id", businessId)
-      .eq("post_type", "event");
-
-    (evenements || []).forEach(x => {
-      ligneEv(x.title, x.published_at?.slice(0,10) || "");
-    });
-
-    if (e.status === "pending") {
-      message("msgEspace", "Votre entreprise est en attente de validation. Elle ne sera visible publiquement qu'après approbation.", "info");
-    } else if (e.status === "verified") {
-      message("msgEspace", "Votre entreprise est publiée. Vous pouvez modifier ses informations.", "ok");
-    } else {
-      message("msgEspace", "Votre entreprise n'est pas publiée. Contactez l'administrateur de Zack.", "err");
-    }
-
-  } catch (e) {
-    message("msgEspace", erreurFr(e), "err");
+/* ---------- produits, services, galerie (espace pro) ---------- */
+let ZI=[],GAL=[],busy=false;
+function showImgs(a){modal('<div style="max-height:78vh;overflow:auto">'+a.map(u=>'<img src="'+esc(u)+'" alt="" style="width:100%;border-radius:10px;margin-bottom:8px">').join("")+'</div><button class="btn l" onclick="closeModal()">Fermer</button>')}
+const zoom=k=>showImgs(ZI[k]),zoomG=()=>showImgs(GAL);
+async function run(fn){if(busy){toast("Patiente, action en cours…");return}busy=true;try{await fn()}catch(e){toast("Erreur : "+(e.message||e))}finally{busy=false}}
+function compress(f,max,q){return new Promise((ok,ko)=>{const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const r=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?ok(b):ko(new Error("Compression impossible")),"image/jpeg",q)};im.onerror=()=>ko(new Error("Image illisible"));im.src=u})}
+async function up(bid,sub,f){
+  const b=await compress(f,1280,.78),p=bid+"/"+sub+"/"+Date.now()+"_"+Math.random().toString(36).slice(2,6)+".jpg";
+  const r=await sb.storage.from("zack-public-media").upload(p,b,{contentType:"image/jpeg"});
+  if(r.error)throw r.error;
+  return{path:p,url:sb.storage.from("zack-public-media").getPublicUrl(p).data.publicUrl};
+}
+const refresh=()=>mgr(S.mg.bid,S.mg.tab);
+async function mgr(bid,tab){
+  S.mg={bid:bid,tab:tab};
+  const T=[["produits","Produits"],["services","Services"],["galerie","Galerie"],["publications","Publications"],["promotions","Promotions"],["evenements","Événements"],["archives","Archives"],["avis","Avis"]];
+  $("#app").innerHTML='<div class="c"><button class="btn l" onclick="account()">← Retour</button><div class="tabs" style="margin-top:8px">'+T.map(t=>'<button class="btn'+(t[0]===tab?"":" l")+'" onclick="mgr(\''+bid+'\',\''+t[0]+'\')">'+t[1]+'</button>').join("")+'</div><div id="mb">Chargement…</div></div>';
+  await({produits:mProd,services:mServ,galerie:mGal,publications:mPub,promotions:mPromo,evenements:mEv,archives:mArch,avis:mAvis})[tab](bid);
+}
+function itemForm(prod){
+  return '<label>Nom</label><input id="in_name"><label>Description</label><textarea id="in_desc" rows="2"></textarea><label>Prix (laisser vide si non indiqué)</label><input id="in_price" type="number" min="0" step="any" inputmode="decimal"><label>Devise</label><select id="in_cur"><option>HTG</option><option>USD</option></select>'+(prod?'<label>Photos (5 maximum, la première est la principale)</label><input id="in_files" type="file" accept="image/*" multiple>':'<label>Durée (ex. 30 min)</label><input id="in_dur">');
+}
+async function mProd(bid){
+  const r=await Promise.all([sb.from("products").select("*").eq("business_id",bid).order("created_at",{ascending:false}),sb.from("product_images").select("*").eq("business_id",bid).order("display_order")]);
+  if(r[0].error){$("#mb").textContent="Erreur : "+r[0].error.message;return}
+  const im={};(r[1].data||[]).forEach(i=>(im[i.product_id]=im[i.product_id]||[]).push(i));
+  $("#mb").innerHTML='<div class="box"><b>Nouveau produit</b>'+itemForm(true)+'<button class="btn" onclick="addItem(\''+bid+'\',\'products\')">Ajouter</button></div>'+((r[0].data||[]).map(p=>{
+    const L=im[p.id]||[];
+    return '<div class="box"><b>'+esc(p.name)+'</b> <span class="mut">'+(p.price!=null?esc(p.price)+" "+esc(p.currency):"Prix non indiqué")+'</span> '+(p.is_available?"":'<span class="bd no">Désactivé</span>')+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">'+L.map(i=>'<div style="text-align:center"><img src="'+esc(i.image_url)+'" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:8px;'+(i.is_primary?"outline:3px solid var(--o)":"")+'"><br><span class="lk" style="margin:0" onclick="setPrimary(\''+p.id+'\',\''+i.id+'\')">★</span> <span class="lk" style="margin:0" onclick="delImg(\''+i.id+'\')">✕</span></div>').join("")+'</div>'+
+      (L.length<5?'<input type="file" accept="image/*" multiple onchange="addImgs(\''+bid+'\',\''+p.id+'\','+L.length+',this)">':'<div class="mut">5 photos maximum.</div>')+
+      '<button class="btn l" onclick="togItem(\'products\',\''+p.id+'\','+!p.is_available+')">'+(p.is_available?"Désactiver":"Réactiver")+'</button><button class="btn l" onclick="delItem(\'products\',\''+p.id+'\')">Supprimer</button></div>';
+  }).join("")||'<div class="mut">Aucun produit.</div>');
+}
+async function mServ(bid){
+  const r=await sb.from("services").select("*").eq("business_id",bid).order("created_at",{ascending:false});
+  if(r.error){$("#mb").textContent="Erreur : "+r.error.message;return}
+  $("#mb").innerHTML='<div class="box"><b>Nouveau service</b>'+itemForm(false)+'<button class="btn" onclick="addItem(\''+bid+'\',\'services\')">Ajouter</button></div>'+((r.data||[]).map(p=>'<div class="box"><b>'+esc(p.name)+'</b> <span class="mut">'+(p.price!=null?esc(p.price)+" "+esc(p.currency):"Prix non indiqué")+(p.duration?" · "+esc(p.duration):"")+'</span> '+(p.is_available?"":'<span class="bd no">Désactivé</span>')+'<div><button class="btn l" onclick="togItem(\'services\',\''+p.id+'\','+!p.is_available+')">'+(p.is_available?"Désactiver":"Réactiver")+'</button><button class="btn l" onclick="delItem(\'services\',\''+p.id+'\')">Supprimer</button></div></div>').join("")||'<div class="mut">Aucun service.</div>');
+}
+async function mGal(bid){
+  const r=await sb.from("business_media").select("*").eq("business_id",bid).order("display_order");
+  if(r.error){$("#mb").textContent="Erreur : "+r.error.message;return}
+  $("#mb").innerHTML='<div class="box"><b>Ajouter des photos</b><input id="gf" type="file" accept="image/*" multiple><button class="btn" onclick="addGal(\''+bid+'\','+(r.data||[]).length+')">Envoyer</button></div><div class="grid">'+((r.data||[]).map(m=>'<div class="card"><img class="pimg" src="'+esc(m.media_url)+'" alt=""><button class="btn l" onclick="delGal(\''+m.id+'\')">Supprimer</button></div>').join("")||'<div class="mut">Aucune photo.</div>')+'</div>';
+}
+function addItem(bid,table){run(async()=>{
+  const name=$("#in_name").value.trim();if(!name){toast("Le nom est obligatoire.");return}
+  const pr=$("#in_price").value,row={business_id:bid,name:name,description:$("#in_desc").value.trim()||null,price:pr===""?null:Number(pr),currency:$("#in_cur").value};
+  if(table==="services")row.duration=$("#in_dur").value.trim()||null;
+  const r=await sb.from(table).insert(row).select("id").single();if(r.error)throw r.error;
+  if(table==="products"){const f=$("#in_files").files;if(f.length)await saveImgs(bid,r.data.id,0,f)}
+  toast("Ajouté.");refresh();
+})}
+async function saveImgs(bid,pid,have,files){
+  const l=[].slice.call(files,0,5-have);
+  for(let i=0;i<l.length;i++){
+    const u=await up(bid,"p"+pid,l[i]);
+    const r=await sb.from("product_images").insert({product_id:pid,business_id:bid,image_url:u.url,storage_path:u.path,is_primary:have+i===0,display_order:have+i});
+    if(r.error)throw r.error;
   }
 }
-
-/* ============ ENREGISTREMENT ENTREPRISE ============ */
-$("formEntreprise").addEventListener("submit", async ev => {
-  ev.preventDefault();
-
-  if (!sb || !user) {
-    return message("msgEspace", "Connectez-vous avant d'enregistrer votre entreprise.", "err");
+function addImgs(bid,pid,have,inp){run(async()=>{if(!inp.files.length)return;await saveImgs(bid,pid,have,inp.files);toast("Photos ajoutées.");refresh()})}
+function setPrimary(pid,iid){run(async()=>{
+  let r=await sb.from("product_images").update({is_primary:false}).eq("product_id",pid);if(r.error)throw r.error;
+  r=await sb.from("product_images").update({is_primary:true}).eq("id",iid);if(r.error)throw r.error;
+  refresh();
+})}
+function delImg(iid){run(async()=>{
+  if(!confirm("Supprimer cette photo ?"))return;
+  const g=await sb.from("product_images").select("storage_path,product_id,is_primary").eq("id",iid).single();if(g.error)throw g.error;
+  if(g.data.storage_path)await sb.storage.from("zack-public-media").remove([g.data.storage_path]);
+  const d=await sb.from("product_images").delete().eq("id",iid);if(d.error)throw d.error;
+  if(g.data.is_primary){const n=await sb.from("product_images").select("id").eq("product_id",g.data.product_id).order("display_order").limit(1);if(n.data&&n.data[0])await sb.from("product_images").update({is_primary:true}).eq("id",n.data[0].id)}
+  refresh();
+})}
+function togItem(table,id,val){run(async()=>{const r=await sb.from(table).update({is_available:val}).eq("id",id);if(r.error)throw r.error;refresh()})}
+function delItem(table,id){run(async()=>{
+  if(!confirm("Supprimer définitivement ?"))return;
+  if(table==="products"){
+    const g=await sb.from("product_images").select("storage_path").eq("product_id",id);
+    const ps=(g.data||[]).map(x=>x.storage_path).filter(Boolean);
+    if(ps.length)await sb.storage.from("zack-public-media").remove(ps);
+    const d=await sb.from("product_images").delete().eq("product_id",id);if(d.error)throw d.error;
   }
-
-  const nom = $("nom").value.trim();
-  const categorie = $("categorie").value;
-  const description = $("description").value.trim();
-  const adresse = $("adresse").value.trim();
-  const telephone = $("telephone").value.trim();
-  const whatsapp = $("whatsapp").value.trim();
-  const email = $("emailPub").value.trim();
-  const facebook = lienWeb($("facebook").value.trim());
-
-  if (!(telephone || whatsapp || email || facebook)) {
-    return message("msgEspace", "Ajoutez au moins un moyen de contact.", "err");
+  const r=await sb.from(table).delete().eq("id",id);if(r.error)throw r.error;
+  refresh();
+})}
+function addGal(bid,n){run(async()=>{
+  const f=$("#gf").files;if(!f.length){toast("Choisis au moins une photo.");return}
+  for(let i=0;i<f.length;i++){
+    const u=await up(bid,"g",f[i]);
+    const r=await sb.from("business_media").insert({business_id:bid,media_url:u.url,media_type:"image",display_order:n+i});if(r.error)throw r.error;
   }
+  toast("Photos ajoutées.");refresh();
+})}
+function delGal(id){run(async()=>{
+  if(!confirm("Supprimer cette photo ?"))return;
+  const g=await sb.from("business_media").select("media_url").eq("id",id).single();if(g.error)throw g.error;
+  const k=(g.data.media_url||"").split("/zack-public-media/")[1];
+  if(k)await sb.storage.from("zack-public-media").remove([decodeURIComponent(k)]);
+  const d=await sb.from("business_media").delete().eq("id",id);if(d.error)throw d.error;
+  refresh();
+})}
 
-  try {
-    /* Création initiale : le statut est automatiquement pending */
-    if (!businessId) {
-      const slug = nom.normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "") + "-" + Date.now().toString(36);
 
-      const { error } = await sb.rpc("create_business", {
-        p_name: nom,
-        p_slug: slug,
-        p_description: description || null,
-        p_category: categorie || null,
-        p_address: adresse || null,
-        p_neighborhood: null,
-        p_phone: telephone || null,
-        p_whatsapp: whatsapp || null,
-        p_email: email || null
-      });
+/* ---------- publications, promotions, événements, archives, avis ---------- */
+const nowIso=()=>new Date().toISOString(),dtv=v=>v?new Date(v).toISOString():null;
+const ex=(k)=>`<label>Date d’expiration (facultatif)</label><input id="${k}_e" type="datetime-local"><label>À l’expiration</label><select id="${k}_a"><option value="archive">Archiver (republiable)</option><option value="delete">Supprimer</option></select>`;
+const rowBtns=(t,id,arch)=>`<div><button class="btn l" onclick="${arch?"unarch":"arch"}('${t}','${id}')">${arch?"Republier":"Archiver"}</button><button class="btn l" onclick="delRow('${t}','${id}')">Supprimer</button></div>`;
+const fail=r=>{$("#mb").textContent="Erreur : "+r.error.message};
+async function mPub(bid){
+  const r=await sb.from("posts").select("*").eq("business_id",bid).is("archived_at",null).order("created_at",{ascending:false});
+  if(r.error)return fail(r);
+  $("#mb").innerHTML=`<div class="box"><b>Nouvelle publication</b><label>Type</label><select id="pt_t"><option value="news">Actualité</option><option value="announcement">Annonce</option></select><label>Titre</label><input id="pt_ti"><label>Texte</label><textarea id="pt_c" rows="3"></textarea>${ex("pt")}<button class="btn" onclick="addPost('${bid}')">Publier</button></div>`+(r.data.map(x=>`<div class="box"><b>${esc(x.title||"(sans titre)")}</b> <span class="mut">${x.post_type==="announcement"?"Annonce":"Actualité"}${x.expires_at?" · expire le "+fmt(x.expires_at)+" ("+(x.expire_action==="delete"?"suppression":"archivage")+")":""}</span><div>${esc(x.content)}</div>${rowBtns("posts",x.id)}</div>`).join("")||'<div class="mut">Aucune publication.</div>');
+}
+function addPost(bid){run(async()=>{
+  const c=$("#pt_c").value.trim(),e=dtv($("#pt_e").value);
+  if(!c){toast("Écris le texte de la publication.");return}
+  if(e&&new Date(e)<=new Date()){toast("La date d’expiration doit être dans le futur.");return}
+  const r=await sb.from("posts").insert({business_id:bid,post_type:$("#pt_t").value,title:$("#pt_ti").value.trim()||null,content:c,is_published:true,published_at:nowIso(),expires_at:e,expire_action:$("#pt_a").value});
+  if(r.error)throw r.error;toast("Publié.");refresh();
+})}
+async function mPromo(bid){
+  const r=await sb.from("promotions").select("*").eq("business_id",bid).is("archived_at",null).order("created_at",{ascending:false});
+  if(r.error)return fail(r);
+  $("#mb").innerHTML=`<div class="box"><b>Nouvelle promotion</b><label>Titre</label><input id="pm_ti"><label>Description</label><textarea id="pm_d" rows="2"></textarea><label>Type de réduction</label><select id="pm_t"><option value="percentage">Pourcentage (%)</option><option value="fixed">Montant fixe</option><option value="special">Offre spéciale</option></select><label>Valeur (sauf offre spéciale)</label><input id="pm_v" type="number" min="0" step="any" inputmode="decimal">${ex("pm")}<button class="btn" onclick="addPromo('${bid}')">Publier</button></div>`+(r.data.map(x=>`<div class="box"><b>${esc(x.title)}</b> <span class="mut">${x.discount_type==="percentage"?"-"+x.discount_value+" %":x.discount_type==="fixed"?"-"+x.discount_value:"Offre spéciale"}${x.end_at?" · jusqu’au "+fmt(x.end_at)+" ("+(x.expire_action==="delete"?"suppression":"archivage")+")":""}</span>${x.description?`<div>${esc(x.description)}</div>`:""}${rowBtns("promotions",x.id)}</div>`).join("")||'<div class="mut">Aucune promotion.</div>');
+}
+function addPromo(bid){run(async()=>{
+  const t=$("#pm_ti").value.trim(),ty=$("#pm_t").value,v=$("#pm_v").value,e=dtv($("#pm_e").value);
+  if(!t){toast("Le titre est obligatoire.");return}
+  if(ty!=="special"&&v===""){toast("Indique la valeur de la réduction.");return}
+  if(ty==="percentage"&&Number(v)>100){toast("Un pourcentage ne dépasse pas 100.");return}
+  if(e&&new Date(e)<=new Date()){toast("La date de fin doit être dans le futur.");return}
+  const r=await sb.from("promotions").insert({business_id:bid,title:t,description:$("#pm_d").value.trim()||null,discount_type:ty,discount_value:ty==="special"||v===""?null:Number(v),start_at:nowIso(),end_at:e,is_active:true,expire_action:$("#pm_a").value});
+  if(r.error)throw r.error;toast("Promotion publiée.");refresh();
+})}
+async function mEv(bid){
+  const r=await sb.from("business_events").select("*").eq("business_id",bid).is("archived_at",null).order("start_at",{ascending:false});
+  if(r.error)return fail(r);
+  $("#mb").innerHTML=`<div class="box"><b>Nouvel événement</b><label>Titre</label><input id="ev_ti"><label>Description</label><textarea id="ev_d" rows="2"></textarea><label>Lieu</label><input id="ev_l"><label>Début</label><input id="ev_s" type="datetime-local"><label>Fin (facultatif)</label><input id="ev_f" type="datetime-local"><button class="btn" onclick="addEv('${bid}')">Publier</button></div>`+(r.data.map(x=>`<div class="box"><b>${esc(x.title)}</b> <span class="mut">${fmt(x.start_at)}${x.location?" · "+esc(x.location):""}</span>${x.is_published?"":' <span class="bd no">Non publié</span>'}${rowBtns("business_events",x.id)}</div>`).join("")||'<div class="mut">Aucun événement.</div>');
+}
+function addEv(bid){run(async()=>{
+  const t=$("#ev_ti").value.trim(),s=dtv($("#ev_s").value),f=dtv($("#ev_f").value);
+  if(t.length<2||!s){toast("Titre et date de début obligatoires.");return}
+  if(f&&new Date(f)<=new Date(s)){toast("La fin doit être après le début.");return}
+  const r=await sb.from("business_events").insert({business_id:bid,title:t,description:$("#ev_d").value.trim()||null,location:$("#ev_l").value.trim()||null,start_at:s,end_at:f,is_published:true});
+  if(r.error)throw r.error;toast("Événement publié.");refresh();
+})}
+function arch(t,id){run(async()=>{const r=await sb.from(t).update({archived_at:nowIso()}).eq("id",id);if(r.error)throw r.error;toast("Archivé.");refresh()})}
+function delRow(t,id){run(async()=>{if(!confirm("Supprimer définitivement ?"))return;const r=await sb.from(t).delete().eq("id",id);if(r.error)throw r.error;refresh()})}
+function unarch(t,id){
+  if(t==="business_events"){modal(`<b>Republier l’événement</b><label>Nouvelle date de début</label><input id="rp_s" type="datetime-local"><button class="btn" onclick="repubEv('${id}')">Republier</button><button class="btn l" onclick="closeModal()">Annuler</button>`);return}
+  run(async()=>{
+    const u=t==="posts"?{archived_at:null,is_published:true,expires_at:null,published_at:nowIso()}:{archived_at:null,is_active:true,start_at:nowIso(),end_at:null};
+    const r=await sb.from(t).update(u).eq("id",id);if(r.error)throw r.error;toast("Republié.");refresh();
+  });
+}
+function repubEv(id){run(async()=>{
+  const s=dtv($("#rp_s").value);if(!s||new Date(s)<=new Date()){toast("Choisis une date de début dans le futur.");return}
+  const r=await sb.from("business_events").update({archived_at:null,is_published:true,start_at:s,end_at:null}).eq("id",id);if(r.error)throw r.error;
+  closeModal();toast("Événement republié.");refresh();
+})}
+async function mArch(bid){
+  const q=t=>sb.from(t).select("*").eq("business_id",bid).not("archived_at","is",null).order("archived_at",{ascending:false});
+  const r=await Promise.all([q("posts"),q("promotions"),q("business_events")]);
+  const err=r.find(x=>x.error);if(err)return fail(err);
+  const blk=(h,t,l,f)=>l.length?`<h2>${h}</h2>`+l.map(x=>`<div class="box"><b>${esc(f(x))}</b> <span class="mut">archivé le ${fmt(x.archived_at)}</span>${rowBtns(t,x.id,true)}</div>`).join(""):"";
+  $("#mb").innerHTML=(blk("Publications","posts",r[0].data,x=>x.title||x.content.slice(0,50))+blk("Promotions","promotions",r[1].data,x=>x.title)+blk("Événements","business_events",r[2].data,x=>x.title))||'<div class="mut">Aucune archive.</div>';
+}
+const RS={pending:["pe","En attente"],approved:["ok","Publié"],rejected:["no","Refusé"]};
+async function mAvis(bid){
+  const r=await sb.from("reviews").select("*").eq("business_id",bid).order("created_at",{ascending:false});
+  if(r.error)return fail(r);
+  $("#mb").innerHTML=r.data.map(x=>{const st=RS[x.status]||["",x.status];return `<div class="box"><span style="color:var(--o)">${"★".repeat(x.rating)}${"☆".repeat(5-x.rating)}</span> <span class="bd ${st[0]}">${st[1]}</span>${x.title?`<b>${esc(x.title)}</b>`:""}<div>${esc(x.content)}</div><div class="mut">${fmt(x.created_at)}</div><label>Votre réponse</label><textarea id="rs_${x.id}" rows="2">${esc(x.owner_response||"")}</textarea><button class="btn t" onclick="respond('${x.id}')">Répondre</button></div>`}).join("")||'<div class="mut">Aucun avis.</div>';
+}
+function respond(id){run(async()=>{
+  const t=$("#rs_"+id).value.trim();if(t.length<2){toast("Écris une réponse.");return}
+  const r=await sb.from("reviews").update({owner_response:t,owner_responded_at:nowIso()}).eq("id",id).select("id");
+  if(r.error)throw r.error;if(!r.data.length){toast("Réponse non enregistrée : droits insuffisants.");return}
+  toast("Réponse enregistrée.");
+})}
+function revHtml(b,R){
+  const avg=R.length?(R.reduce((a,x)=>a+x.rating,0)/R.length).toFixed(1):null,st=n=>"★".repeat(n)+"☆".repeat(5-n);
+  return '<h2>Avis'+(avg?" · "+avg+" / 5 ("+R.length+")":"")+'</h2>'+(R.map(x=>`<div class="card" style="margin-bottom:8px"><span style="color:var(--o)">${st(x.rating)}</span>${x.title?` <b style="display:inline">${esc(x.title)}</b>`:""}<div>${esc(x.content)}</div><div class="mut">${fmt(x.created_at)}</div>${x.owner_response?`<div class="mut" style="margin-top:6px;border-left:3px solid var(--t);padding-left:8px"><b style="display:inline">Réponse de l’entreprise :</b> ${esc(x.owner_response)}</div>`:""}</div>`).join("")||'<div class="mut">Aucun avis pour le moment.</div>')+
+  (S.user?`<div class="box" style="margin-top:10px"><b>Donner mon avis</b><label>Note</label><select id="rv_r"><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select><label>Commentaire (10 caractères minimum)</label><textarea id="rv_c" rows="3" maxlength="2000"></textarea><button class="btn" onclick="sendReview('${b.id}')">Envoyer</button></div>`:'<div class="mut">Connecte-toi pour laisser un avis.</div>');
+}
+function sendReview(bid){run(async()=>{
+  const c=$("#rv_c").value.trim();if(c.length<10){toast("Le commentaire doit faire au moins 10 caractères.");return}
+  const r=await sb.from("reviews").insert({business_id:bid,user_id:S.user.id,rating:Number($("#rv_r").value),content:c,status:"pending"});
+  if(r.error)throw r.error;$("#rv_c").value="";toast("Merci ! Ton avis sera visible après validation.");
+})}
 
-      if (error) throw error;
+/* ---------- navigation ---------- */
+function route(){
+  if(!sb)return;
+  const h=location.hash.slice(1);window.scrollTo(0,0);
+  if(h.indexOf("e/")===0)fiche(decodeURIComponent(h.slice(2)));
+  else if(h==="/pro")account();
+  else if(h==="/admin")admin();
+  else{home();if(h==="categories"||h==="entreprises"){const el=document.getElementById(h);if(el)el.scrollIntoView()}}
+}
+window.addEventListener("hashchange",route);
 
-      const { data: membre, error: erreurMembre } = await sb
-        .from("business_members")
-        .select("business_id")
-        .eq("user_id", user.id)
-        .limit(1)
-        .maybeSingle();
-
-      if (erreurMembre) throw erreurMembre;
-      if (!membre) throw new Error("Entreprise créée, mais propriétaire introuvable.");
-
-      businessId = membre.business_id;
-    }
-
-    /* Mise à jour des informations */
-    const { error: erreurUpdate } = await sb
-      .from("businesses")
-      .update({
-        name: nom,
-        category: categorie,
-        description,
-        address: adresse,
-        phone: telephone,
-        whatsapp,
-        email,
-        facebook_url: facebook
-      })
-      .eq("id", businessId);
-
-    if (erreurUpdate) throw erreurUpdate;
-
-    /* Enregistrement des produits */
-    const listeProduits = $("produits").value
-      .split("\n")
-      .map(x => x.trim())
-      .filter(Boolean)
-      .slice(0,50);
-
-    const { error: erreurSuppressionProduits } = await sb
-      .from("products")
-      .delete()
-      .eq("business_id", businessId);
-
-    if (erreurSuppressionProduits) throw erreurSuppressionProduits;
-
-    if (listeProduits.length) {
-      const { error } = await sb.from("products").insert(
-        listeProduits.map(name => ({
-          business_id: businessId,
-          name
-        }))
-      );
-      if (error) throw error;
-    }
-
-    /* Enregistrement des événements */
-    const listeEvenements = [...document.querySelectorAll("#evenements .ev")]
-      .map(r => {
-        const i = r.querySelectorAll("input");
-        return { titre:i[0].value.trim(), date:i[1].value };
-      })
-      .filter(x => x.titre && x.date)
-      .slice(0,20);
-
-    const { error: erreurSuppressionEvents } = await sb
-      .from("posts")
-      .delete()
-      .eq("business_id", businessId)
-      .eq("post_type", "event");
-
-    if (erreurSuppressionEvents) throw erreurSuppressionEvents;
-
-    if (listeEvenements.length) {
-      const { error } = await sb.from("posts").insert(
-        listeEvenements.map(x => ({
-          business_id: businessId,
-          title: x.titre,
-          post_type: "event",
-          is_published: true,
-          published_at: new Date(x.date + "T12:00:00").toISOString()
-        }))
-      );
-      if (error) throw error;
-    }
-
-    await charger();
-    afficher();
-
-    message(
-      "msgEspace",
-      "Informations enregistrées ! Votre entreprise reste en attente de validation avant sa publication.",
-      "ok"
-    );
-
-  } catch (e) {
-    console.error(e);
-    message("msgEspace", erreurFr(e), "err");
-  }
-});
-
-/* ============ ACTIONS ET NAVIGATION ============ */
-const actions = {
-  accueil: () => aller("accueil"),
-
-  compte: () => {
-    if (user) ouvrirEspace();
-    else {
-      modeAuth = "connexion";
-      majAuth();
-      aller("auth");
-    }
-  },
-
-  bascule: () => {
-    modeAuth = modeAuth === "connexion" ? "inscription" : "connexion";
-    majAuth();
-  },
-
-  cat: b => {
-    catActive = b.dataset.v;
-    dessinerCategories();
-    afficher();
-  },
-
-  plus: b => {
-    const p = $("plus" + b.dataset.v);
-    p.hidden = !p.hidden;
-    b.textContent = p.hidden ? "Voir les détails" : "Masquer";
-  },
-
-  ajoutEv: () => ligneEv(),
-
-  retirerEv: b => b.closest(".ev").remove(),
-
-  deconnexion: async () => {
-    if (sb) await sb.auth.signOut();
-    user = null;
-    businessId = null;
-    majNav();
-    aller("accueil");
-  }
-};
-
-document.addEventListener("click", e => {
-  const a = e.target.closest("[data-a]");
-  if (a) actions[a.dataset.a]?.(a);
-});
-
-$("recherche").addEventListener("input", afficher);
-
-majAuth();
-demarrer();
+(async function(){
+  sb=await initSb();
+  if(!sb){$("#app").innerHTML='<div class="c"><div class="box">Impossible de charger le service. Vérifie ta connexion et recharge la page.</div></div>';return}
+  try{await load()}catch(e){toast("Erreur de chargement : "+e.message)}
+  const s=await sb.auth.getSession();S.user=s.data&&s.data.session?s.data.session.user:null;
+  applyTheme();route();
+  sb.auth.onAuthStateChange((ev,sess)=>{
+    const was=S.user&&S.user.id;S.user=sess?sess.user:null;S.ap=null;
+    setTimeout(async()=>{
+      if(S.user&&(S.user.email||"").toLowerCase()===ADMIN_EMAIL&&ev==="SIGNED_IN"){try{await sb.rpc("claim_main_admin")}catch(e){}}
+      applyTheme();
+      if(ev==="PASSWORD_RECOVERY"){recoveryView();return}if(location.hash==="#/pro")account();else if(location.hash==="#/admin")admin();
+    },0);
+  });
+})();
 </script>
 </body>
 </html>
