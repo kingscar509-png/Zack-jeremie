@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getBusinessBySlug } from '~/features/home/home.server'
+import { getBusinessBySlug } from '~/features/home/home.functions'
 import { SiteHeader } from '~/components/layout/SiteHeader'
 
 function safeHttpUrl(value: string | null) {
@@ -30,6 +30,7 @@ function BusinessPage() {
 
   const website = safeHttpUrl(business.website)
   const coverUrl = safeHttpUrl(business.cover_url)
+  const logoUrl = safeHttpUrl(business.logo_url)
   const address = [business.street, business.neighborhood, business.city, business.address]
     .filter(Boolean)
     .join(', ')
