@@ -544,3 +544,18 @@ Aucune intégration e-mail ou WhatsApp n'a été activée et aucune table ni mig
 - Les règles exactes d'invitation, d'identification du livreur, de consentement GPS, de confidentialité et de révocation seront précisées dans la conception technique.
 - Les autorisations devront être appliquées par RLS et par les fonctions serveur concernées, avec des tests négatifs garantissant l'isolation entre entreprises et entre livraisons.
 - Aucune table, politique RLS, fonction serveur ou intégration n'est créée à ce stade.
+
+## 28. Décision confirmée — attribution des livraisons aux livreurs
+
+**Choix retenu : option C — attribution manuelle par défaut et attribution automatique facultative.**
+
+- Par défaut, un responsable autorisé de l'entreprise attribue manuellement chaque livraison à un livreur.
+- L'entreprise peut activer une option d'attribution automatique proposée par Zack.
+- L'attribution automatique ne peut sélectionner que des livreurs actifs, autorisés par l'entreprise et disponibles selon les règles configurées.
+- Les critères précis de disponibilité et de sélection (par exemple charge de travail, statut actif et capacité à accepter une mission) restent à définir avant implémentation ; Zack ne doit pas supposer une disponibilité à partir de la seule présence en ligne.
+- Un responsable autorisé peut reprendre la main, réattribuer ou retirer une mission selon les règles opérationnelles à définir.
+- Chaque attribution, réattribution, retrait et changement de mode doit être contrôlé côté serveur et conservé dans l'historique d'audit.
+- Une même livraison ne doit pas être attribuée simultanément à plusieurs livreurs actifs, sauf décision métier explicite ultérieure.
+- L'attribution automatique doit être fiable et idempotente afin d'éviter les doubles affectations en cas de concurrence ou de nouvelle tentative.
+- L'entreprise conserve le contrôle de l'activation et de la désactivation du mode automatique.
+- Aucune table, politique RLS, fonction serveur ou automatisation n'est créée à ce stade.
