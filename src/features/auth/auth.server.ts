@@ -54,7 +54,7 @@ const businessInput = z.object({
 })
 
 export const createBusiness = createServerFn({ method: 'POST' })
-  .validator((input: z.infer<typeof businessInput>) => businessInput.parse(input))
+  .validator(businessInput)
   .handler(async ({ data }) => {
     const supabase = createSupabaseServerClient()
     const {
