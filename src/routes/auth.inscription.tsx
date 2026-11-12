@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { getSupabaseBrowserClient } from '~/lib/supabase/client'
 import { SiteHeader } from '~/components/layout/SiteHeader'
@@ -15,7 +15,7 @@ function SignUpPage() {
   const [success, setSuccess] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage('')
     setSuccess(false)
