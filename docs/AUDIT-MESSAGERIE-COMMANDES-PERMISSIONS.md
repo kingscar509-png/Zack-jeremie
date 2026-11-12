@@ -76,3 +76,18 @@ Autre possibilité : diviser automatiquement le panier en plusieurs commandes, u
 - Aucune table créée ou supprimée.
 - Aucune donnée modifiée.
 - Le prototype HTML demeure une maquette locale, pas une messagerie ou un système de commande opérationnel.
+
+
+## 6. Décisions confirmées le 12 novembre 2026
+
+- Panier multi-vendeurs : **option B retenue**. Un achat global regroupe une commande indépendante par entreprise vendeuse.
+- Messagerie : **permissions configurables**. Owner/Admin contrôlent les droits ; un Editor n'a aucun accès automatique et doit recevoir les capacités nécessaires.
+- Commandes : **permissions configurables**. Owner/Admin contrôlent les droits ; un Editor n'a aucun accès automatique et doit recevoir les capacités nécessaires.
+- Compte Zack obligatoire pour passer commande.
+- Les commandes restent sans paiement en ligne au lancement.
+
+Le modèle détaillé est décrit dans `docs/MODELE-DONNEES-MULTI-VENDEURS-PERMISSIONS.md`.
+
+**Attention :** le SQL présenté à la section 3 du document initial `SQL-PROPOSITION-MODULES-MANQUANTS-REVUE.md` est désormais obsolète pour les commandes multi-vendeurs et les permissions d'équipe. Il ne doit pas être appliqué. Il doit être remplacé par une proposition SQL versionnée après validation des règles encore ouvertes.
+
+Aucun SQL n'a été exécuté et aucune migration Supabase n'a été appliquée.
