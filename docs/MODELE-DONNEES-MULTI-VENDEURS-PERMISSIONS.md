@@ -476,3 +476,22 @@ Le 12 novembre 2026, l'option B a été retenue : si le vendeur ne répond pas �
 - Au lancement, les paiements de commande se font directement entre le client et l'entreprise, hors Zack. Zack enregistre l'annulation et informe les parties, mais ne déclenche ni ne garantit automatiquement un remboursement.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 24. Décision confirmée — configuration du délai de réponse des vendeurs
+
+Le 12 novembre 2026, l'option C a été retenue : Zack doit pouvoir configurer le délai accordé à un vendeur pour répondre à une commande, avec un choix entre heures calendaires et heures ouvrées.
+
+- Le délai est défini dans les paramètres d'administration de Zack ; les valeurs proposées comprennent notamment 12 h, 24 h, 48 h et 72 h. La liste exacte des valeurs autorisées et la valeur par défaut restent à fixer.
+- Pour chaque configuration, Zack choisit si le compteur utilise les heures calendaires ou les heures ouvrées.
+- En mode heures calendaires, le compteur continue pendant les nuits, les week-ends et les jours fériés.
+- En mode heures ouvrées, le compteur avance uniquement pendant les plages de traitement configurées par l'entreprise (section 22). Les fermetures exceptionnelles doivent être prises en compte selon les règles techniques à finaliser.
+- Le point de départ du délai est l'heure à laquelle la commande vendeur est créée et mise à disposition du vendeur.
+- Le rappel préalable doit être envoyé suffisamment tôt avant l'échéance ; le délai exact du rappel reste à définir dans la configuration.
+- À l'échéance, une tâche serveur vérifie de façon atomique que la commande est toujours en attente de réponse avant de l'annuler automatiquement.
+- La configuration appliquée à une commande doit être conservée comme instantané (durée, mode de calcul et paramètres pertinents), afin qu'une modification ultérieure des paramètres Zack ne change pas rétroactivement le délai déjà accordé.
+- Les paramètres sont modifiables uniquement par les administrateurs Zack autorisés et leurs changements sont journalisés.
+- Le mécanisme doit gérer les commandes créées en dehors des horaires, les fermetures exceptionnelles, les changements de fuseau et les traitements répétés sans double annulation.
+- Le délai exact par défaut, la fréquence de vérification serveur et le délai du rappel préalable seront précisés avant la conception finale des tâches automatisées.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
