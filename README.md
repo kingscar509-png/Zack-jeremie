@@ -44,7 +44,7 @@ npm run preview
 - Recherche serveur des entreprises vérifiées.
 - Fiche publique d'entreprise vérifiée.
 - Inscription, connexion et récupération du mot de passe.
-- Profil personnel.
+- Profil personnel et centre de notifications.
 - Espace professionnel : liste des entreprises gérées et demande de création d'une entreprise.
 - Thèmes clair, sombre et automatique.
 
