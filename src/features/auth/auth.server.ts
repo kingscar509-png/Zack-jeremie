@@ -66,6 +66,31 @@ export const createBusiness = createServerFn({ method: 'POST' })
       return { success: false, message: 'Connectez-vous pour inscrire une entreprise.' }
     }
 
+    // business_members.user_id references profiles.id; the current schema
+    // has no profile-creation trigger, so create the caller's profile if needed.
+    const { data: existingProfile, error: profileReadError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profileReadError) {
+      return { success: false, message: 'Impossible de préparer votre profil. Réessayez plus tard.' }
+    }
+
+    if (!existingProfile) {
+      const metadataName = typeof user.user_metadata?.full_name === 'string'
+        ? user.user_metadata.full_name
+        : null
+      const { error: profileInsertError } = await supabase
+        .from('profiles')
+        .insert({ id: user.id, full_name: metadataName })
+
+      if (profileInsertError) {
+        return { success: false, message: 'Votre profil doit être créé avant de pouvoir inscrire une entreprise.' }
+      }
+    }
+
     const { data: businessId, error } = await supabase.rpc('create_business', {
       p_name: data.name,
       p_slug: data.slug,
