@@ -66,6 +66,10 @@ Ne pas stocker un total global unique si plusieurs commandes utilisent des devis
 - `product_id` nullable pour conserver l'historique si le produit est supprimé/archivé.
 - `product_name` : instantané du nom.
 - `quantity`, `unit_price`, `currency`, `line_total` : valeurs calculées et enregistrées côté serveur au moment de la commande.
+- `status` : `pending`, `accepted` ou `rejected` pour suivre la décision du vendeur sur chaque article.
+- `rejection_reason` : motif obligatoire lorsqu'un article est refusé ; nul pour les articles acceptés ou en attente.
+
+La décision article par article est autorisée : une même commande vendeur peut contenir des lignes acceptées et refusées. Le statut global de la commande doit refléter ces décisions sans effacer l'historique des lignes.
 
 Prévoir une contrainte ou une validation serveur qui garantit que chaque produit appartient au même `business_id` que sa commande. Une simple vérification côté navigateur est insuffisante.
 
@@ -89,7 +93,11 @@ Une clé d'idempotence côté serveur est à prévoir pour éviter les doublons 
 
 - Chaque vendeur ne voit et ne modifie que sa propre commande.
 - Le client voit l'achat global et toutes les commandes vendeurs associées.
-- Chaque entreprise peut accepter, refuser/annuler selon les règles à définir, préparer, marquer prête, puis terminée.
+- Le vendeur examine chaque ligne de sa commande et peut l'accepter ou la refuser indépendamment des autres lignes.
+- Un article refusé doit comporter un motif visible par le client. Les articles acceptés poursuivent leur traitement.
+- La commande vendeur peut donc être partiellement acceptée. Son statut global doit distinguer au minimum une commande en attente de décision, acceptée intégralement, partiellement acceptée, refusée intégralement, en préparation, prête, terminée ou annulée.
+- Le sous-total dû au vendeur est recalculé côté serveur à partir des seules lignes acceptées. Les lignes refusées ne sont pas facturées au client.
+- Les frais de livraison éventuels doivent être confirmés séparément selon la règle de livraison qui reste à décider ; ne pas les calculer automatiquement à partir des lignes refusées.
 - Le statut global du checkout ne doit pas remplacer les statuts individuels.
 - Le statut global doit être calculé à partir des commandes enfants ou mis à jour par une logique serveur fiable ; ne pas laisser le client l'écrire.
 - Les notifications sont envoyées séparément au client et à chaque entreprise concernée.
@@ -198,7 +206,7 @@ Les notifications d'une commande doivent contenir son propre `order_id` et le li
 4. Produit supprimé, indisponible ou prix modifié depuis l'ajout au panier.
 5. Produits de devises différentes dans le même checkout.
 6. Une entreprise en livraison et une autre en retrait.
-7. Échec d'une seule ligne : aucune commande partielle créée si la règle atomique est retenue.
+7. Une ligne refusée par le vendeur : les autres lignes acceptées restent dans la même commande vendeur et leur montant est recalculé.
 8. Double clic ou nouvelle tentative réseau : aucune commande dupliquée.
 9. Client qui tente de lire le checkout d'un autre client.
 10. Vendeur A qui tente de lire commande/ligne de vendeur B.
@@ -212,10 +220,8 @@ Les notifications d'une commande doivent contenir son propre `order_id` et le li
 
 ## 7. Points non décidés — à ne pas inventer
 
-- Un vendeur peut-il refuser une commande entière, ou seulement certains articles ?
 - Les frais de livraison sont-ils définis par le vendeur, négociés après commande ou calculés par zone ?
 - Les commandes multi-devises sont-elles autorisées dans un même checkout ? Recommandation technique : oui, mais afficher des sous-totaux distincts par devise et aucun total converti tant qu'un taux de change fiable n'est défini.
-- Un Editor ayant `messages_reply` doit-il obligatoirement avoir `messages_read` ? Recommandation : oui, l'envoi dans une conversation suppose de pouvoir lire son contexte.
 - Les Owner/Admin doivent-ils voir tous les messages de l'entreprise ou seulement ceux affectés à leur équipe ? Recommandation pour le lancement : tous les messages de l'entreprise pour Owner/Admin, avec journalisation des actions sensibles.
 - L'entreprise doit-elle pouvoir assigner une conversation ou une commande à un agent précis ? Recommandation : prévoir l'affectation plus tard, après les permissions de base.
 
@@ -257,3 +263,19 @@ Le 12 novembre 2026, la règle suivante a été validée :
 - Cette implication doit être appliquée de manière cohérente dans les fonctions d'autorisation serveur et les policies RLS, et couverte par des tests.
 
 Cette règle ne donne accès qu'aux conversations de l'entreprise pour laquelle le membre possède la permission correspondante ; elle ne donne aucun accès aux conversations d'autres entreprises.
+
+
+## 11. Décision confirmée — refus partiel des articles d'une commande
+
+Le 12 novembre 2026, l'option B a été retenue : le vendeur peut accepter ou refuser chaque article individuellement, plutôt que de devoir accepter ou refuser toute la commande vendeur.
+
+- Chaque ligne de commande possède sa propre décision : en attente, acceptée ou refusée.
+- Le vendeur doit fournir un motif lorsqu'il refuse une ligne ; ce motif est transmis au client.
+- Les autres lignes acceptées continuent leur traitement sans être annulées par le refus d'un article.
+- Le montant de la commande est recalculé côté serveur en excluant les lignes refusées. Le navigateur ne décide jamais du montant final.
+- Le statut global de la commande vendeur doit représenter correctement une acceptation partielle ou un refus intégral, tout en conservant les statuts détaillés des lignes.
+- Les notifications au client doivent préciser les articles acceptés et refusés, avec le motif de chaque refus.
+- Les transitions de statut, les recalculs et les notifications sont contrôlés côté serveur et journalisés.
+- Cette règle s'applique à chaque commande vendeur séparément dans un checkout multi-vendeurs ; le résultat d'une entreprise ne modifie pas les commandes des autres entreprises.
+
+Les détails du calcul des frais de livraison après refus partiel restent à définir avec la règle générale de livraison. Aucune migration ni modification Supabase n'a été exécutée.
