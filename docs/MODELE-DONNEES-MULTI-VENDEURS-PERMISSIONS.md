@@ -598,3 +598,52 @@ Aucune intégration e-mail ou WhatsApp n'a été activée et aucune table ni mig
 - Une livraison ne doit jamais être considérée comme acceptée ni être attribuée simultanément à plusieurs livreurs actifs à cause d'une course entre opérations.
 - Les opérations d'acceptation, de refus, d'expiration et de réattribution sont contrôlées côté serveur, idempotentes et journalisées.
 - Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
+
+## 32. Décision confirmée — retards et livraisons échouées
+
+**Choix retenu : option C — signalement par le livreur et solutions proposées selon les règles de l'entreprise.**
+
+- Le livreur peut signaler un retard, une impossibilité de joindre le client, une adresse introuvable, un refus de réception ou tout autre incident prévu.
+- Zack présente les suites possibles selon la situation et les règles configurées par l'entreprise : nouvelle tentative, retour au vendeur, attente d'instructions ou autre solution autorisée.
+- Le signalement ne doit pas déclencher automatiquement une nouvelle tentative sans tenir compte du contexte et des règles de l'entreprise.
+- Le client et l'entreprise sont informés des incidents pertinents.
+- Le motif, les changements de statut, les décisions prises et leurs auteurs sont conservés dans l'historique.
+- Les actions disponibles, délais et responsabilités en cas d'échec restent à préciser avant implémentation.
+- Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
+
+## 33. Décision confirmée — confirmation de réception par le client
+
+**Choix retenu : option C — confirmation du livreur, puis confirmation client avec procédure en cas d'absence de réponse.**
+
+- Le livreur indique que la livraison a été remise au client.
+- Le client est invité à confirmer la réception ou à signaler un problème.
+- Si le client ne répond pas dans un délai défini, Zack peut appliquer une procédure de confirmation automatique.
+- La confirmation automatique ne doit pas empêcher le client de signaler ultérieurement un problème selon une procédure de contestation à définir.
+- Les délais, rappels, conditions de confirmation automatique et durée de contestation restent à préciser.
+- La confirmation du livreur et celle du client sont deux événements distincts, horodatés et conservés dans l'historique.
+- Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
+
+## 34. Décision confirmée — preuves de livraison
+
+**Choix retenu : option D — plusieurs types de preuve configurables par l'entreprise.**
+
+- L'entreprise peut choisir les preuves acceptées ou exigées selon son fonctionnement : code de confirmation, photo, signature ou combinaison de ces méthodes.
+- Le code de confirmation doit être transmis au client par un canal approprié et ne doit pas être devinable ; il est vérifié côté serveur et ne doit pas être exposé dans les interfaces du livreur avant sa saisie par le client.
+- Les photos et signatures sont des données potentiellement sensibles : leur accès doit être limité aux personnes autorisées, leur conservation encadrée et leur suppression soumise à une politique définie.
+- La preuve exigée doit être annoncée avant la livraison et présentée clairement au livreur et au client.
+- Zack conserve le type de preuve, l'horodatage et le lien sécurisé vers la preuve lorsque cela s'applique.
+- Les exigences peuvent varier selon l'entreprise ou le type de livraison ; les détails de consentement, confidentialité, durée de conservation et contestation restent à définir.
+- Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
+
+## 35. Décision confirmée — rémunération des livreurs
+
+**Choix retenu : option C — modes de rémunération configurables, calcul des sommes dues par Zack et paiement direct par l'entreprise.**
+
+- L'entreprise peut configurer plusieurs modes de rémunération, par exemple un montant fixe par livraison, un montant par zone ou un montant calculé selon la distance.
+- Les règles de calcul et leurs périodes d'application doivent être configurées par l'entreprise et conservées avec chaque livraison afin qu'un changement futur de tarif ne modifie pas les sommes déjà acquises.
+- Zack enregistre les livraisons éligibles, calcule les montants dus et présente un historique consultable par les personnes autorisées.
+- Le paiement du livreur reste effectué directement par l'entreprise, en dehors de Zack.
+- Zack peut enregistrer le statut du règlement et les informations justificatives nécessaires, sans prétendre effectuer lui-même le paiement.
+- Les corrections, ajustements et règlements doivent être traçables et journalisés ; un montant déjà calculé ne doit pas être silencieusement modifié.
+- Les règles sur les annulations, livraisons échouées, pourboires, avances, périodes de paie et contestations restent à préciser.
+- Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
