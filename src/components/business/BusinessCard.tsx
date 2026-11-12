@@ -20,7 +20,8 @@ function safeImageUrl(value: string | null) {
 }
 
 export function BusinessCard({ business }: { business: BusinessCardData }) {
-  const location = [business.neighborhood, business.city].filter(Boolean).join(', ')\n  const logoUrl = safeImageUrl(business.logo_url)
+  const location = [business.neighborhood, business.city].filter(Boolean).join(', ')
+  const logoUrl = safeImageUrl(business.logo_url)
 
   return (
     <a className="business-card" href={`/entreprises/${encodeURIComponent(business.slug)}`}>
