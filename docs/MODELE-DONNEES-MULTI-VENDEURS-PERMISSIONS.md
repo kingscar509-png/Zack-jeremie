@@ -406,3 +406,25 @@ Le 12 novembre 2026, l'option A a été retenue : le client peut annuler une com
 Cette règle s'applique à la commande vendeur entière. Le traitement d'une annulation partielle de certaines lignes après validation reste à définir séparément.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 20. Décision confirmée — annulation partielle d'une commande par le vendeur
+
+Le 12 novembre 2026, l'option A a été retenue : après acceptation d'une commande, le vendeur peut annuler un ou plusieurs articles sans annuler toute la commande, à condition de fournir un motif pour chaque article annulé.
+
+- Le vendeur peut sélectionner une ou plusieurs lignes de commande encore actives et demander leur annulation partielle.
+- Un motif non vide est obligatoire pour chaque ligne annulée ; le motif est communiqué au client.
+- Les autres lignes de la commande qui ne sont pas annulées continuent leur traitement normalement.
+- Le client reçoit une notification indiquant précisément les articles annulés et les motifs correspondants.
+- Les montants sont recalculés côté serveur à partir des lignes qui restent acceptées et actives. Le navigateur ne peut pas décider du nouveau total.
+- Les frais de livraison suivent la règle déjà définie : ils restent applicables s'il reste au moins une ligne acceptée à livrer ; ils deviennent nuls si aucune ligne livrée ne reste à traiter.
+- Le serveur vérifie que le vendeur agit sur une commande de sa propre entreprise, qu'il possède la permission de gestion nécessaire et que les lignes ciblées peuvent encore être annulées.
+- La mise à jour des lignes, le recalcul des montants et des frais, l'historique et les notifications doivent être traités de manière atomique ou selon une orchestration fiable côté serveur.
+- Chaque annulation partielle, son auteur, son motif, les lignes concernées et l'horodatage sont conservés dans un historique non effaçable et dans le journal d'audit.
+- L'annulation de lignes par un vendeur ne doit pas annuler les autres lignes de la même commande ni les commandes d'autres vendeurs du checkout global.
+- Une ligne déjà terminée ou déjà annulée ne peut pas être annulée une seconde fois. Les transitions autorisées devront être formalisées dans la machine à états et couvertes par des tests.
+- Au lancement, les paiements de commande se font directement entre le client et l'entreprise, hors Zack. Zack enregistre l'annulation partielle et informe les parties, mais ne déclenche ni ne garantit automatiquement un remboursement.
+
+Cette règle complète les décisions sur le refus d'articles avant acceptation (section 11), les frais de livraison (section 16) et l'annulation de commande entière par le vendeur (section 18). Les états de refus avant acceptation et d'annulation après acceptation doivent rester distincts dans l'historique.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
