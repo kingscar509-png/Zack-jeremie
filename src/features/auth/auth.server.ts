@@ -47,6 +47,7 @@ const businessInput = z.object({
   category: z.string().trim().max(100).optional().default(''),
   address: z.string().trim().max(300).optional().default(''),
   neighborhood: z.string().trim().max(120).optional().default(''),
+  city: z.string().trim().max(120).optional().default(''),
   phone: z.string().trim().max(40).optional().default(''),
   whatsapp: z.string().trim().max(40).optional().default(''),
   email: z.string().trim().email().max(254).or(z.literal('')).optional().default(''),
@@ -84,6 +85,21 @@ export const createBusiness = createServerFn({ method: 'POST' })
         message: error?.code === '23505'
           ? 'Ce nom d’adresse web est déjà utilisé. Essayez un autre nom.'
           : 'Impossible de créer cette fiche pour le moment. Vérifiez les informations et réessayez.',
+      }
+    }
+
+    if (data.city) {
+      const { error: cityError } = await supabase
+        .from('businesses')
+        .update({ city: data.city })
+        .eq('id', businessId)
+      if (cityError) {
+        console.error('Zack business city update failed after creation.')
+        return {
+          success: true,
+          businessId,
+          message: 'Votre demande a été créée, mais la ville n’a pas pu être enregistrée. Elle pourra être complétée dans votre fiche.',
+        }
       }
     }
 
