@@ -54,6 +54,7 @@ Statut : scénarios à exécuter après installation des dépendances et configu
 | AUTH-08 | Modifier son profil | L'utilisateur ne peut modifier que son propre profil via RLS. |
 | AUTH-09 | Se déconnecter | La session est terminée et l'utilisateur revient à l'accueil. |
 | AUTH-10 | Appeler une action sans session | L'action serveur refuse l'opération. |
+| AUTH-11 | Créer un profil lors du premier usage professionnel | La ligne `profiles` est créée uniquement pour l'utilisateur connecté et dans le respect de RLS. |
 
 ## 5. Inscription d'une entreprise
 
@@ -66,6 +67,8 @@ Statut : scénarios à exécuter après installation des dépendances et configu
 | BIZ-05 | Ajouter ville et quartier | La ville est enregistrée dans `businesses.city`, le quartier dans `businesses.neighborhood`. |
 | BIZ-06 | Vérifier la visibilité publique | La nouvelle fiche n'est pas visible avant validation. |
 | BIZ-07 | Mettre à jour une entreprise d'un autre utilisateur | RLS refuse l'opération. |
+| NOT-01 | Ouvrir ses notifications | Seules les notifications de l'utilisateur connecté sont affichées. |
+| NOT-02 | Marquer une notification comme lue | Seule sa propre notification est mise à jour. |
 
 ## 6. Tests d'autorisation RLS obligatoires
 
