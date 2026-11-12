@@ -27,6 +27,7 @@ Branche : `preparation/phase-1-frontend-plan`
 - Inscription et connexion.
 - Récupération et réinitialisation du mot de passe.
 - Profil personnel.
+- Centre de notifications avec marquage comme lu.
 - Espace professionnel : entreprises gérées et demande d'inscription d'une entreprise.
 - Choix de thème clair, sombre ou automatique.
 
