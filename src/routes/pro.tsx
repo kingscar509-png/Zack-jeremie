@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { getCurrentAccount, createBusiness } from '~/features/auth/auth.server'
 import { SiteHeader } from '~/components/layout/SiteHeader'
@@ -25,13 +25,14 @@ function ProfessionalPage() {
   const [description, setDescription] = useState('')
   const [address, setAddress] = useState('')
   const [city, setCity] = useState('')
+  const [neighborhood, setNeighborhood] = useState('')
   const [phone, setPhone] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage('')
     setBusy(true)
@@ -42,7 +43,8 @@ function ProfessionalPage() {
         category,
         description,
         address,
-        neighborhood: city,
+        neighborhood,
+        city,
         phone,
         whatsapp,
         email,
@@ -120,6 +122,8 @@ function ProfessionalPage() {
                 <input id="business-address" maxLength={300} value={address} onChange={(event) => setAddress(event.target.value)} />
                 <label htmlFor="business-city">Ville / commune</label>
                 <input id="business-city" maxLength={120} value={city} onChange={(event) => setCity(event.target.value)} />
+                <label htmlFor="business-neighborhood">Quartier / localité</label>
+                <input id="business-neighborhood" maxLength={120} value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} />
                 <div className="form-columns">
                   <div><label htmlFor="business-phone">Téléphone</label><input id="business-phone" type="tel" maxLength={40} value={phone} onChange={(event) => setPhone(event.target.value)} /></div>
                   <div><label htmlFor="business-whatsapp">WhatsApp</label><input id="business-whatsapp" type="tel" maxLength={40} value={whatsapp} onChange={(event) => setWhatsapp(event.target.value)} /></div>
