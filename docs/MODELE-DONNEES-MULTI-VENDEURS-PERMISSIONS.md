@@ -573,3 +573,16 @@ Aucune intégration e-mail ou WhatsApp n'a été activée et aucune table ni mig
 - Les règles de capacité (nombre maximal de missions simultanées, disponibilité entre deux missions, pauses et situations exceptionnelles) restent à préciser avant implémentation.
 - Les changements de disponibilité et les attributions qui en découlent doivent être horodatés et journalisés.
 - Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
+
+## 30. Décision confirmée — capacité simultanée des livreurs
+
+**Choix retenu : option C — capacité maximale configurable par l'entreprise pour chaque livreur.**
+
+- L'entreprise peut définir le nombre maximal de livraisons simultanées qu'un livreur peut prendre en charge.
+- Cette limite peut varier d'un livreur à l'autre selon l'organisation de l'entreprise.
+- L'attribution automatique doit respecter cette limite et ne pas attribuer une mission supplémentaire lorsque le livreur a atteint sa capacité.
+- La capacité doit être vérifiée côté serveur au moment de l'attribution afin d'éviter les dépassements en cas d'attributions simultanées.
+- Les missions comptabilisées dans la capacité (par exemple attribuées, acceptées, en préparation ou en cours de livraison) et les états qui libèrent une place restent à définir précisément.
+- Les responsables autorisés peuvent modifier la capacité ; les changements sont horodatés et journalisés.
+- Une modification de capacité ne doit pas supprimer ni annuler les missions déjà attribuées.
+- Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
