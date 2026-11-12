@@ -2,7 +2,7 @@
 
 **Date :** 12 novembre 2026  
 **Branche :** `preparation/phase-1-frontend-plan`  
-**Statut :** brouillon de revue — NON EXÉCUTÉ — NON destiné à être appliqué tel quel en production.
+**Statut :** BROUILLON OBSOLÈTE — NON EXÉCUTÉ — NE PAS APPLIQUER. Les décisions multi-vendeurs et permissions du 12 novembre 2026 invalident le modèle de commandes de ce document. Consulter impérativement `docs/MODELE-DONNEES-MULTI-VENDEURS-PERMISSIONS.md` avant toute nouvelle proposition SQL.
 
 Ce document prépare les tables absentes identifiées dans le schéma actuel. Il ne modifie aucune table existante et ne contient aucun secret.
 
@@ -342,3 +342,10 @@ commit;
 - Aucune commande DDL exécutée.
 - Aucune migration Supabase appliquée.
 - Aucune donnée existante modifiée ou supprimée.
+
+
+## 7. Avertissement de version — 12 novembre 2026
+
+Après validation de l'option B (achat global et une commande par entreprise), ainsi que des permissions configurables pour la messagerie et les commandes, le SQL de la section 3 ne représente plus le modèle produit validé. En particulier, il ne contient pas `checkout_batches`, ne relie pas les commandes à un achat global et ne contient pas le modèle `business_member_permissions`.
+
+**Ne pas exécuter ce SQL.** Il est conservé uniquement comme historique de la première proposition. La prochaine version SQL devra être reconstruite à partir du document de conception multi-vendeurs, puis revue et testée avant toute demande d'autorisation de migration.
