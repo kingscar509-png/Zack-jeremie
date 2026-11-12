@@ -372,3 +372,19 @@ Le 12 novembre 2026, l'option A a été retenue : chaque commande vendeur utilis
 - Dans un panier multi-vendeurs, chaque commande vendeur conserve sa propre adresse unique. Les adresses peuvent donc différer d'une entreprise à l'autre si le client les renseigne au niveau de chaque commande vendeur.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 18. Décision confirmée — annulation d'une commande acceptée par le vendeur
+
+Le 12 novembre 2026, l'option A a été retenue : un vendeur peut annuler une commande qu'il a déjà acceptée, mais il doit obligatoirement fournir une raison.
+
+- Le vendeur doit saisir un motif avant de confirmer l'annulation ; le motif ne peut pas être vide.
+- Le client reçoit automatiquement une notification indiquant que la commande a été annulée et présentant le motif communiqué par le vendeur.
+- L'annulation et son motif sont enregistrés dans l'historique de la commande et dans le journal d'audit ; le vendeur ne peut pas effacer cette trace.
+- La transition d'annulation est effectuée côté serveur après vérification des permissions du vendeur et de l'état actuel de la commande.
+- Une commande annulée ne peut pas être réactivée ou modifiée comme si elle était toujours active ; toute éventuelle reprise doit suivre une procédure distincte et auditée.
+- L'annulation d'une commande vendeur ne doit pas annuler automatiquement les commandes des autres entreprises présentes dans le même achat global.
+- Cette décision concerne l'annulation de la commande vendeur entière. Le traitement d'une annulation limitée à un ou plusieurs articles après acceptation reste à préciser séparément.
+- Au lancement, les paiements de commande se font directement entre le client et l'entreprise, hors Zack. Zack enregistre l'annulation et informe les parties, mais ne promet ni n'exécute automatiquement un remboursement.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
