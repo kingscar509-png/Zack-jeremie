@@ -21,8 +21,8 @@ function HomePage() {
             <span className="eyebrow">DÉCOUVRIR · COMPARER · CONTACTER</span>
             <h1>Les bonnes adresses d’Haïti, <span>au même endroit.</span></h1>
             <p>
-              Trouvez des entreprises, des produits et des services partout
-              dans le pays. Zack vous rapproche des professionnels haïtiens.
+              Découvrez des entreprises et leurs coordonnées partout dans le pays.
+              Zack vous rapproche des professionnels haïtiens.
             </p>
             <form className="hero-search" action="/recherche" method="get">
               <label className="sr-only" htmlFor="home-search">
@@ -32,7 +32,7 @@ function HomePage() {
                 id="home-search"
                 name="q"
                 type="search"
-                placeholder="Une entreprise, un produit, un service…"
+                placeholder="Une entreprise, une activité, une localité…"
               />
               <button type="submit">Rechercher</button>
             </form>
