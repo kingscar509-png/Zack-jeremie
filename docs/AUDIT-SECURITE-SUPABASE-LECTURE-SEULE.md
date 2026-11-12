@@ -120,3 +120,20 @@ Ces constats sont basés sur les expressions SQL observées et ne remplacent pas
 - Ne pas révoquer en masse les droits EXECUTE des fonctions SECURITY DEFINER.
 - Toute correction SQL doit être proposée comme migration distincte, expliquée, testable et approuvée avant exécution.
 - Aucune migration ni aucun changement Auth/RLS n'a été effectué pendant cet audit.
+
+
+### S6 — Journal de changement de statut entreprise en double
+
+La lecture des triggers confirme que `businesses` possède un trigger `log_business_status` qui écrit une entrée dans `admin_audit_log` à chaque changement de statut.
+
+La fonction RPC `admin_set_business_status` écrit elle aussi une entrée `business_status_changed` pour le même changement. Lorsque le changement passe par cette RPC, le journal peut donc recevoir deux entrées pour une seule action.
+
+Recommandation : choisir une seule source d'audit pour ce parcours, ou ajouter un mécanisme explicite évitant le doublon. Ne pas supprimer le trigger ni modifier la RPC sans vérifier les autres chemins de changement de statut.
+
+### S7 — Aucun trigger de création de profil observé
+
+Aucun trigger de création automatique de ligne `profiles` n'a été trouvé dans l'inventaire des triggers publics vérifiés.
+
+Or `business_members.user_id` référence `profiles.id`. Une inscription Auth peut donc réussir sans qu'une ligne de profil existe, ce qui risque de faire échouer la création d'entreprise qui ajoute ensuite une ligne dans `business_members`.
+
+Le frontend amorcé vérifie maintenant la présence du profil et le crée pour l'utilisateur connecté avant d'appeler `create_business`. Cette opération reste soumise à la politique RLS de son propre profil. Il faudra aussi tester les inscriptions et confirmations e-mail sur un compte de test.
