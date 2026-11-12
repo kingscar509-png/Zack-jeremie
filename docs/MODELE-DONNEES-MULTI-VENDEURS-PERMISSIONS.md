@@ -457,3 +457,22 @@ Le 12 novembre 2026, l'option A a été retenue : chaque entreprise peut défini
 - Le système doit afficher au client une indication compréhensible lorsque sa commande est reçue hors des horaires habituels, sans promettre une heure exacte de traitement si elle n'est pas confirmée par le vendeur.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 23. Décision confirmée — absence de réponse du vendeur à une commande
+
+Le 12 novembre 2026, l'option B a été retenue : si le vendeur ne répond pas à une commande dans le délai défini par Zack, la commande est automatiquement annulée et le client est informé.
+
+- Zack définit le délai applicable ; sa valeur exacte et son mode de calcul restent à préciser avant l'implémentation.
+- Avant l'annulation automatique, le vendeur reçoit une notification préalable lui signalant qu'il doit traiter la commande avant l'échéance.
+- Si le vendeur accepte ou refuse les articles selon les règles prévues avant l'échéance, l'annulation automatique pour absence de réponse ne s'applique pas à la commande traitée.
+- À l'expiration du délai sans réponse du vendeur, le serveur vérifie l'état courant de la commande et procède à son annulation automatiquement.
+- Le client reçoit une notification indiquant que la commande a été annulée parce que le vendeur n'a pas répondu dans le délai prévu.
+- Le vendeur reçoit également une notification de l'annulation automatique.
+- L'opération, son motif système, son horodatage et les notifications sont conservés dans l'historique et le journal d'audit.
+- L'annulation automatique concerne uniquement la commande vendeur restée sans réponse ; les commandes des autres entreprises du même checkout global ne sont pas affectées.
+- Le mécanisme doit être idempotent et sûr en cas de traitement répété ou de course avec une réponse du vendeur : une commande déjà traitée, annulée ou passée dans un état incompatible ne doit pas être annulée une seconde fois.
+- Le délai doit être cohérent avec les horaires de traitement configurés par l'entreprise (section 22). La règle exacte — temps calendaire ou heures ouvrées, point de départ du compteur et gestion des fermetures exceptionnelles — reste à décider.
+- Au lancement, les paiements de commande se font directement entre le client et l'entreprise, hors Zack. Zack enregistre l'annulation et informe les parties, mais ne déclenche ni ne garantit automatiquement un remboursement.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
