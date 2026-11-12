@@ -328,3 +328,17 @@ Le 12 novembre 2026, l'option C a été retenue : une entreprise peut proposer l
 - La règle exacte de regroupement de ces lignes dans une commande ou plusieurs sous-commandes de remise reste à confirmer avant le SQL final.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 15. Décision confirmée — une commande vendeur peut combiner plusieurs modes de remise
+
+Le 12 novembre 2026, l'option A a été retenue : les produits d'une même entreprise restent dans une seule commande vendeur, même si le client choisit des modes de remise différents selon les produits.
+
+- Chaque ligne de commande conserve son propre mode de remise (`pickup` ou `delivery`).
+- Une commande vendeur peut donc contenir des lignes à retirer sur place et d'autres à livrer.
+- L'interface client doit présenter clairement, pour chaque article, le mode choisi, l'adresse de livraison si nécessaire, et les consignes de retrait le cas échéant.
+- Le vendeur doit pouvoir suivre séparément l'avancement des lignes selon leur mode de remise, sans dupliquer artificiellement la commande.
+- Le statut global de la commande est un résumé calculé à partir des statuts des lignes et de leurs remises ; il ne doit pas masquer qu'une partie est prête au retrait alors qu'une autre est encore en livraison.
+- Les frais de livraison ne s'appliquent qu'aux lignes livrées. La méthode de calcul lorsque plusieurs articles d'une même commande sont livrés ensemble reste à préciser.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
