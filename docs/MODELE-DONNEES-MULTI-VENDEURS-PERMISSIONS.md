@@ -647,3 +647,74 @@ Aucune intégration e-mail ou WhatsApp n'a été activée et aucune table ni mig
 - Les corrections, ajustements et règlements doivent être traçables et journalisés ; un montant déjà calculé ne doit pas être silencieusement modifié.
 - Les règles sur les annulations, livraisons échouées, pourboires, avances, périodes de paie et contestations restent à préciser.
 - Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
+
+
+## 36. Dimensionnement technique et budgétaire — objectif 10 000 entreprises
+
+**Décisions de dimensionnement confirmées le 12 novembre 2026 :**
+- Forfait de développement initial : Supabase Free.
+- Types de fichiers autorisés au lancement : photos uniquement.
+- Objectif de capacité de conception : 10 000 entreprises à l'échelle de Haïti.
+- Ces choix définissent une cible d'architecture ; ils ne constituent pas une garantie de capacité ou de performance sans tests de charge.
+
+### 36.1 Stratégie de montée en charge
+
+- Concevoir les tables, relations, index et politiques RLS pour une portée nationale, sans hypothèse limitée à une ville ou un département.
+- Utiliser Supabase Free pendant la construction et les essais, en surveillant les quotas avant toute ouverture publique importante.
+- Prévoir le passage à Supabase Pro lorsque le stockage, le trafic, la disponibilité ou les besoins de sauvegarde dépassent les limites opérationnelles acceptables du forfait Free.
+- Le passage de forfait doit être une décision budgétaire vérifiée dans le tableau de bord Supabase ; ne pas le déclencher automatiquement.
+- Ne pas traiter 10 000 entreprises comme une limite de lignes de la base de données : la capacité dépend du volume des données, des index, des requêtes, du calcul et du trafic.
+
+### 36.2 Hypothèse de stockage des photos
+
+Scénario de planification de référence :
+- 10 000 entreprises ;
+- maximum initial recommandé de 10 photos par entreprise ;
+- taille moyenne cible après compression : 250 KB par photo ;
+- stockage théorique estimé : environ 25 GB pour les photos.
+
+Cette estimation ne comprend pas les miniatures supplémentaires, les nouvelles versions, les photos de produits au-delà du quota initial, les fichiers temporaires, les sauvegardes ni les autres usages du stockage. Prévoir une marge de sécurité et mesurer la consommation réelle.
+
+### 36.3 Règles initiales pour les médias
+
+- Autoriser uniquement les formats photo nécessaires au lancement : JPEG, PNG et WebP.
+- Refuser les formats non autorisés côté serveur, même si l'interface les masque.
+- Limite de téléversement initiale proposée : 2 MB par fichier avant traitement ; cette limite devra être vérifiée avec l'expérience mobile et les capacités de traitement retenues.
+- Compresser et redimensionner les photos avant stockage ; viser généralement 150 à 250 KB pour les images destinées aux galeries, sans dégrader excessivement leur qualité.
+- Générer des miniatures adaptées aux cartes d'entreprise et aux résultats de recherche.
+- Charger les images à la demande et paginer les galeries ; ne jamais charger toutes les photos de toutes les entreprises dans une seule page.
+- Organiser les chemins de stockage par identifiant d'entreprise et appliquer des contrôles d'accès cohérents avec les droits de l'entreprise.
+- Ne jamais faire confiance au nom, à l'extension ou au type MIME déclarés par le navigateur sans validation.
+- Définir une politique de suppression, de remplacement et de conservation des médias avant la production.
+
+### 36.4 Performance et recherche nationale
+
+- Paginer les annuaires, produits, services, publications et résultats de recherche.
+- Ajouter les index correspondant aux filtres et tris réellement utilisés : entreprise, catégorie, commune, département, statut de vérification et date de publication, selon le schéma final.
+- Éviter les requêtes répétées pour chaque carte d'entreprise ; sélectionner uniquement les champs nécessaires.
+- Prévoir le cache des médias et des contenus publics qui changent peu.
+- Tester les parcours avec plusieurs milliers d'entreprises de test et des volumes réalistes de photos.
+- Réaliser des tests de charge sur la recherche, les pages d'entreprise, les galeries, l'authentification et les parcours de commande avant le lancement national.
+
+### 36.5 Budget de référence — à revalider avant production
+
+- Supabase Free : 0 USD/mois pendant la construction, sous réserve des quotas et conditions du plan.
+- Supabase Pro : budget de base indicatif de 25 USD/mois au tarif de référence consulté le 12 novembre 2026 ; le tarif et les quotas doivent être revérifiés dans la page officielle avant souscription.
+- Projection indicative Pro sur 12 mois : 300 USD, hors dépassements, taxes éventuelles, hébergement frontend, domaine, e-mail, WhatsApp, transformations d'images et autres services externes.
+- Le coût réel dépend notamment du stockage, de la bande passante, du calcul, des transformations d'images, des sauvegardes et du trafic.
+- Ne pas présenter 25 USD/mois comme un coût total garanti de Zack : il s'agit uniquement du prix de base de Supabase Pro dans cette hypothèse.
+
+### 36.6 Seuils de surveillance et décision de migration
+
+Avant l'ouverture publique, définir des alertes internes et examiner régulièrement :
+- utilisation de la base de données ;
+- stockage des photos ;
+- bande passante et trafic mis en cache ;
+- transformations d'images ;
+- utilisateurs actifs ;
+- calcul et connexions simultanées ;
+- erreurs, latence et échecs de téléversement.
+
+Préparer la migration du forfait avant d'atteindre les quotas, en vérifiant les coûts projetés et les besoins de disponibilité. Le forfait Free peut convenir au prototype et aux premiers essais, mais ne doit pas être considéré comme le plan de production garanti pour 10 000 entreprises.
+
+**Statut :** décision de dimensionnement documentée ; aucune table, migration, donnée, configuration ou ressource Supabase n'a été modifiée ou créée par cette section.
