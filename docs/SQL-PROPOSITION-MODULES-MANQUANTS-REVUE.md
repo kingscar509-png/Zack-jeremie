@@ -149,7 +149,7 @@ create table public.orders (
   id uuid primary key default gen_random_uuid(),
   order_number text not null unique,
   business_id uuid not null references public.businesses(id) on delete restrict,
-  customer_id uuid references auth.users(id) on delete set null,
+  customer_id uuid not null references auth.users(id) on delete restrict,
   customer_name text not null check (char_length(trim(customer_name)) between 2 and 120),
   customer_phone text not null check (char_length(trim(customer_phone)) between 6 and 40),
   fulfillment_method text not null
@@ -319,7 +319,7 @@ commit;
 
 1. **RLS messages :** décider si les utilisateurs peuvent modifier/supprimer leurs messages, et si une entreprise peut avoir plusieurs agents dans une même conversation.
 2. **Premier contact invité :** choisir le mécanisme anti-spam (limitation par IP/empreinte côté Edge Function, CAPTCHA ou autre). Ne jamais exposer l'API d'insertion de cette table aux visiteurs.
-3. **Commandes :** confirmer que les commandes nécessitent un compte Zack. Le formulaire de la maquette inclut nom et téléphone, mais le parcours invité n'est pas encore arrêté pour les commandes.
+3. **Commandes :** décision confirmée : un compte Zack est obligatoire pour passer une commande. La colonne `customer_id` est donc obligatoire et liée à `auth.users`. Le nom et le téléphone restent enregistrés comme instantané des coordonnées utilisées au moment de la commande.
 4. **Commande serveur :** définir une Edge Function qui vérifie disponibilité, devise, prix et appartenance de chaque produit à la même entreprise, puis calcule les montants.
 5. **Abonnements :** confirmer les plans, les prix, les durées, les avantages et les règles de renouvellement. Aucun plan n'est inséré.
 6. **MonCash :** obtenir et vérifier les spécifications d'intégration et les accès marchands officiels avant d'écrire l'Edge Function.
@@ -331,13 +331,14 @@ commit;
 - Les policies de lecture utilisent la fonction existante `is_business_manager(uuid)`, qui doit être testée pour chaque rôle réel avant mise en service.
 - La table `guest_contact_requests` n'a volontairement aucune policy publique. L'Edge Function de réception n'est pas encore écrite.
 - Les tables de conversations et participants n'ont pas de policies d'écriture client. Une fonction serveur devra créer la conversation et ses participants de façon atomique.
-- Les commandes et paiements ne disposent pas encore de fonctions serveur de création/transition.
+- Les commandes exigent un compte Zack ; elles ne disposent pas encore de fonctions serveur de création/transition.
 - Les tables ont RLS activée mais l'accès via Data API et les privilèges SQL doivent être contrôlés au moment du déploiement.
 - Les politiques de ce brouillon sont un premier cadre et pas une certification de sécurité. Elles devront être testées et ajustées avant lancement.
 
 ## 6. Historique
 
 - SQL rédigé dans un document de revue sur la branche de préparation.
+- Décision confirmée : compte Zack obligatoire pour toute commande ; `orders.customer_id` est non nullable.
 - Aucune commande DDL exécutée.
 - Aucune migration Supabase appliquée.
 - Aucune donnée existante modifiée ou supprimée.
