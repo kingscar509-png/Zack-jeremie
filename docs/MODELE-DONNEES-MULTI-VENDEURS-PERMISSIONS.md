@@ -559,3 +559,17 @@ Aucune intégration e-mail ou WhatsApp n'a été activée et aucune table ni mig
 - L'attribution automatique doit être fiable et idempotente afin d'éviter les doubles affectations en cas de concurrence ou de nouvelle tentative.
 - L'entreprise conserve le contrôle de l'activation et de la désactivation du mode automatique.
 - Aucune table, politique RLS, fonction serveur ou automatisation n'est créée à ce stade.
+
+## 29. Décision confirmée — disponibilité des livreurs
+
+**Choix retenu : option C — disponibilité déclarée par le livreur et disponibilité opérationnelle calculée par Zack.**
+
+- Le livreur peut indiquer manuellement s'il est disponible ou indisponible pour recevoir de nouvelles missions.
+- Zack tient également compte des missions déjà attribuées et de leur état avant de proposer ce livreur pour une nouvelle livraison.
+- Le simple fait d'être connecté à Zack ne signifie pas que le livreur est disponible.
+- Un livreur indisponible ne doit pas recevoir de nouvelle attribution automatique, sauf action explicite d'un responsable autorisé selon les règles à définir.
+- L'interface doit distinguer clairement le choix du livreur (disponible/indisponible) de sa charge réelle de missions.
+- La disponibilité opérationnelle doit être recalculée côté serveur et ne pas dépendre uniquement d'une valeur contrôlée par le navigateur.
+- Les règles de capacité (nombre maximal de missions simultanées, disponibilité entre deux missions, pauses et situations exceptionnelles) restent à préciser avant implémentation.
+- Les changements de disponibilité et les attributions qui en découlent doivent être horodatés et journalisés.
+- Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
