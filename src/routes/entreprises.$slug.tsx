@@ -28,7 +28,9 @@ function BusinessPage() {
     return <><SiteHeader /><main className="content-page"><h1>Entreprise introuvable</h1><a href="/recherche">Retour à la recherche</a></main></>
   }
 
-  const website = safeHttpUrl(business.website)\n  const coverUrl = safeHttpUrl(business.cover_url)\n  const address = [business.street, business.neighborhood, business.city, business.address]
+  const website = safeHttpUrl(business.website)
+  const coverUrl = safeHttpUrl(business.cover_url)
+  const address = [business.street, business.neighborhood, business.city, business.address]
     .filter(Boolean)
     .join(', ')
 
