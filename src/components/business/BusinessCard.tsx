@@ -9,8 +9,18 @@ type BusinessCardData = {
   description: string | null
 }
 
+function safeImageUrl(value: string | null) {
+  if (!value) return null
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' ? url.toString() : null
+  } catch {
+    return null
+  }
+}
+
 export function BusinessCard({ business }: { business: BusinessCardData }) {
-  const location = [business.neighborhood, business.city].filter(Boolean).join(', ')
+  const location = [business.neighborhood, business.city].filter(Boolean).join(', ')\n  const logoUrl = safeImageUrl(business.logo_url)
 
   return (
     <a className="business-card" href={`/entreprises/${encodeURIComponent(business.slug)}`}>
