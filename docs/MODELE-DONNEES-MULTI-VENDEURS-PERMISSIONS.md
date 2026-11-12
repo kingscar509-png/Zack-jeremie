@@ -515,3 +515,17 @@ Le 12 novembre 2026, l'option C a été retenue : les clients doivent pouvoir re
 - Les préférences, consentements, désabonnements et changements de coordonnées doivent être horodatés et protégés.
 
 Aucune intégration e-mail ou WhatsApp n'a été activée et aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+## 26. Décision confirmée — suivi de livraison
+
+**Choix retenu : option C — suivi simple par défaut et GPS facultatif activé par l’entreprise.**
+
+- Le suivi simple est disponible par défaut : l’entreprise ou un membre autorisé met à jour les statuts de livraison (par exemple « En livraison », puis « Livrée »).
+- Le suivi GPS en temps réel est une option facultative que l’entreprise peut activer si elle dispose de livreurs équipés et d’une organisation adaptée.
+- Lorsque le GPS est activé pour une livraison, le client peut visualiser le déplacement du livreur sur une carte.
+- Une entreprise qui ne dispose pas de suivi GPS peut utiliser uniquement les mises à jour manuelles de statut.
+- L’interface client doit clairement distinguer un statut manuel d’une position GPS en direct et ne jamais présenter une position ancienne comme étant en temps réel.
+- Le partage de position doit être limité à la livraison concernée, activé explicitement et arrêté à la fin ou à l’annulation de celle-ci.
+- L’accès à la position doit être réservé au client concerné et aux personnes autorisées pour cette commande. Les règles d’accès doivent être appliquées côté serveur.
+- La disponibilité, la fréquence et la précision des positions dépendent du téléphone, du réseau et des autorisations GPS du livreur ; Zack doit prévoir un état de repli vers le suivi simple si la position n’est pas disponible.
+- Aucune intégration GPS, table, politique RLS ou fonction serveur n’est créée à ce stade. Les détails techniques seront conçus après finalisation des décisions métier et revue de sécurité.
