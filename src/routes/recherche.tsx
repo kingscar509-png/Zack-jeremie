@@ -26,7 +26,7 @@ function SearchPage() {
         <form className="page-search" action="/recherche" method="get">
           <label className="sr-only" htmlFor="search-query">Votre recherche</label>
           <input id="search-query" name="q" type="search" defaultValue={q}
-            placeholder="Nom, activité, produit ou service…" />
+            placeholder="Nom, activité ou localité…" />
           <button type="submit">Rechercher</button>
         </form>
 
