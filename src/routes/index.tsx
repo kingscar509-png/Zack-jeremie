@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getHomeData } from '~/features/home/home.server'
+import { getHomeData } from '~/features/home/home.functions'
 import { SiteHeader } from '~/components/layout/SiteHeader'
 import { BusinessCard } from '~/components/business/BusinessCard'
 import { ThemeSwitcher } from '~/components/layout/ThemeSwitcher'
