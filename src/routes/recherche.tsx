@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import { searchBusinesses } from '~/features/home/home.server'
+import { searchBusinesses } from '~/features/home/home.functions'
 import { SiteHeader } from '~/components/layout/SiteHeader'
 import { BusinessCard } from '~/components/business/BusinessCard'
 
