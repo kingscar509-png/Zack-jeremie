@@ -2,6 +2,16 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getBusinessBySlug } from '~/features/home/home.server'
 import { SiteHeader } from '~/components/layout/SiteHeader'
 
+function safeHttpUrl(value: string | null) {
+  if (!value) return null
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : null
+  } catch {
+    return null
+  }
+}
+
 export const Route = createFileRoute('/entreprises/$slug')({
   loader: ({ params }) => getBusinessBySlug({ data: params.slug }),
   component: BusinessPage,
@@ -18,7 +28,7 @@ function BusinessPage() {
     return <><SiteHeader /><main className="content-page"><h1>Entreprise introuvable</h1><a href="/recherche">Retour à la recherche</a></main></>
   }
 
-  const address = [business.street, business.neighborhood, business.city, business.address]
+  const website = safeHttpUrl(business.website)\n  const coverUrl = safeHttpUrl(business.cover_url)\n  const address = [business.street, business.neighborhood, business.city, business.address]
     .filter(Boolean)
     .join(', ')
 
@@ -27,8 +37,8 @@ function BusinessPage() {
       <SiteHeader />
       <main className="content-page">
         <a className="back-link" href="/recherche">← Retour à l’annuaire</a>
-        {business.cover_url ? (
-          <div className="business-cover" style={{ backgroundImage: `url("${business.cover_url}")` }} />
+        {coverUrl ? (
+          <img className="business-cover-image" src={coverUrl} alt={`Couverture de ${business.name}`} />
         ) : null}
         <div className="business-profile">
           <div className="business-avatar business-avatar-large">
@@ -50,8 +60,8 @@ function BusinessPage() {
           {business.phone ? <p>Téléphone : <a href={`tel:${business.phone}`}>{business.phone}</a></p> : null}
           {business.whatsapp ? <p>WhatsApp : <a href={`https://wa.me/${business.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer">{business.whatsapp}</a></p> : null}
           {business.email ? <p>Email : <a href={`mailto:${business.email}`}>{business.email}</a></p> : null}
-          {business.website ? <p>Site web : <a href={business.website} target="_blank" rel="noreferrer">{business.website}</a></p> : null}
-          {!address && !business.phone && !business.whatsapp && !business.email && !business.website
+          {website ? <p>Site web : <a href={website} target="_blank" rel="noreferrer">{website}</a></p> : null}
+          {!address && !business.phone && !business.whatsapp && !business.email && !website
             ? <p className="muted">Aucune coordonnée publique renseignée.</p>
             : null}
         </section>
