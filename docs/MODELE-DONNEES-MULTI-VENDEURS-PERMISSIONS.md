@@ -428,3 +428,17 @@ Le 12 novembre 2026, l'option A a été retenue : après acceptation d'une comma
 Cette règle complète les décisions sur le refus d'articles avant acceptation (section 11), les frais de livraison (section 16) et l'annulation de commande entière par le vendeur (section 18). Les états de refus avant acceptation et d'annulation après acceptation doivent rester distincts dans l'historique.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 21. Décision confirmée — modification d'une commande après validation
+
+Le 12 novembre 2026, l'option A a été retenue : le client ne peut pas modifier directement une commande après sa validation.
+
+- Après validation, le client ne peut pas changer les produits, les quantités, les modes de remise, l'adresse ou les autres éléments de la commande existante.
+- Si le client souhaite changer sa demande, il doit annuler la commande ou les lignes concernées selon les règles d'annulation applicables, puis créer une nouvelle commande avec les informations correctes.
+- Une nouvelle commande est soumise à une nouvelle vérification de disponibilité, de prix, de frais de livraison et d'acceptation par le vendeur.
+- Les références et l'historique de l'ancienne commande restent conservés ; la nouvelle commande ne remplace ni ne réécrit l'ancienne.
+- Cette règle évite les modifications concurrentes et préserve la traçabilité des prix, quantités, adresses et décisions du vendeur.
+- Les éventuelles corrections administratives exceptionnelles devront suivre une procédure distincte, autorisée et auditée ; elles ne constituent pas une modification libre par le client.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
