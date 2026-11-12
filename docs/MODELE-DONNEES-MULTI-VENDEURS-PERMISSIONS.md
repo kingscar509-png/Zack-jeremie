@@ -56,6 +56,8 @@ Ne pas stocker un total global unique si plusieurs commandes utilisent des devis
 - `customer_name`, `customer_phone` : instantanés des coordonnées au moment de l'achat.
 - `fulfillment_method` : résumé de la méthode ou des méthodes utilisées dans cette commande (`pickup`, `delivery` ou `mixed`), à calculer côté serveur à partir des lignes.
 - `delivery_address` : adresse commune aux lignes livrées de cette commande, si toutes les lignes livrées partagent la même adresse ; les règles de plusieurs adresses restent à définir.
+- `delivery_fee` : frais de livraison facturés une seule fois pour la commande vendeur lorsqu'au moins une ligne acceptée doit être livrée ; zéro si aucune ligne livrée ne reste à traiter. Montant calculé côté serveur et enregistré comme instantané.
+- `delivery_fee_currency` : devise des frais, cohérente avec la devise de la commande.
 - `customer_note`.
 - `status` : `submitted`, `accepted`, `preparing`, `ready`, `completed`, `cancelled` ; transitions contrôlées côté serveur.
 - `currency` et `subtotal` : montants de cette commande uniquement.
@@ -82,9 +84,10 @@ Une seule Edge Function de validation de panier doit :
 3. relire chaque produit dans Supabase, vérifier qu'il existe, est disponible, appartient à une entreprise autorisée et que sa devise/prix sont cohérents ;
 4. regrouper les lignes par `business_id` ;
 5. calculer les prix, sous-totaux et montants à partir des données serveur, jamais des totaux fournis par le navigateur ;
-6. créer le `checkout_batch`, toutes les commandes vendeurs et leurs lignes dans une transaction atomique ;
-7. attribuer des numéros de référence uniques ;
-8. retourner au client le récapitulatif de toutes les commandes créées.
+6. calculer les frais de livraison une seule fois par commande vendeur, selon la zone et le tarif configurés par l'entreprise, uniquement si au moins une ligne acceptée doit être livrée ;
+7. créer le `checkout_batch`, toutes les commandes vendeurs et leurs lignes dans une transaction atomique ;
+8. attribuer des numéros de référence uniques ;
+9. retourner au client le récapitulatif de toutes les commandes créées.
 
 Si une entreprise ou un produit échoue à la validation, la règle recommandée au lancement est de refuser toute la validation et d'expliquer au client les lignes à corriger, plutôt que de créer silencieusement une commande partielle.
 
@@ -98,16 +101,17 @@ Une clé d'idempotence côté serveur est à prévoir pour éviter les doublons 
 - Un article refusé doit comporter un motif visible par le client. Les articles acceptés poursuivent leur traitement.
 - La commande vendeur peut donc être partiellement acceptée. Son statut global doit distinguer au minimum une commande en attente de décision, acceptée intégralement, partiellement acceptée, refusée intégralement, en préparation, prête, terminée ou annulée.
 - Le sous-total dû au vendeur est recalculé côté serveur à partir des seules lignes acceptées. Les lignes refusées ne sont pas facturées au client.
-- Les frais de livraison éventuels doivent être confirmés séparément selon la règle de livraison qui reste à décider ; ne pas les calculer automatiquement à partir des lignes refusées.
+- Les frais de livraison sont facturés une seule fois pour toute la commande vendeur, et non pour chaque produit livré. Les lignes en retrait ne génèrent aucun frais de livraison.
+- En cas de refus partiel, le frais unique est conservé si au moins une ligne acceptée reste à livrer ; il devient nul si aucune ligne livrée ne reste à traiter. Toute modification est recalculée côté serveur et communiquée au client.
 - Le statut global du checkout ne doit pas remplacer les statuts individuels.
 - Le statut global doit être calculé à partir des commandes enfants ou mis à jour par une logique serveur fiable ; ne pas laisser le client l'écrire.
 - Les notifications sont envoyées séparément au client et à chaque entreprise concernée.
 - Chaque entreprise définit à l'avance ses propres tarifs de livraison, avec la possibilité de différencier les prix selon les zones desservies.
-- Les tarifs, zones et éventuelles conditions de livraison sont affichés au client avant la validation de la commande.
+- Les tarifs et conditions applicables sont affichés au client avant la validation de la commande.
 - Dans un checkout multi-vendeurs, les frais de livraison sont calculés séparément pour chaque commande vendeur ; Zack ne fusionne pas les tarifs de plusieurs entreprises.
-- Les frais applicables doivent être enregistrés comme instantané sur la commande au moment de sa validation, afin de conserver l'historique même si le vendeur modifie ses tarifs plus tard.
+- Le tarif applicable est enregistré comme instantané sur la commande au moment de sa validation, afin de conserver l'historique même si le vendeur modifie ses tarifs plus tard.
 - Si l'adresse du client ne correspond à aucune zone desservie, le client ne peut pas sélectionner la livraison pour cette commande ; une option de retrait peut être proposée si le vendeur l'offre.
-- Une commande d'une entreprise peut contenir des lignes en retrait et des lignes en livraison si la règle de regroupement correspondante est confirmée.
+- Une commande d'une entreprise peut contenir des lignes en retrait et des lignes en livraison : les frais ne concernent que les lignes livrées, avec un seul frais pour la commande.
 
 ## 3. Permissions configurables pour les équipes
 
@@ -211,23 +215,26 @@ Les notifications d'une commande doivent contenir son propre `order_id` et le li
 4. Produit supprimé, indisponible ou prix modifié depuis l'ajout au panier.
 5. Produits de devises différentes dans le même checkout.
 6. Une entreprise en livraison et une autre en retrait.
-7. Produits d'une même entreprise avec des modes de retrait/livraison différents, selon la règle de regroupement à confirmer.
-7. Une ligne refusée par le vendeur : les autres lignes acceptées restent dans la même commande vendeur et leur montant est recalculé.
-8. Double clic ou nouvelle tentative réseau : aucune commande dupliquée.
-9. Client qui tente de lire le checkout d'un autre client.
-10. Vendeur A qui tente de lire commande/ligne de vendeur B.
-11. Editor sans permission, avec lecture seule, avec gestion des commandes.
-12. Editor avec `messages_read` sans `messages_reply`, puis l'inverse.
-13. Permission retirée pendant qu'une session est ouverte : le prochain accès doit être refusé côté serveur/RLS.
-14. Membre retiré de l'entreprise : plus aucun accès métier.
-15. Owner/Admin qui accorde et retire une permission ; Editor qui tente de le faire.
-16. Visiteur anonyme qui tente d'appeler directement les tables privées.
-17. Conversion d'une demande de contact invité en conversation privée.
+7. Produits d'une même entreprise avec des modes de retrait/livraison différents.
+8. Une ligne refusée par le vendeur : les autres lignes acceptées restent dans la même commande vendeur et leur montant est recalculé.
+9. Plusieurs lignes livrées dans une même commande : un seul frais de livraison est facturé.
+10. Commande mixte retrait/livraison : aucune livraison facturée pour les lignes en retrait.
+11. Refus de toutes les lignes livrées : le frais de livraison devient nul si aucune livraison ne reste.
+12. Double clic ou nouvelle tentative réseau : aucune commande dupliquée.
+13. Client qui tente de lire le checkout d'un autre client.
+14. Vendeur A qui tente de lire commande/ligne de vendeur B.
+15. Editor sans permission, avec lecture seule, avec gestion des commandes.
+16. Editor avec `messages_read` sans `messages_reply`, puis l'inverse.
+17. Permission retirée pendant qu'une session est ouverte : le prochain accès doit être refusé côté serveur/RLS.
+18. Membre retiré de l'entreprise : plus aucun accès métier.
+19. Owner/Admin qui accorde et retire une permission ; Editor qui tente de le faire.
+20. Visiteur anonyme qui tente d'appeler directement les tables privées.
+21. Conversion d'une demande de contact invité en conversation privée.
 
 ## 7. Points non décidés — à ne pas inventer
 
-- Les frais de livraison sont-ils définis par le vendeur, négociés après commande ou calculés par zone ?
-- Les commandes multi-devises sont-elles autorisées dans un même checkout ? Recommandation technique : oui, mais afficher des sous-totaux distincts par devise et aucun total converti tant qu'un taux de change fiable n'est défini.
+- La gestion de plusieurs adresses de livraison différentes au sein d'une même commande vendeur reste à définir. Le modèle actuel part sur une adresse commune pour les lignes livrées.
+- Les commandes multi-devises sont-elles autorisées dans un même checkout ? Recommandation technique : oui, mais afficher des sous-totaux distincts par devise et aucun total converti tant qu'un taux de change fiable n'est pas défini.
 - Les Owner/Admin doivent-ils voir tous les messages de l'entreprise ou seulement ceux affectés à leur équipe ? Recommandation pour le lancement : tous les messages de l'entreprise pour Owner/Admin, avec journalisation des actions sensibles.
 - L'entreprise doit-elle pouvoir assigner une conversation ou une commande à un agent précis ? Recommandation : prévoir l'affectation plus tard, après les permissions de base.
 
@@ -257,7 +264,6 @@ Les notifications d'une commande doivent contenir son propre `order_id` et le li
 
 **Aucune table n'a été créée. Aucune migration n'a été appliquée. Aucune donnée existante n'a été modifiée.**
 
-
 ## 10. Décision confirmée — réponse aux messages
 
 Le 12 novembre 2026, la règle suivante a été validée :
@@ -269,7 +275,6 @@ Le 12 novembre 2026, la règle suivante a été validée :
 - Cette implication doit être appliquée de manière cohérente dans les fonctions d'autorisation serveur et les policies RLS, et couverte par des tests.
 
 Cette règle ne donne accès qu'aux conversations de l'entreprise pour laquelle le membre possède la permission correspondante ; elle ne donne aucun accès aux conversations d'autres entreprises.
-
 
 ## 11. Décision confirmée — refus partiel des articles d'une commande
 
@@ -284,8 +289,7 @@ Le 12 novembre 2026, l'option B a été retenue : le vendeur peut accepter ou re
 - Les transitions de statut, les recalculs et les notifications sont contrôlés côté serveur et journalisés.
 - Cette règle s'applique à chaque commande vendeur séparément dans un checkout multi-vendeurs ; le résultat d'une entreprise ne modifie pas les commandes des autres entreprises.
 
-Les détails du calcul des frais de livraison après refus partiel restent à définir avec la règle générale de livraison. Aucune migration ni modification Supabase n'a été exécutée.
-
+Les détails du calcul des frais de livraison après refus partiel suivent la règle confirmée à la section 16. Aucune migration ni modification Supabase n'a été exécutée.
 
 ## 12. Décision confirmée — tarifs de livraison définis par chaque entreprise
 
@@ -299,7 +303,6 @@ Le 12 novembre 2026, l'option A a été retenue : chaque entreprise fixe ses fra
 - La structure détaillée des zones (communes, sections communales, quartiers ou zones personnalisées) sera définie avant la conception du SQL final.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
-
 
 ## 13. Décision confirmée — zones de livraison par commune et localité
 
@@ -315,7 +318,6 @@ Le 12 novembre 2026, l'option C a été retenue : les entreprises peuvent défin
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
 
-
 ## 14. Décision confirmée — choix du mode de remise par produit
 
 Le 12 novembre 2026, l'option C a été retenue : une entreprise peut proposer le retrait, la livraison ou les deux, et choisir les modes autorisés produit par produit.
@@ -325,10 +327,8 @@ Le 12 novembre 2026, l'option C a été retenue : une entreprise peut proposer l
 - La disponibilité de la livraison dépend aussi des zones et tarifs configurés par l'entreprise.
 - Le mode choisi doit être conservé sur chaque ligne de commande ; le mode global de la commande vendeur devient un résumé calculé à partir des lignes.
 - Le modèle doit donc gérer le cas où des produits d'une même entreprise sont choisis avec des modes différents.
-- La règle exacte de regroupement de ces lignes dans une commande ou plusieurs sous-commandes de remise reste à confirmer avant le SQL final.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
-
 
 ## 15. Décision confirmée — une commande vendeur peut combiner plusieurs modes de remise
 
@@ -339,6 +339,21 @@ Le 12 novembre 2026, l'option A a été retenue : les produits d'une même entre
 - L'interface client doit présenter clairement, pour chaque article, le mode choisi, l'adresse de livraison si nécessaire, et les consignes de retrait le cas échéant.
 - Le vendeur doit pouvoir suivre séparément l'avancement des lignes selon leur mode de remise, sans dupliquer artificiellement la commande.
 - Le statut global de la commande est un résumé calculé à partir des statuts des lignes et de leurs remises ; il ne doit pas masquer qu'une partie est prête au retrait alors qu'une autre est encore en livraison.
-- Les frais de livraison ne s'appliquent qu'aux lignes livrées. La méthode de calcul lorsque plusieurs articles d'une même commande sont livrés ensemble reste à préciser.
+- Les frais de livraison ne s'appliquent qu'aux lignes livrées ; leur règle de calcul est précisée à la section 16.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+## 16. Décision confirmée — un seul frais de livraison par commande vendeur
+
+Le 12 novembre 2026, l'option A a été retenue : lorsqu'une commande vendeur contient plusieurs articles à livrer à la même adresse, le client paie un seul frais de livraison pour toute cette commande, et non un frais par article.
+
+- Le frais unique est déterminé par la zone et le tarif configurés par l'entreprise vendeuse.
+- Les lignes en retrait ne génèrent aucun frais de livraison.
+- Si la commande contient à la fois des lignes en retrait et des lignes en livraison, le frais unique ne couvre que la livraison des lignes concernées.
+- Si le vendeur refuse certains articles, le frais unique reste applicable dès qu'au moins une ligne acceptée doit encore être livrée ; il devient nul si aucune ligne livrée ne reste à traiter.
+- Le montant et la devise du frais sont calculés côté serveur et enregistrés comme instantané dans la commande.
+- Le client doit voir ce frais clairement avant de confirmer la commande.
+- Cette règle est appliquée séparément à chaque commande vendeur d'un checkout multi-vendeurs : chaque entreprise conserve son propre frais.
+- Le modèle actuel prévoit une adresse de livraison commune aux lignes livrées d'une commande vendeur. La gestion de plusieurs adresses dans une même commande reste à décider.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
