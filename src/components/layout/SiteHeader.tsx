@@ -10,6 +10,7 @@ export function SiteHeader() {
       <nav className="main-nav" aria-label="Navigation principale">
         <a href="/">Accueil</a>
         <a href="/recherche">Explorer</a>
+        <a href="/notifications">Notifications</a>
         <a href="/profil">Mon profil</a>
       </nav>
       <div className="header-actions">
