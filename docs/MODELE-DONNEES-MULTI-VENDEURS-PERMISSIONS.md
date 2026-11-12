@@ -297,3 +297,18 @@ Le 12 novembre 2026, l'option A a été retenue : chaque entreprise fixe ses fra
 - La structure détaillée des zones (communes, sections communales, quartiers ou zones personnalisées) sera définie avant la conception du SQL final.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 13. Décision confirmée — zones de livraison par commune et localité
+
+Le 12 novembre 2026, l'option C a été retenue : les entreprises peuvent définir leurs zones de livraison à deux niveaux.
+
+- Le vendeur sélectionne d'abord une commune.
+- Il peut ensuite préciser les quartiers, localités ou secteurs effectivement desservis dans cette commune.
+- Il peut définir un tarif pour toute la commune ou des tarifs distincts pour les localités sélectionnées.
+- Les zones et tarifs sont configurés entreprise par entreprise ; ils ne sont pas partagés automatiquement entre vendeurs.
+- L'interface doit permettre une configuration simple pour une entreprise qui dessert toute une commune, sans l'obliger à saisir chaque quartier.
+- Le modèle doit rester extensible aux communes et subdivisions administratives de toutes les régions d'Haïti, sans coder en dur une seule ville.
+- La source et la structure de référence géographique (communes, sections communales, quartiers/localités) devront être choisies et vérifiées avant le SQL final. Les localités personnalisées saisies par un vendeur devront être distinguées des subdivisions officielles.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
