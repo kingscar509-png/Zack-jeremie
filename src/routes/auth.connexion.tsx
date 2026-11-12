@@ -57,6 +57,7 @@ function SignInPage() {
               {busy ? 'Connexion…' : 'Se connecter'}
             </button>
           </form>
+          <p className="auth-switch"><a href="/auth/mot-de-passe-oublie">Mot de passe oublié ?</a></p>
           <p className="auth-switch">Pas encore de compte ? <a href="/auth/inscription">Créer un compte</a></p>
         </section>
       </main>
