@@ -495,3 +495,23 @@ Le 12 novembre 2026, l'option C a été retenue : Zack doit pouvoir configurer l
 - Le délai exact par défaut, la fréquence de vérification serveur et le délai du rappel préalable seront précisés avant la conception finale des tâches automatisées.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 25. Décision confirmée — canaux de notification des commandes
+
+Le 12 novembre 2026, l'option C a été retenue : les clients doivent pouvoir recevoir les notifications de commande dans Zack, par e-mail et par WhatsApp lorsque l'intégration WhatsApp est disponible et que le client a choisi ce canal.
+
+- Les notifications dans Zack constituent le canal interne de référence : elles restent consultables dans le compte du client et dans l'historique de ses commandes.
+- Les notifications par e-mail peuvent être envoyées à l'adresse confirmée du client, selon ses préférences et les règles de délivrabilité.
+- Les notifications WhatsApp ne sont envoyées que si l'intégration officielle et autorisée est configurée, si le client a fourni un numéro valide et a consenti à recevoir ces messages.
+- Le client doit pouvoir gérer ses préférences de notification par canal, dans le respect des messages indispensables au fonctionnement du service et des obligations applicables.
+- Les événements importants à notifier comprennent notamment : commande reçue, décision du vendeur (acceptation ou refus d'articles), début de préparation, commande prête, commande terminée, annulation totale ou partielle, annulation automatique pour absence de réponse et changements importants de statut.
+- Les messages externes doivent contenir uniquement les informations nécessaires et éviter d'exposer des données sensibles. Un lien sécurisé vers Zack peut permettre au client de consulter les détails après authentification.
+- L'envoi externe ne doit jamais être considéré comme la preuve qu'un client a lu ou accepté une notification. L'état de livraison et les erreurs d'envoi doivent être suivis séparément.
+- Les notifications doivent être créées côté serveur à partir d'événements fiables, avec une file d'envoi, des tentatives contrôlées et une protection contre les doublons.
+- Une panne d'e-mail ou de WhatsApp ne doit pas bloquer la commande ni empêcher l'enregistrement de la notification dans Zack.
+- Les clés API, jetons et secrets des fournisseurs d'e-mail ou WhatsApp doivent rester côté serveur, jamais dans le frontend.
+- Les coûts, limites, modèles de messages et conditions d'utilisation de WhatsApp Business devront être vérifiés avant de choisir le fournisseur et de lancer l'intégration.
+- Les préférences, consentements, désabonnements et changements de coordonnées doivent être horodatés et protégés.
+
+Aucune intégration e-mail ou WhatsApp n'a été activée et aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
