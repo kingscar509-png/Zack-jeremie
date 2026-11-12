@@ -101,7 +101,11 @@ Une clé d'idempotence côté serveur est à prévoir pour éviter les doublons 
 - Le statut global du checkout ne doit pas remplacer les statuts individuels.
 - Le statut global doit être calculé à partir des commandes enfants ou mis à jour par une logique serveur fiable ; ne pas laisser le client l'écrire.
 - Les notifications sont envoyées séparément au client et à chaque entreprise concernée.
-- Les frais de livraison, délais et zones de livraison sont propres à chaque vendeur. Ils ne doivent pas être additionnés ou promis avant que chaque entreprise les ait confirmés.
+- Chaque entreprise définit à l'avance ses propres tarifs de livraison, avec la possibilité de différencier les prix selon les zones desservies.
+- Les tarifs, zones et éventuelles conditions de livraison sont affichés au client avant la validation de la commande.
+- Dans un checkout multi-vendeurs, les frais de livraison sont calculés séparément pour chaque commande vendeur ; Zack ne fusionne pas les tarifs de plusieurs entreprises.
+- Les frais applicables doivent être enregistrés comme instantané sur la commande au moment de sa validation, afin de conserver l'historique même si le vendeur modifie ses tarifs plus tard.
+- Si l'adresse du client ne correspond à aucune zone desservie, le client ne peut pas sélectionner la livraison pour cette commande ; une option de retrait peut être proposée si le vendeur l'offre.
 - Une commande peut être en retrait tandis qu'une autre est en livraison.
 
 ## 3. Permissions configurables pour les équipes
@@ -279,3 +283,17 @@ Le 12 novembre 2026, l'option B a été retenue : le vendeur peut accepter ou re
 - Cette règle s'applique à chaque commande vendeur séparément dans un checkout multi-vendeurs ; le résultat d'une entreprise ne modifie pas les commandes des autres entreprises.
 
 Les détails du calcul des frais de livraison après refus partiel restent à définir avec la règle générale de livraison. Aucune migration ni modification Supabase n'a été exécutée.
+
+
+## 12. Décision confirmée — tarifs de livraison définis par chaque entreprise
+
+Le 12 novembre 2026, l'option A a été retenue : chaque entreprise fixe ses frais de livraison à l'avance.
+
+- Chaque entreprise peut configurer ses zones desservies et le tarif correspondant à chaque zone.
+- Les tarifs et conditions applicables doivent être visibles avant la validation de la commande.
+- Les frais sont calculés indépendamment pour chaque commande vendeur dans un panier multi-vendeurs.
+- Le tarif applicable est conservé comme instantané dans la commande afin de préserver l'historique.
+- Si aucune zone ne couvre l'adresse du client, la livraison n'est pas proposée pour cette entreprise ; le retrait peut rester disponible si le vendeur l'a activé.
+- La structure détaillée des zones (communes, sections communales, quartiers ou zones personnalisées) sera définie avant la conception du SQL final.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
