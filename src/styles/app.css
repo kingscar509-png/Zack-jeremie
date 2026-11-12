@@ -108,7 +108,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .results-heading h2 { margin: 0; font-size: 19px; }
 .results-heading span, .muted { color: var(--muted); font-size: 13px; }
 .back-link { display: inline-block; margin-bottom: 20px; color: var(--zack-blue); text-decoration: none; font-size: 13px; font-weight: 700; }
-.business-cover { min-height: 210px; margin-bottom: 25px; border-radius: 20px; background-color: var(--zack-navy); background-size: cover; background-position: center; }
+.business-cover-image { display: block; width: 100%; max-height: 320px; margin-bottom: 25px; border-radius: 20px; object-fit: cover; background: var(--zack-navy); }
 .business-profile { display: flex; align-items: center; gap: 18px; margin: 20px 0 28px; }
 .business-avatar-large { width: 76px; height: 76px; flex-basis: 76px; border-radius: 20px; font-size: 30px; }
 .business-profile h1 { margin: 4px 0; }
