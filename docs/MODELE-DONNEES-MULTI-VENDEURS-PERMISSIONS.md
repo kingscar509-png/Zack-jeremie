@@ -442,3 +442,18 @@ Le 12 novembre 2026, l'option A a été retenue : le client ne peut pas modifier
 - Les éventuelles corrections administratives exceptionnelles devront suivre une procédure distincte, autorisée et auditée ; elles ne constituent pas une modification libre par le client.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 22. Décision confirmée — horaires de traitement des commandes par entreprise
+
+Le 12 novembre 2026, l'option A a été retenue : chaque entreprise peut définir ses propres horaires de traitement des commandes.
+
+- Chaque entreprise configure ses jours et plages horaires habituels de traitement des commandes, indépendamment des horaires d'ouverture au public déjà renseignés dans sa fiche.
+- Une entreprise peut recevoir des commandes en dehors de ses horaires de traitement si elle accepte les commandes à tout moment ; leur examen et leur traitement commencent pendant ses prochaines plages prévues.
+- L'interface doit distinguer clairement la réception d'une commande de son traitement par le vendeur. Une commande reçue en dehors des horaires ne doit pas être présentée comme déjà acceptée ou en préparation.
+- Le vendeur doit pouvoir indiquer ses périodes exceptionnelles de fermeture ou d'indisponibilité ; les modalités détaillées (jours fériés, congés, fermeture temporaire et éventuelle suspension de réception des commandes) restent à définir.
+- Les horaires sont interprétés selon le fuseau horaire local de l'entreprise en Haïti ; le stockage technique devra conserver une référence de fuseau fiable et éviter les erreurs liées aux changements de date.
+- Les horaires de traitement ne modifient pas automatiquement les horaires d'ouverture affichés au public et ne changent pas les règles de statut, d'acceptation ou d'annulation des commandes.
+- Le système doit afficher au client une indication compréhensible lorsque sa commande est reçue hors des horaires habituels, sans promettre une heure exacte de traitement si elle n'est pas confirmée par le vendeur.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
