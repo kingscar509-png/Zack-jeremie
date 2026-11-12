@@ -388,3 +388,21 @@ Le 12 novembre 2026, l'option A a été retenue : un vendeur peut annuler une co
 - Au lancement, les paiements de commande se font directement entre le client et l'entreprise, hors Zack. Zack enregistre l'annulation et informe les parties, mais ne promet ni n'exécute automatiquement un remboursement.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 19. Décision confirmée — annulation d'une commande par le client
+
+Le 12 novembre 2026, l'option A a été retenue : le client peut annuler une commande vendeur tant que le vendeur n'a pas commencé sa préparation.
+
+- Le client peut annuler sa commande vendeur tant que celle-ci n'est pas passée à l'état « en préparation ».
+- Dès que le vendeur a commencé la préparation et que la commande est passée à l'état `preparing`, l'annulation directe par le client n'est plus autorisée.
+- Le contrôle est effectué côté serveur au moment de l'annulation, en vérifiant que l'utilisateur est bien le client propriétaire de la commande et que son état autorise encore cette opération.
+- La vérification de l'état et l'annulation doivent être atomiques afin d'éviter qu'une annulation client et le démarrage de la préparation se produisent simultanément sans règle cohérente.
+- Le vendeur concerné reçoit une notification de l'annulation. Le client voit la confirmation et la mise à jour de l'état de sa commande.
+- L'annulation et son auteur sont conservés dans l'historique et le journal d'audit ; aucune des parties ne peut effacer cette trace.
+- L'annulation par le client concerne uniquement la commande de l'entreprise concernée. Les commandes des autres vendeurs du même checkout global ne sont pas annulées.
+- Au lancement, les paiements de commande se font directement entre le client et l'entreprise, hors Zack. Zack enregistre l'annulation et notifie les parties, mais ne déclenche ni ne garantit automatiquement un remboursement.
+
+Cette règle s'applique à la commande vendeur entière. Le traitement d'une annulation partielle de certaines lignes après validation reste à définir séparément.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
