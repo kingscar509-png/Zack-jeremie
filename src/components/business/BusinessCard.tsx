@@ -26,8 +26,8 @@ export function BusinessCard({ business }: { business: BusinessCardData }) {
     <a className="business-card" href={`/entreprises/${encodeURIComponent(business.slug)}`}>
       <div className="business-card-top">
         <div className="business-avatar">
-          {business.logo_url
-            ? <img src={business.logo_url} alt="" loading="lazy" />
+          {logoUrl
+            ? <img src={logoUrl} alt="" loading="lazy" />
             : <span>{business.name.slice(0, 1).toUpperCase()}</span>}
         </div>
         <div className="business-card-title">
