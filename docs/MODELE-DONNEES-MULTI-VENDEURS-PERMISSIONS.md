@@ -529,3 +529,18 @@ Aucune intégration e-mail ou WhatsApp n'a été activée et aucune table ni mig
 - L’accès à la position doit être réservé au client concerné et aux personnes autorisées pour cette commande. Les règles d’accès doivent être appliquées côté serveur.
 - La disponibilité, la fréquence et la précision des positions dépendent du téléphone, du réseau et des autorisations GPS du livreur ; Zack doit prévoir un état de repli vers le suivi simple si la position n’est pas disponible.
 - Aucune intégration GPS, table, politique RLS ou fonction serveur n’est créée à ce stade. Les détails techniques seront conçus après finalisation des décisions métier et revue de sécurité.
+
+## 27. Décision confirmée — gestion des livreurs
+
+**Choix retenu : option C — employés existants ou livreurs dédiés avec accès limités.**
+
+- Une entreprise peut désigner comme livreur un membre déjà présent dans son équipe Zack.
+- Une entreprise peut également inviter ou ajouter un livreur dédié disposant de son propre compte Zack, sans lui donner accès à la gestion générale de l’entreprise.
+- Le livreur dédié n’obtient pas automatiquement le rôle de propriétaire, administrateur ou éditeur de l’entreprise.
+- Les autorisations du livreur sont limitées aux missions qui lui sont attribuées : consulter les informations nécessaires à ses livraisons, mettre à jour les statuts autorisés et partager sa position GPS lorsqu'un suivi en direct est activé pour la livraison.
+- Un livreur ne peut consulter ni modifier les commandes, clients, messages, produits, paramètres ou données d'autres entreprises ou d'autres livraisons qui ne lui sont pas attribuées, sauf autorisation distincte et explicitement définie.
+- L'entreprise doit pouvoir attribuer, réattribuer et retirer une livraison à un livreur autorisé ; ces opérations sont contrôlées côté serveur et journalisées.
+- La révocation de l'accès ou la fin d'une mission doit interrompre immédiatement les accès correspondants et le partage de position.
+- Les règles exactes d'invitation, d'identification du livreur, de consentement GPS, de confidentialité et de révocation seront précisées dans la conception technique.
+- Les autorisations devront être appliquées par RLS et par les fonctions serveur concernées, avec des tests négatifs garantissant l'isolation entre entreprises et entre livraisons.
+- Aucune table, politique RLS, fonction serveur ou intégration n'est créée à ce stade.
