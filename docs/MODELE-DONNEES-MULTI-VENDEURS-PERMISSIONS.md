@@ -586,3 +586,15 @@ Aucune intégration e-mail ou WhatsApp n'a été activée et aucune table ni mig
 - Les responsables autorisés peuvent modifier la capacité ; les changements sont horodatés et journalisés.
 - Une modification de capacité ne doit pas supprimer ni annuler les missions déjà attribuées.
 - Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
+
+## 31. Décision confirmée — réponse du livreur à une mission
+
+**Choix retenu : option C — acceptation explicite avec réattribution automatique en cas d'absence de réponse.**
+
+- Lorsqu'une livraison lui est attribuée, le livreur doit pouvoir l'accepter ou la refuser.
+- Si le livreur ne répond pas dans le délai configuré, Zack peut retirer cette proposition et réattribuer la livraison selon les règles définies par l'entreprise.
+- Le refus explicite et l'absence de réponse doivent être distingués dans l'historique.
+- Le délai de réponse, les rappels éventuels et les règles de réattribution restent à définir.
+- Une livraison ne doit jamais être considérée comme acceptée ni être attribuée simultanément à plusieurs livreurs actifs à cause d'une course entre opérations.
+- Les opérations d'acceptation, de refus, d'expiration et de réattribution sont contrôlées côté serveur, idempotentes et journalisées.
+- Aucune table, politique RLS ou fonction serveur n'est créée à ce stade.
