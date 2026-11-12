@@ -42,8 +42,8 @@ function BusinessPage() {
         ) : null}
         <div className="business-profile">
           <div className="business-avatar business-avatar-large">
-            {business.logo_url
-              ? <img src={business.logo_url} alt={`Logo de ${business.name}`} />
+            {logoUrl
+              ? <img src={logoUrl} alt={`Logo de ${business.name}`} />
               : <span>{business.name.slice(0, 1).toUpperCase()}</span>}
           </div>
           <div>
