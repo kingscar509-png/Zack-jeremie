@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { getCurrentAccount } from '~/features/auth/auth.server'
+import { getCurrentAccount } from '~/features/auth/auth.functions'
 import { getSupabaseBrowserClient } from '~/lib/supabase/client'
 import { SiteHeader } from '~/components/layout/SiteHeader'
 
