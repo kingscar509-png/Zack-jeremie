@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { getMyNotifications } from '~/features/notifications/notifications.server'
+import { getMyNotifications } from '~/features/notifications/notifications.functions'
 import { getSupabaseBrowserClient } from '~/lib/supabase/client'
 import { SiteHeader } from '~/components/layout/SiteHeader'
 
