@@ -55,7 +55,7 @@ Ne pas stocker un total global unique si plusieurs commandes utilisent des devis
 - `customer_id` UUID obligatoire.
 - `customer_name`, `customer_phone` : instantanés des coordonnées au moment de l'achat.
 - `fulfillment_method` : résumé de la méthode ou des méthodes utilisées dans cette commande (`pickup`, `delivery` ou `mixed`), à calculer côté serveur à partir des lignes.
-- `delivery_address` : adresse commune aux lignes livrées de cette commande, si toutes les lignes livrées partagent la même adresse ; les règles de plusieurs adresses restent à définir.
+- `delivery_address` : adresse unique commune à toutes les lignes livrées de cette commande vendeur. Une commande vendeur ne peut pas contenir plusieurs adresses de livraison.
 - `delivery_fee` : frais de livraison facturés une seule fois pour la commande vendeur lorsqu'au moins une ligne acceptée doit être livrée ; zéro si aucune ligne livrée ne reste à traiter. Montant calculé côté serveur et enregistré comme instantané.
 - `delivery_fee_currency` : devise des frais, cohérente avec la devise de la commande.
 - `customer_note`.
@@ -233,7 +233,7 @@ Les notifications d'une commande doivent contenir son propre `order_id` et le li
 
 ## 7. Points non décidés — à ne pas inventer
 
-- La gestion de plusieurs adresses de livraison différentes au sein d'une même commande vendeur reste à définir. Le modèle actuel part sur une adresse commune pour les lignes livrées.
+- Une commande vendeur utilise une seule adresse de livraison pour toutes ses lignes livrées. Si le client veut envoyer des articles à des adresses différentes, il devra créer des commandes/achats séparés ; cette règle devra être clairement expliquée dans l'interface.
 - Les commandes multi-devises sont-elles autorisées dans un même checkout ? Recommandation technique : oui, mais afficher des sous-totaux distincts par devise et aucun total converti tant qu'un taux de change fiable n'est pas défini.
 - Les Owner/Admin doivent-ils voir tous les messages de l'entreprise ou seulement ceux affectés à leur équipe ? Recommandation pour le lancement : tous les messages de l'entreprise pour Owner/Admin, avec journalisation des actions sensibles.
 - L'entreprise doit-elle pouvoir assigner une conversation ou une commande à un agent précis ? Recommandation : prévoir l'affectation plus tard, après les permissions de base.
@@ -354,6 +354,21 @@ Le 12 novembre 2026, l'option A a été retenue : lorsqu'une commande vendeur co
 - Le montant et la devise du frais sont calculés côté serveur et enregistrés comme instantané dans la commande.
 - Le client doit voir ce frais clairement avant de confirmer la commande.
 - Cette règle est appliquée séparément à chaque commande vendeur d'un checkout multi-vendeurs : chaque entreprise conserve son propre frais.
-- Le modèle actuel prévoit une adresse de livraison commune aux lignes livrées d'une commande vendeur. La gestion de plusieurs adresses dans une même commande reste à décider.
+- Toutes les lignes livrées d'une même commande vendeur partagent une seule adresse. Pour des adresses différentes, le client doit effectuer des achats séparés.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 17. Décision confirmée — une seule adresse de livraison par commande vendeur
+
+Le 12 novembre 2026, l'option A a été retenue : chaque commande vendeur utilise une seule adresse de livraison.
+
+- Toutes les lignes de cette commande qui sont en mode livraison sont envoyées à la même adresse.
+- Les lignes en retrait peuvent coexister dans cette commande et ne nécessitent pas d'adresse de livraison.
+- Le client ne peut pas saisir une adresse différente pour chaque article d'une même commande vendeur.
+- Si le client souhaite faire livrer des articles à plusieurs adresses, il doit effectuer des achats séparés pour ces destinations.
+- L'interface doit afficher clairement cette règle avant la validation du panier afin d'éviter toute confusion.
+- Le serveur vérifie et enregistre l'adresse unique comme instantané dans la commande ; les frais de livraison uniques sont calculés selon cette adresse et la zone tarifaire du vendeur.
+- Dans un panier multi-vendeurs, chaque commande vendeur conserve sa propre adresse unique. Les adresses peuvent donc différer d'une entreprise à l'autre si le client les renseigne au niveau de chaque commande vendeur.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
