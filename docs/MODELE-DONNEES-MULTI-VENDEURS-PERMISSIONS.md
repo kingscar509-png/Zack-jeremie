@@ -244,3 +244,16 @@ Les notifications d'une commande doivent contenir son propre `order_id` et le li
 8. Revue sécurité et validation explicite avant toute migration.
 
 **Aucune table n'a été créée. Aucune migration n'a été appliquée. Aucune donnée existante n'a été modifiée.**
+
+
+## 10. Décision confirmée — réponse aux messages
+
+Le 12 novembre 2026, la règle suivante a été validée :
+
+- `messages_reply` implique automatiquement `messages_read`.
+- Un membre autorisé à répondre doit pouvoir lire le contexte de la conversation dans laquelle il répond.
+- Il n'est donc pas nécessaire d'accorder séparément `messages_read` lorsqu'un membre reçoit `messages_reply`.
+- Retirer `messages_reply` retire ce droit implicite de lecture, sauf si `messages_read` est accordé séparément.
+- Cette implication doit être appliquée de manière cohérente dans les fonctions d'autorisation serveur et les policies RLS, et couverte par des tests.
+
+Cette règle ne donne accès qu'aux conversations de l'entreprise pour laquelle le membre possède la permission correspondante ; elle ne donne aucun accès aux conversations d'autres entreprises.
