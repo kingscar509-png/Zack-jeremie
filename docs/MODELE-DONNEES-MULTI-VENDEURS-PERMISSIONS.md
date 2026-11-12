@@ -54,8 +54,8 @@ Ne pas stocker un total global unique si plusieurs commandes utilisent des devis
 - `business_id` UUID obligatoire : une seule entreprise par commande.
 - `customer_id` UUID obligatoire.
 - `customer_name`, `customer_phone` : instantanés des coordonnées au moment de l'achat.
-- `fulfillment_method` : `pickup` ou `delivery`.
-- `delivery_address` : obligatoire seulement pour `delivery`, facultatif/interdit selon règle finale pour `pickup`.
+- `fulfillment_method` : résumé de la méthode ou des méthodes utilisées dans cette commande (`pickup`, `delivery` ou `mixed`), à calculer côté serveur à partir des lignes.
+- `delivery_address` : adresse commune aux lignes livrées de cette commande, si toutes les lignes livrées partagent la même adresse ; les règles de plusieurs adresses restent à définir.
 - `customer_note`.
 - `status` : `submitted`, `accepted`, `preparing`, `ready`, `completed`, `cancelled` ; transitions contrôlées côté serveur.
 - `currency` et `subtotal` : montants de cette commande uniquement.
@@ -68,6 +68,7 @@ Ne pas stocker un total global unique si plusieurs commandes utilisent des devis
 - `quantity`, `unit_price`, `currency`, `line_total` : valeurs calculées et enregistrées côté serveur au moment de la commande.
 - `status` : `pending`, `accepted` ou `rejected` pour suivre la décision du vendeur sur chaque article.
 - `rejection_reason` : motif obligatoire lorsqu'un article est refusé ; nul pour les articles acceptés ou en attente.
+- `fulfillment_method` : méthode choisie pour cette ligne (`pickup` ou `delivery`), qui doit être permise par la configuration du produit et de l'entreprise.
 
 La décision article par article est autorisée : une même commande vendeur peut contenir des lignes acceptées et refusées. Le statut global de la commande doit refléter ces décisions sans effacer l'historique des lignes.
 
@@ -106,7 +107,7 @@ Une clé d'idempotence côté serveur est à prévoir pour éviter les doublons 
 - Dans un checkout multi-vendeurs, les frais de livraison sont calculés séparément pour chaque commande vendeur ; Zack ne fusionne pas les tarifs de plusieurs entreprises.
 - Les frais applicables doivent être enregistrés comme instantané sur la commande au moment de sa validation, afin de conserver l'historique même si le vendeur modifie ses tarifs plus tard.
 - Si l'adresse du client ne correspond à aucune zone desservie, le client ne peut pas sélectionner la livraison pour cette commande ; une option de retrait peut être proposée si le vendeur l'offre.
-- Une commande peut être en retrait tandis qu'une autre est en livraison.
+- Une commande d'une entreprise peut contenir des lignes en retrait et des lignes en livraison si la règle de regroupement correspondante est confirmée.
 
 ## 3. Permissions configurables pour les équipes
 
@@ -210,6 +211,7 @@ Les notifications d'une commande doivent contenir son propre `order_id` et le li
 4. Produit supprimé, indisponible ou prix modifié depuis l'ajout au panier.
 5. Produits de devises différentes dans le même checkout.
 6. Une entreprise en livraison et une autre en retrait.
+7. Produits d'une même entreprise avec des modes de retrait/livraison différents, selon la règle de regroupement à confirmer.
 7. Une ligne refusée par le vendeur : les autres lignes acceptées restent dans la même commande vendeur et leur montant est recalculé.
 8. Double clic ou nouvelle tentative réseau : aucune commande dupliquée.
 9. Client qui tente de lire le checkout d'un autre client.
@@ -310,5 +312,19 @@ Le 12 novembre 2026, l'option C a été retenue : les entreprises peuvent défin
 - L'interface doit permettre une configuration simple pour une entreprise qui dessert toute une commune, sans l'obliger à saisir chaque quartier.
 - Le modèle doit rester extensible aux communes et subdivisions administratives de toutes les régions d'Haïti, sans coder en dur une seule ville.
 - La source et la structure de référence géographique (communes, sections communales, quartiers/localités) devront être choisies et vérifiées avant le SQL final. Les localités personnalisées saisies par un vendeur devront être distinguées des subdivisions officielles.
+
+Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
+
+
+## 14. Décision confirmée — choix du mode de remise par produit
+
+Le 12 novembre 2026, l'option C a été retenue : une entreprise peut proposer le retrait, la livraison ou les deux, et choisir les modes autorisés produit par produit.
+
+- Chaque fiche produit doit indiquer si le produit est disponible en retrait, en livraison, ou dans les deux modes.
+- Le client ne peut sélectionner qu'un mode autorisé pour chaque produit.
+- La disponibilité de la livraison dépend aussi des zones et tarifs configurés par l'entreprise.
+- Le mode choisi doit être conservé sur chaque ligne de commande ; le mode global de la commande vendeur devient un résumé calculé à partir des lignes.
+- Le modèle doit donc gérer le cas où des produits d'une même entreprise sont choisis avec des modes différents.
+- La règle exacte de regroupement de ces lignes dans une commande ou plusieurs sous-commandes de remise reste à confirmer avant le SQL final.
 
 Aucune table ni migration Supabase n'a été créée ou appliquée pour cette décision.
