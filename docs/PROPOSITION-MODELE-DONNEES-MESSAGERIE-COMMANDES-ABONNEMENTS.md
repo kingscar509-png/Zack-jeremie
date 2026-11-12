@@ -178,3 +178,40 @@ Aucun identifiant secret, PIN ou OTP ne sera stocké. Les secrets API seront con
 4. Identité : confirmer si une commande invitée doit être possible, ou réservée aux utilisateurs connectés.
 
 Aucune requête DDL n'a été exécutée et aucune table n'a été créée par ce document.
+
+
+## G. Décision validée : premier message autorisé sans compte
+
+Décision utilisateur : **oui, un visiteur sans compte pourra envoyer un premier message à une entreprise.**
+
+Pour éviter d'ouvrir les conversations privées à tous les visiteurs anonymes, je recommande de séparer le premier contact invité de la messagerie privée complète.
+
+### Parcours invité recommandé pour le lancement
+
+1. Le visiteur ouvre la fiche d'une entreprise et choisit « Contacter ».
+2. Zack lui demande son nom, son numéro de téléphone et son premier message. L'adresse e-mail peut être facultative.
+3. Le formulaire est envoyé à une Edge Function ; le navigateur n'écrit pas directement dans les tables privées.
+4. Le serveur valide les champs, applique une limitation anti-spam, vérifie que l'entreprise peut recevoir des demandes et enregistre une demande de contact.
+5. Les membres autorisés de l'entreprise consultent la demande dans leur espace professionnel et peuvent contacter le visiteur avec les coordonnées fournies.
+6. Pour poursuivre une conversation dans la messagerie Zack, le visiteur devra créer un compte ou se connecter ; la demande initiale pourra alors être rattachée à son compte après une vérification appropriée.
+
+### Table complémentaire proposée : `guest_contact_requests`
+
+- `id uuid primary key`
+- `business_id uuid references businesses(id)`
+- `guest_name text`
+- `guest_phone text`
+- `guest_email text` (nullable)
+- `initial_message text`
+- `status text` (new, contacted, converted, closed, spam)
+- `converted_user_id uuid references auth.users(id)` (nullable)
+- `created_at timestamptz`
+- `updated_at timestamptz`
+
+**Sécurité :** aucune politique RLS ne donnera aux rôles `anon` ou `authenticated` un accès direct général à cette table. L'insertion passera par une Edge Function avec validation, limitation de fréquence et protection anti-robot. La lecture sera réservée aux membres autorisés de l'entreprise et aux administrateurs habilités. Les visiteurs ne pourront jamais lire les demandes d'autres personnes.
+
+Cette option donne aux visiteurs une manière simple de contacter une entreprise sans compte, sans exposer les messages privés ni rendre toute la messagerie accessible publiquement. Une vraie conversation bidirectionnelle dans Zack sans compte nécessiterait un mécanisme supplémentaire de lien sécurisé ou de code à usage limité ; elle n'est pas incluse implicitement dans cette décision.
+
+### Conséquence pour la migration
+
+La table `guest_contact_requests` devra être ajoutée au futur SQL. Elle ne sera créée qu'après revue du SQL complet et accord explicite. Aucune modification de Supabase n'a été exécutée à la suite de cette décision.
