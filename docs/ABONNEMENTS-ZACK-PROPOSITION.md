@@ -595,3 +595,14 @@ Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, pol
 
 Les informations publiques doivent être modifiables par les personnes autorisées de l'entreprise et respecter les règles de visibilité, de modération, de confidentialité et de quotas. Les coordonnées privées, documents de vérification et informations internes ne doivent jamais être exposés dans la fiche publique. Les photos du catalogue restent distinctes de la galerie générale de présentation. Ces décisions sont documentaires et ne créent ni tables, ni fonctions, ni migrations dans Supabase.
 
+### 4.35 Expérience de consultation des fiches d'entreprise — décisions confirmées
+
+- **Organisation de la fiche :** la page publique d'une entreprise est organisée en sections distinctes : Présentation, Produits, Services, Galerie et Contact. Le choix retenu est une présentation structurée et facile à parcourir, plutôt qu'une longue page où toutes les informations seraient simplement empilées.
+- **Affichage du catalogue :** les produits et services sont présentés sous forme de cartes comprenant une photo, un nom, un prix et une indication de disponibilité. L'ouverture d'une fiche complète depuis chaque carte n'est pas retenue dans ce choix initial.
+- **Contact :** la fiche propose des boutons permettant de joindre directement l'entreprise par téléphone, email et WhatsApp. Le bouton de messagerie Zack et le formulaire de demande ne sont pas retenus dans ce choix de présentation ; les règles générales de messagerie Zack déjà définies restent applicables aux autres points d'entrée de la plateforme.
+- **Avis :** les clients peuvent laisser une note sur 5 accompagnée d'un commentaire. L'ajout de photos aux avis n'est pas retenu au lancement.
+- **Modération des avis :** les avis sont publiés immédiatement et peuvent ensuite être examinés et modérés après signalement, selon les permissions et règles de modération de Zack. Un signalement seul ne doit pas entraîner une suppression automatique.
+- **Accès sans connexion :** les visiteurs non connectés peuvent consulter les informations publiques de l'entreprise et son catalogue. Les fonctions nécessitant un compte, notamment les interactions réservées aux utilisateurs connectés, restent soumises aux règles d'authentification de Zack.
+
+Les avis doivent être associés à une expérience réelle et protégés contre les abus, les doublons et les manipulations. Les règles d'éligibilité pour déposer un avis, de modification/suppression, de réponse de l'entreprise, de signalement et de conservation restent à préciser avant implémentation. Les coordonnées affichées doivent être celles que l'entreprise a choisi de rendre publiques. Ces décisions sont documentaires et ne créent ni tables, ni fonctions, ni migrations dans Supabase.
+
