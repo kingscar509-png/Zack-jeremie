@@ -441,6 +441,19 @@ Les préférences, consentements, canaux autorisés, délais de conservation et 
 
 
 
+
+### 4.33 Recherche et découverte des entreprises — décisions confirmées
+
+- **Contenu de la recherche :** les utilisateurs peuvent rechercher par nom d'entreprise, catégorie, localisation, produit et service. Les résultats doivent permettre de comprendre clairement si la correspondance concerne une entreprise, un produit ou un service.
+- **Organisation géographique :** les filtres géographiques utilisent le département, la commune et le quartier. La position GPS n'est pas retenue comme exigence pour le lancement. Les entreprises doivent pouvoir renseigner une localisation compréhensible même lorsqu'une adresse précise ou une position cartographique n'est pas disponible.
+- **Présentation des résultats :** les résultats sont affichés sous forme de liste. Une carte interactive n'est pas incluse dans le choix de présentation du lancement.
+- **Filtres :** les utilisateurs peuvent filtrer les résultats par catégorie, localisation et horaires. Les filtres doivent être faciles à utiliser sur téléphone et pouvoir être combinés.
+- **Classement :** les résultats sont classés selon leur pertinence par rapport à la recherche. Les critères précis de pertinence restent à définir et doivent favoriser les correspondances utiles pour l'utilisateur, sans donner automatiquement la priorité aux entreprises ayant un abonnement payant.
+- **Favoris :** un utilisateur connecté peut enregistrer des entreprises dans une liste de favoris personnelle. La gestion de plusieurs listes personnalisées n'est pas retenue au lancement.
+
+La recherche doit prendre en compte les entreprises, produits et services autorisés à être visibles publiquement, respecter les filtres de visibilité et ne jamais exposer les données privées. Les résultats doivent être paginés ou chargés progressivement pour préserver les performances, particulièrement sur les connexions mobiles. Les catégories, localisations, horaires et critères de pertinence devront être normalisés afin d'assurer des résultats cohérents à l'échelle nationale. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
+
+
 ### 4.32 Administration centrale de Zack — décisions confirmées
 
 - **Tableau de bord administrateur :** le tableau de bord central présente les statistiques générales (utilisateurs, entreprises et commandes), les revenus et abonnements, ainsi que l'activité récente et les alertes importantes. Les indicateurs financiers doivent distinguer les paiements réellement encaissés, les abonnements actifs et les avantages gratuits accordés par l'administration.
