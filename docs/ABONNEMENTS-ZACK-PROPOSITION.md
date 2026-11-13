@@ -583,3 +583,15 @@ Conserver trois niveaux clairement différenciés. Le niveau Gratuit doit rester
 ## 10. État technique
 
 Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, policy RLS, fonction serveur, interface, configuration ou donnée Supabase n'a été créée ou modifiée. Les prix et les détails des avantages restent à valider. Les règles détaillées de comptage et d'affichage des publications sont documentées dans la section 4.6.
+
+### 4.34 Fiches détaillées des entreprises — décisions confirmées
+
+- **Informations générales :** la fiche publique présente le nom de l'entreprise, son logo, une description et ses coordonnées. L'histoire, l'équipe complète, la mission, la vision, les valeurs et les réalisations ne sont pas retenues comme champs obligatoires de présentation au lancement, en dehors de la présentation simple de l'équipe définie ci-dessous.
+- **Produits et services :** chaque élément du catalogue dispose d'une fiche détaillée comprenant une description, des photos, un prix et une indication de disponibilité. Les variantes, caractéristiques avancées, conditions et options supplémentaires ne sont pas incluses dans ce choix initial.
+- **Équipe :** l'entreprise peut présenter ses membres avec leur nom, leur photo et leur fonction. Une biographie détaillée de chaque membre n'est pas prévue au lancement.
+- **Moyens de contact :** la fiche peut afficher le téléphone, l'adresse email, WhatsApp et les liens vers les réseaux sociaux. Elle propose également la messagerie intégrée Zack, selon les règles d'accès et de confidentialité déjà définies pour les conversations.
+- **Horaires :** l'entreprise peut renseigner ses horaires d'ouverture, ses jours de fermeture et ses horaires exceptionnels. La disponibilité en temps réel des produits ou services n'est pas retenue comme fonction générale de la fiche au lancement ; la disponibilité de chaque élément du catalogue reste affichée selon les informations renseignées par l'entreprise.
+- **Galerie de présentation :** la galerie générale de l'entreprise contient des photos uniquement. Les vidéos et documents téléchargeables ne sont pas inclus dans cette galerie au lancement. Les quotas déjà décidés pour cette galerie (Gratuit : 5 photos, Payant : 20 photos, Ultra : 50 photos) restent applicables.
+
+Les informations publiques doivent être modifiables par les personnes autorisées de l'entreprise et respecter les règles de visibilité, de modération, de confidentialité et de quotas. Les coordonnées privées, documents de vérification et informations internes ne doivent jamais être exposés dans la fiche publique. Les photos du catalogue restent distinctes de la galerie générale de présentation. Ces décisions sont documentaires et ne créent ni tables, ni fonctions, ni migrations dans Supabase.
+
