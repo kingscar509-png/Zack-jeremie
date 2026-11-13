@@ -171,7 +171,9 @@ Les publications générales peuvent notamment présenter les actualités de l'e
 
 **Pouvoir de modération confirmé :** un administrateur Zack autorisé peut supprimer une publication qui enfreint les règles. Le motif de suppression est obligatoire. L'entreprise concernée doit être informée du motif par une notification. Zack doit conserver une trace d'audit comprenant au minimum la publication concernée, l'administrateur ayant effectué l'action, le motif et la date. Les permissions de modération doivent être contrôlées côté serveur.
 
-Précisions techniques à définir avant implémentation : période calendaire ou période glissante ; traitement des publications supprimées par leur auteur ou par un administrateur dans le calcul du quota ; éventuelle distinction entre publications générales et promotions. Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
+**Règle de quota confirmée :** lorsqu'une publication est supprimée par un administrateur pour non-respect des règles, elle continue de compter dans le quota de publications de l'entreprise pour la période concernée. Sa suppression ne libère donc pas une nouvelle place.
+
+Précisions techniques à définir avant implémentation : période calendaire ou période glissante ; traitement des publications supprimées par leur auteur ; éventuelle distinction entre publications générales et promotions. Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
 
 Ces limites et règles de fonctionnement sont des décisions de conception ; elles ne sont pas encore appliquées techniquement.
 
