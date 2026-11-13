@@ -620,3 +620,35 @@ Une matrice séparée a été ajoutée pour documenter les accès actuellement o
 `docs/RLS-MATRICE-ACCES-ET-ECARTS.md`.
 
 Elle détaille notamment le risque de publication directe par les membres, l'accès aux statistiques pour tous les membres, les permissions du stockage, les limites anti-spam et les rôles qui devront être testés.
+
+## 19. Accès payant offert manuellement par l'administration Zack
+
+### Décision produit confirmée le 13 novembre 2026
+
+Un administrateur Zack autorisé peut accorder à une entreprise les avantages d'un niveau payant sans qu'elle effectue de paiement. Cette attribution peut être temporaire ou **illimitée**, jusqu'à ce qu'un administrateur autorisé la révoque ou la remplace.
+
+### Comportement attendu dans le panneau d'administration
+
+Dans la fiche d'une entreprise, prévoir une action dédiée, par exemple **« Accorder un niveau supérieur »**, avec :
+- le niveau à accorder (par exemple Premium) ;
+- le type d'attribution : payée ou offerte ;
+- la durée : durée prédéfinie, date de fin personnalisée ou **illimitée** ;
+- un motif obligatoire (partenariat, promotion, récompense, test, lancement, geste commercial, etc.) ;
+- une confirmation avant application.
+
+Pour une attribution illimitée, aucune date d'expiration automatique n'est définie. L'accès reste actif jusqu'à une révocation ou une modification explicite par un administrateur autorisé.
+
+### Règles de facturation et d'audit
+
+- Une attribution offerte ne doit jamais être enregistrée comme une transaction payée.
+- Le statut de facturation doit distinguer clairement paid et granted (noms indicatifs à confirmer dans le modèle final).
+- L'historique doit conserver l'entreprise, le niveau accordé, l'administrateur ayant effectué l'action, la date, le motif, la durée, ainsi que toute révocation ou modification.
+- La révocation doit également être auditée et ne doit pas effacer l'historique de l'offre.
+- Seuls les rôles administratifs Zack explicitement autorisés peuvent accorder ou révoquer ces avantages ; un propriétaire d'entreprise ou un éditeur ne peut pas se l'attribuer lui-même.
+- Les avantages actifs doivent être calculés côté serveur et vérifiés dans les règles d'accès ; masquer ou afficher des éléments dans le frontend ne suffit pas.
+- Les changements de niveau ne doivent pas modifier artificiellement les reçus, paiements ou historiques MonCash.
+- Si une entreprise dispose déjà d'un abonnement payé, le système doit conserver la trace du paiement réel et appliquer une règle explicite de priorité entre abonnement payé et avantage offert, à finaliser dans le modèle d'abonnement.
+
+### État technique
+
+Cette décision est ajoutée à la spécification. Aucune table, politique RLS, fonction serveur, interface ou donnée Supabase n'a été créée ou modifiée pour l'implémenter. La conception détaillée du modèle d'abonnement et des permissions administrateur reste à réaliser avant toute migration.
