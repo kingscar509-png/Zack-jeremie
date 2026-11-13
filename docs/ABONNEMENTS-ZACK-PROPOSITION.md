@@ -391,6 +391,18 @@ Les statuts, délais, modifications de lignes, autorisations et notifications do
 
 Ces décisions concernent les commandes payées directement auprès des vendeurs, hors plateforme au lancement. Zack doit distinguer clairement les déclarations du client, la confirmation de réception par le vendeur et l'enregistrement éventuel d'un remboursement. Aucun statut « payé » ne doit être attribué automatiquement sur la seule base d'une déclaration ou d'une pièce jointe du client. Les paiements d'abonnement Zack restent un flux distinct, avec vérification côté serveur.
 
+
+### 4.25 Organisation de la livraison et du retrait — décisions confirmées
+
+- **Fixation des frais de livraison :** chaque vendeur fixe lui-même les frais de livraison applicables à ses commandes. Zack ne fixe pas un tarif unique à la place des entreprises.
+- **Méthode de calcul :** le vendeur choisit la méthode qu'il souhaite appliquer pour déterminer ses frais. Il peut donc définir ses propres règles, par exemple un tarif fixe, des tarifs par zone ou un calcul selon la distance. Les options précises de configuration restent à concevoir.
+- **Prise en charge des frais :** le vendeur décide des conditions de prise en charge des frais de livraison. Il peut notamment les faire payer au client, les prendre à sa charge ou proposer la livraison gratuite, selon les conditions qu'il définit. Ces conditions doivent être clairement présentées au client avant la validation de sa commande.
+- **Livreurs autorisés :** les livraisons peuvent être effectuées par des livreurs employés par l'entreprise ou par des livreurs indépendants disposant d'un compte Zack. Les règles d'inscription, de vérification, d'attribution et d'autorisation des livreurs doivent être définies avant leur activation.
+- **Choix entre livraison et retrait :** le vendeur configure les options disponibles pour chaque entreprise ou commande. Le client choisit parmi les options effectivement proposées ; il ne peut pas sélectionner un retrait que le vendeur n'a pas activé.
+- **Livraison échouée :** en cas d'échec, le livreur, le client et le vendeur doivent pouvoir communiquer afin que le client et le vendeur décident ensemble de la suite à donner. Zack conserve le statut de l'incident et les informations utiles au suivi, sans annuler automatiquement la commande.
+
+Les frais, options disponibles, affectations de livreurs et incidents doivent être visibles et compréhensibles avant la confirmation de la commande. Les changements de statut et les preuves de livraison doivent être enregistrés de manière fiable et accessibles uniquement aux personnes autorisées. Ces décisions complètent les règles déjà retenues sur le suivi simple des livraisons, l'attribution manuelle par défaut, la disponibilité et la capacité des livreurs, l'acceptation ou le refus d'une mission, la preuve de remise et la rémunération configurée.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
