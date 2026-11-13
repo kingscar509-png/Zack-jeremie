@@ -100,6 +100,22 @@ Pistes de fonctionnalités à étudier :
 
 Ces avantages doivent respecter les permissions d'équipe déjà décidées : le propriétaire et l'administrateur d'entreprise gèrent les accès ; un éditeur ne reçoit pas automatiquement des droits sur les messages ou commandes. Les abonnements ne doivent jamais contourner les permissions de sécurité.
 
+### 4.3 Progression des outils de vente — décision confirmée
+
+La progression acceptée est la suivante :
+
+- **Gratuit** : présenter les produits et services et recevoir des demandes de contact.
+- **Payant** : catalogue plus complet, gestion des commandes et suivi des ventes.
+- **Ultra** : outils avancés de vente, gestion approfondie des commandes et suivi des performances commerciales.
+
+Pistes à détailler avant toute implémentation :
+- Limites de catalogue et présentation enrichie des produits/services selon le niveau.
+- Outils de suivi des demandes et commandes adaptés aux droits de chaque membre.
+- Rapports sur les ventes, les articles consultés et les commandes, avec définitions précises des indicateurs.
+- Fonctionnalités avancées qui ne changent pas les règles métier communes du commerce Zack.
+
+Les abonnements ne doivent pas modifier les règles fondamentales déjà retenues : panier multi-vendeurs, commandes séparées par vendeur, paiements de commandes hors plateforme au lancement, annulations et permissions contrôlées côté serveur. Un abonnement ne peut pas donner à un vendeur accès aux commandes d'une autre entreprise ni contourner les permissions de ses employés.
+
 Les quotas de photos, produits, services, publications et promotions doivent être chiffrés avant la conception SQL finale. La taille des photos, leur compression et les quotas de stockage doivent aussi être définis pour maîtriser les coûts.
 
 ## 5. Périodicité des paiements
@@ -163,7 +179,7 @@ La décision déjà confirmée est maintenue :
 3. Définir les options concrètes de visibilité, leur emplacement, leur fréquence et leurs quotas.
 4. Fixer les quotas exacts de photos, produits, services, publications et promotions.
 5. Définir les statistiques et outils de gestion de chaque niveau.
-6. Définir les outils concrets qui soutiendront le développement des ventes.
+6. Définir les outils concrets de vente et de suivi des performances.
 7. Fixer les prix mensuels et annuels après analyse des coûts et du marché haïtien.
 8. Définir les règles de renouvellement, d'expiration, d'échec de paiement et de période de grâce.
 9. Définir la permission administrative permettant d'accorder et de révoquer les offres gratuites.
