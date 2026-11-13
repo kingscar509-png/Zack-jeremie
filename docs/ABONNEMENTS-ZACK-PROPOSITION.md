@@ -222,6 +222,21 @@ Ces limites et règles de fonctionnement sont des décisions de conception ; ell
 - Chaque publication publique dispose d'un lien partageable stable.
 - Le partage ne doit pas révéler de données privées ni contourner les paramètres de visibilité ou une suppression/modération.
 
+### 4.10 Statistiques des publications selon l'abonnement — décision confirmée
+
+La répartition suivante est acceptée :
+
+| Statistique | Gratuit | Payant | Ultra |
+|---|---|---|---|
+| Nombre de vues | Oui | Oui | Oui |
+| Nombre de mentions « J'aime » | Oui | Oui | Oui |
+| Nombre de commentaires | Oui | Oui | Oui |
+| Nombre de partages | Non | Oui | Oui |
+| Évolution des performances dans le temps | Non | Oui | Oui |
+| Analyse détaillée par publication | Non | Non | Oui |
+
+Les définitions de chaque indicateur, les périodes d'analyse, les règles de comptage (notamment vues uniques ou totales) et la présentation des tableaux de bord restent à préciser avant implémentation. Les statistiques doivent être calculées et protégées côté serveur.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
