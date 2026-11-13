@@ -58,7 +58,7 @@ Les éléments ci-dessous sont des pistes de conception, sauf les décisions exp
 | Présence dans l'annuaire national Zack | Oui | Oui | Oui |
 | Fiche d'entreprise et informations essentielles | Oui | Oui | Oui |
 | Téléphone, adresse, horaires et liens sociaux | Oui | Oui | Oui |
-| Galerie de présentation | Quota de base | Quota supérieur | Quota maximal à définir |
+| Galerie de présentation de l'entreprise | 5 photos | 20 photos | 50 photos |
 | Catalogue produits et services | 10 au total | 100 au total | 500 au total |
 | Messagerie avec les clients | Fonctions essentielles | Fonctions avancées à définir | Fonctions avancées à définir |
 | Réception de demandes de contact | Oui | Oui | Oui |
@@ -137,7 +137,25 @@ Règles de comptage :
 
 Ces quotas sont des décisions de conception ; ils ne sont pas encore appliqués techniquement.
 
-Les quotas de photos, publications et promotions restent à définir. La taille des photos, leur compression et les quotas de stockage doivent aussi être définis pour maîtriser les coûts.
+### 4.5 Quotas de la galerie de présentation — décision confirmée
+
+Les limites acceptées pour la galerie générale de l'entreprise sont :
+
+- **Gratuit : 5 photos**.
+- **Payant : 20 photos**.
+- **Ultra : 50 photos**.
+
+Précisions :
+- Ce quota concerne uniquement la galerie de présentation générale de l'entreprise.
+- Il est distinct des images associées aux produits et services du catalogue.
+- Le quota est partagé par toute l'entreprise et non attribué séparément à chaque membre.
+- Remplacer une photo existante ne consomme pas une place supplémentaire ; supprimer une photo libère une place.
+- Les limites doivent être vérifiées côté serveur.
+- Les règles de comptage des photos en attente de modération ou masquées seront précisées dans la conception détaillée.
+
+Ces quotas sont des décisions de conception ; ils ne sont pas encore appliqués techniquement.
+
+La taille maximale des fichiers, les formats autorisés, la compression, les miniatures et les quotas de stockage doivent encore être définis pour maîtriser les coûts et garantir un affichage rapide sur mobile.
 
 ## 5. Périodicité des paiements
 
@@ -198,13 +216,14 @@ La décision déjà confirmée est maintenue :
 1. Définir les avantages précis de Payant.
 2. Définir les avantages supplémentaires propres à Ultra.
 3. Définir les options concrètes de visibilité, leur emplacement, leur fréquence et leurs quotas.
-4. Fixer les quotas exacts de photos, publications et promotions.
+4. Fixer les quotas exacts de publications et promotions.
 5. Définir les règles de comptage des éléments masqués, archivés, en attente de modération ou désactivés.
-6. Définir les statistiques et outils de gestion de chaque niveau.
-7. Définir les outils concrets de vente et de suivi des performances.
-8. Fixer les prix mensuels et annuels après analyse des coûts et du marché haïtien.
-9. Définir les règles de renouvellement, d'expiration, d'échec de paiement et de période de grâce.
-10. Définir la permission administrative permettant d'accorder et de révoquer les offres gratuites.
+6. Définir les règles techniques des photos : poids, formats, compression, miniatures et stockage.
+7. Définir les statistiques et outils de gestion de chaque niveau.
+8. Définir les outils concrets de vente et de suivi des performances.
+9. Fixer les prix mensuels et annuels après analyse des coûts et du marché haïtien.
+10. Définir les règles de renouvellement, d'expiration, d'échec de paiement et de période de grâce.
+11. Définir la permission administrative permettant d'accorder et de révoquer les offres gratuites.
 
 ## 9. Recommandation
 
@@ -212,4 +231,4 @@ Conserver trois niveaux clairement différenciés. Le niveau Gratuit doit rester
 
 ## 10. État technique
 
-Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, policy RLS, fonction serveur, interface, configuration ou donnée Supabase n'a été créée ou modifiée. Les prix, les quotas de photos/publications/promotions et les détails des avantages restent à valider.
+Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, policy RLS, fonction serveur, interface, configuration ou donnée Supabase n'a été créée ou modifiée. Les prix, les quotas de publications/promotions et les détails des avantages restent à valider.
