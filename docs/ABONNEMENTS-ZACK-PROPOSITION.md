@@ -292,6 +292,17 @@ La programmation doit être exécutée par un mécanisme serveur fiable, avec pr
 
 Les contrôles de quota doivent être atomiques et exécutés côté serveur pour éviter qu'une publication simultanée dépasse la limite. Les brouillons et copies doivent rester privés jusqu'à leur publication explicite ou programmée.
 
+### 4.16 Gestion de la file des publications en attente — décisions confirmées
+
+- **Ordre de priorité :** lorsque plusieurs publications attendent un quota, Zack traite d'abord celle dont la date de programmation est la plus ancienne. En cas d'égalité, un ordre secondaire stable doit être appliqué côté serveur.
+- **Mode de publication après libération d'un quota :** l'entreprise choisit dans ses paramètres si les publications en attente doivent être publiées automatiquement dès qu'un quota devient disponible, ou si chaque publication doit attendre une confirmation manuelle. Le choix doit être explicite et modifiable ; le comportement retenu doit être clairement indiqué dans l'espace de gestion.
+- **Modification :** une publication en attente peut être modifiée librement avant sa publication. Toute modification doit être revalidée côté serveur, notamment pour le contenu, les droits, le quota et les dates.
+- **Suppression :** si l'entreprise supprime une publication en attente, celle-ci est annulée et retirée définitivement de la file de publication. Elle ne consomme aucun quota puisqu'elle n'a pas été publiée.
+- **Notification de mise en attente :** Zack informe l'entreprise lorsqu'une publication passe en attente, en indiquant la raison et la date prévue de la prochaine tentative ou de la prochaine disponibilité estimée du quota. Cette estimation doit être présentée comme telle lorsqu'elle dépend d'un événement futur incertain.
+- **Publication devenue trop ancienne ou invalide :** si une publication en attente dépasse sa date de validité ou le délai maximal de conservation qui sera défini, Zack l'annule automatiquement et avertit l'entreprise. La durée maximale de conservation, les règles de validité et les éventuelles possibilités de réactivation restent à préciser.
+
+La file doit être traitée de façon fiable et atomique, sans double publication ni dépassement de quota. Le choix de publication automatique ou avec confirmation ne doit jamais permettre de publier un contenu supprimé, invalide, non autorisé ou contraire aux règles de modération.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
