@@ -611,3 +611,12 @@ La recherche GitHub par nom exact `m5_business_stats` n'a pas non plus retourné
 Avant d'ajouter de nouvelles migrations, il faut reconstituer et versionner proprement les scripts historiques disponibles, ou produire un baseline fiable depuis le schéma existant. Ne pas fabriquer rétroactivement des migrations prétendant être les originaux. Le fichier SQL de révocation préparé reste dans `docs/drafts` et n'est pas une migration exécutable.
 
 Les fichiers `package-lock.json` et `pnpm-lock.yaml` n'ont pas été trouvés non plus ; vérifier si le projet utilise un autre gestionnaire et son lockfile avant toute installation ou mise à jour de dépendances.
+
+
+## 18. Matrice RLS détaillée
+
+Une matrice séparée a été ajoutée pour documenter les accès actuellement observés et les écarts par rapport aux règles produit :
+
+`docs/RLS-MATRICE-ACCES-ET-ECARTS.md`.
+
+Elle détaille notamment le risque de publication directe par les membres, l'accès aux statistiques pour tous les membres, les permissions du stockage, les limites anti-spam et les rôles qui devront être testés.
