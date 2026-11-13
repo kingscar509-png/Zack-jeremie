@@ -415,6 +415,17 @@ Les frais, options disponibles, affectations de livreurs et incidents doivent ê
 
 Les suggestions de livreurs doivent tenir compte des informations de disponibilité et de capacité déjà prévues. L'attribution, l'acceptation, les changements de statut, les incidents et les preuves de remise doivent être enregistrés et protégés par des permissions adaptées. Le suivi simple par statuts est la portée retenue pour le lancement ; toute géolocalisation en temps réel nécessitera une décision distincte sur le consentement, la confidentialité, la consommation de données et les conditions techniques.
 
+### 4.27 Messagerie et communication — décisions confirmées
+
+- **Premier contact par un visiteur :** tout visiteur, même sans compte Zack, peut envoyer un premier message à une entreprise. Ce premier contact passe par un formulaire ou un mécanisme de contact invité ; il ne donne pas accès à une conversation privée continue.
+- **Poursuite de la conversation :** après ce premier message, le visiteur doit créer un compte Zack ou se connecter pour poursuivre l'échange dans la messagerie privée. Zack doit prévoir une manière sûre de rattacher le premier contact à la conversation authentifiée, sans exposer les messages à une autre personne.
+- **Messages envoyés par les entreprises :** une entreprise peut initier un message privé uniquement auprès d'un client ayant déjà passé une commande auprès d'elle. Les messages doivent être envoyés par un membre de l'entreprise disposant de la permission correspondante.
+- **Formats au lancement :** la messagerie prend en charge les messages texte et les images. Les messages vocaux ne sont pas prévus au lancement. Les formats documents et autres fichiers ne sont pas inclus dans la décision actuelle.
+- **Conversations liées aux commandes :** les échanges au sujet d'une commande restent intégrés à la conversation habituelle entre le client et l'entreprise, plutôt que dans une messagerie séparée. Zack doit toutefois permettre d'identifier clairement les messages et informations liés à chaque commande.
+- **Accès de l'administration :** l'administration Zack ne peut consulter une conversation privée qu'en cas de signalement ou de problème justifié, et uniquement par un administrateur disposant d'une permission dédiée. L'accès doit être limité au besoin nécessaire et laisser une trace d'audit indiquant notamment l'administrateur, le motif, la conversation consultée et la date.
+
+Les conversations privées restent accessibles uniquement à leurs participants et aux membres de l'entreprise autorisés. Les permissions, l'envoi de fichiers, la protection contre les abus, le signalement, la conservation et l'audit doivent être contrôlés côté serveur. Les limites de taille et les formats précis des images, ainsi que le mécanisme de rattachement du premier message invité à un compte, restent à définir avant l'implémentation. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
