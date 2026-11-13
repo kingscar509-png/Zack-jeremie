@@ -62,7 +62,7 @@ Les éléments ci-dessous sont des pistes de conception, sauf les décisions exp
 | Catalogue produits et services | 10 au total | 100 au total | 500 au total |
 | Messagerie avec les clients | Fonctions essentielles | Fonctions avancées à définir | Fonctions avancées à définir |
 | Réception de demandes de contact | Oui | Oui | Oui |
-| Publications et promotions | Quotas de base | Quotas supérieurs | Quotas les plus élevés à définir |
+| Publications générales | 3 par mois | 20 par mois | 60 par mois |
 | Gestion des commandes reçues | Gestion simple | Outils supplémentaires | Gestion approfondie |
 | Suivi des ventes | Suivi simple des commandes | Suivi plus complet | Suivi des performances et analyses avancées |
 | Statistiques | Essentielles | Plus détaillées | Analyses avancées à définir |
@@ -157,6 +157,20 @@ Ces quotas sont des décisions de conception ; ils ne sont pas encore appliqués
 
 La taille maximale des fichiers, les formats autorisés, la compression, les miniatures et les quotas de stockage doivent encore être définis pour maîtriser les coûts et garantir un affichage rapide sur mobile.
 
+### 4.6 Quotas des publications générales — décision confirmée
+
+Les limites acceptées pour les publications générales de l'entreprise sont :
+
+- **Gratuit : 3 publications par mois**.
+- **Payant : 20 publications par mois**.
+- **Ultra : 60 publications par mois**.
+
+Les publications générales peuvent notamment présenter les actualités de l'entreprise, ses nouveautés, annonces et événements. Elles restent soumises à la modération centralisée de Zack, quel que soit le niveau d'abonnement.
+
+Précisions techniques à définir avant implémentation : période calendaire ou période glissante, moment où une publication consomme un quota (brouillon, soumission, validation ou publication), traitement des contenus rejetés/supprimés/archivés, et éventuelle distinction entre publications générales et promotions. Les quotas seront contrôlés côté serveur et partagés par l'entreprise, pas par membre.
+
+Ces limites sont des décisions de conception ; elles ne sont pas encore appliquées techniquement.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
@@ -216,7 +230,7 @@ La décision déjà confirmée est maintenue :
 1. Définir les avantages précis de Payant.
 2. Définir les avantages supplémentaires propres à Ultra.
 3. Définir les options concrètes de visibilité, leur emplacement, leur fréquence et leurs quotas.
-4. Fixer les quotas exacts de publications et promotions.
+4. Définir les règles détaillées de comptage des publications et déterminer si les promotions utilisent un quota distinct.
 5. Définir les règles de comptage des éléments masqués, archivés, en attente de modération ou désactivés.
 6. Définir les règles techniques des photos : poids, formats, compression, miniatures et stockage.
 7. Définir les statistiques et outils de gestion de chaque niveau.
@@ -231,4 +245,4 @@ Conserver trois niveaux clairement différenciés. Le niveau Gratuit doit rester
 
 ## 10. État technique
 
-Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, policy RLS, fonction serveur, interface, configuration ou donnée Supabase n'a été créée ou modifiée. Les prix, les quotas de publications/promotions et les détails des avantages restent à valider.
+Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, policy RLS, fonction serveur, interface, configuration ou donnée Supabase n'a été créée ou modifiée. Les prix et les détails des avantages restent à valider. Les quotas de publications générales sont confirmés, mais leurs règles détaillées de comptage restent à définir.
