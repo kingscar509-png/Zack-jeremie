@@ -652,3 +652,39 @@ Pour une attribution illimitée, aucune date d'expiration automatique n'est déf
 ### État technique
 
 Cette décision est ajoutée à la spécification. Aucune table, politique RLS, fonction serveur, interface ou donnée Supabase n'a été créée ou modifiée pour l'implémenter. La conception détaillée du modèle d'abonnement et des permissions administrateur reste à réaliser avant toute migration.
+
+## 20. Point de progression global — 13 novembre 2026
+
+### Estimation prudente
+
+**Progression estimée vers un lancement public : 38/100.** Il s'agit d'un indicateur de maturité du projet, pas d'un pourcentage de code terminé ni d'une mesure certifiée. Le précédent repère était 35/100 ; l'augmentation reflète surtout la clarification et la documentation de décisions, pas une mise en production de fonctionnalités.
+
+| Domaine | Estimation | État résumé |
+|---|---:|---|
+| Vision et périmètre produit | 90 % | Portée nationale et grands parcours définis |
+| Règles métier et spécifications | 90 % | Commandes multi-vendeurs, livraison, permissions et offres administratives largement documentées ; quelques règles restent ouvertes |
+| Architecture et modèle de données | 60 % | Audit du schéma existant et modules manquants identifiés ; modèle final et migrations à produire |
+| Sécurité et permissions | 40 % | Matrice RLS et risques documentés ; corrections et tests non appliqués |
+| Design et interfaces | 55 % | Plusieurs références/prototypes en comparaison ; interface finale non sélectionnée |
+| Développement frontend connecté | 30 % | Prototype et base de frontend existent ; intégration complète et validation mobile à poursuivre |
+| Backend et fonctions serveur | 15 % | Tables existantes partiellement utiles ; modules et Edge Functions essentiels manquants |
+| Paiements et abonnements | 15 % | Choix MonCash pour abonnements documenté ; intégration et vérification réelles non développées |
+| Tests, charge et fiabilité | 5 % | Plan de tests défini ; campagne de tests complète non réalisée |
+| Préparation opérationnelle du lancement | 10 % | Hébergement, politiques, support, surveillance et ouverture progressive à finaliser |
+
+### Ce qui a réellement avancé dans cette session
+
+- La commande administrative d'accès payant offert, y compris sans date de fin, est maintenant documentée dans le plan central.
+- Le modèle fonctionnel des abonnements distingue maintenant transaction réellement payée, attribution offerte et droits d'accès effectifs.
+- Les règles de traçabilité, de révocation, de permission administrative et de coexistence entre abonnement payé et offre sont spécifiées au niveau fonctionnel.
+- Aucune modification du projet Supabase n'a été effectuée : aucun SQL, table, policy, fonction, paramètre ou donnée n'a été modifié.
+
+### Prochaines priorités de préparation
+
+1. Définir les niveaux Zack et la liste précise des avantages inclus dans chacun.
+2. Finaliser la matrice des permissions des administrateurs Zack, dont la permission dédiée à la gestion des abonnements et des offres.
+3. Concevoir le modèle de données des abonnements, transactions, attributions offertes et historique d'audit, puis le faire relire avant tout SQL.
+4. Comparer les prototypes HTML attendus et sélectionner l'interface finale sans écraser les références.
+5. Établir le plan de correction de sécurité et de tests avant de connecter le frontend à Supabase.
+
+**Règle de mesure :** une fonctionnalité seulement écrite dans un document compte comme spécifiée, pas comme développée, testée ou disponible pour les utilisateurs.
