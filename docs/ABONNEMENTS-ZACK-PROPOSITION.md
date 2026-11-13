@@ -270,6 +270,17 @@ Les contrôles d'accès, de quota, de restauration, de signalement et de préfé
 
 Les limites de poids et formats doivent être contrôlées côté serveur, et les fichiers doivent être validés avant stockage. La programmation ne doit pas permettre de contourner les quotas ni les règles de modération.
 
+### 4.14 Règles des publications programmées — décisions confirmées
+
+- **Consommation du quota :** une publication programmée consomme une place dans le quota au moment où elle est effectivement publiée, et non au moment de sa programmation. Le contrôle du quota doit être effectué côté serveur juste avant la publication automatique.
+- **Annulation :** l'entreprise peut annuler librement une publication programmée avant sa publication. Une publication annulée avant d'être publiée ne consomme pas de quota.
+- **Modification :** l'entreprise peut modifier une publication programmée jusqu'à son heure de publication. Les droits de modification et la validité du contenu doivent être vérifiés côté serveur.
+- **Fuseau horaire :** les dates et heures de programmation utilisent le fuseau horaire d'Haïti, identifié par IANA comme `America/Port-au-Prince`. L'interface doit présenter clairement la date et l'heure locales et gérer correctement les changements d'heure.
+- **Échec de publication :** si la publication automatique échoue, Zack doit effectuer de nouvelles tentatives automatiques et prévenir l'entreprise si la publication ne peut finalement pas être effectuée. Le nombre de tentatives, leur intervalle, la durée maximale de reprise et les motifs d'échec nécessitant une intervention restent à définir.
+- **Types de contenus :** les publications générales et les promotions peuvent toutes deux être programmées. Les dates de début et de fin d'une promotion doivent être cohérentes avec son horaire de publication.
+
+La programmation doit être exécutée par un mécanisme serveur fiable, avec protection contre les doubles publications, journalisation des tentatives et traitement idempotent. Une publication programmée ne doit jamais être publiée si le quota n'est plus disponible, si l'entreprise a perdu les droits nécessaires ou si le contenu est devenu invalide. Les règles de modération a posteriori déjà définies restent applicables.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
