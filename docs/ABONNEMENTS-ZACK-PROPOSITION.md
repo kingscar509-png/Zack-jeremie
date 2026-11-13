@@ -165,11 +165,15 @@ Les limites acceptées pour les publications générales de l'entreprise sont :
 - **Payant : 20 publications par mois**.
 - **Ultra : 60 publications par mois**.
 
-Les publications générales peuvent notamment présenter les actualités de l'entreprise, ses nouveautés, annonces et événements. Elles restent soumises à la modération centralisée de Zack, quel que soit le niveau d'abonnement.
+Les publications générales peuvent notamment présenter les actualités de l'entreprise, ses nouveautés, annonces et événements.
 
-Précisions techniques à définir avant implémentation : période calendaire ou période glissante, moment où une publication consomme un quota (brouillon, soumission, validation ou publication), traitement des contenus rejetés/supprimés/archivés, et éventuelle distinction entre publications générales et promotions. Les quotas seront contrôlés côté serveur et partagés par l'entreprise, pas par membre.
+**Mode de publication confirmé : publication immédiate.** Lorsqu'une entreprise publie, le contenu devient visible immédiatement, sans attendre une validation préalable par un administrateur. La modération est donc effectuée après publication.
 
-Ces limites sont des décisions de conception ; elles ne sont pas encore appliquées techniquement.
+**Pouvoir de modération confirmé :** un administrateur Zack autorisé peut supprimer une publication qui enfreint les règles. Le motif de suppression est obligatoire. L'entreprise concernée doit être informée du motif par une notification. Zack doit conserver une trace d'audit comprenant au minimum la publication concernée, l'administrateur ayant effectué l'action, le motif et la date. Les permissions de modération doivent être contrôlées côté serveur.
+
+Précisions techniques à définir avant implémentation : période calendaire ou période glissante ; traitement des publications supprimées par leur auteur ou par un administrateur dans le calcul du quota ; éventuelle distinction entre publications générales et promotions. Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
+
+Ces limites et règles de fonctionnement sont des décisions de conception ; elles ne sont pas encore appliquées techniquement.
 
 ## 5. Périodicité des paiements
 
@@ -208,9 +212,12 @@ Pour les niveaux Payant et Ultra :
 
 ### 6.4 Modération des contenus
 
-- Les publications restent soumises à la modération centralisée déjà décidée pour Zack.
-- Un abonnement payant ne permet pas de contourner la modération.
-- Les quotas ne changent pas les règles de validation du contenu.
+- Les publications sont visibles immédiatement après leur envoi, puis peuvent être contrôlées par la modération centralisée de Zack.
+- Un administrateur autorisé peut supprimer un contenu non conforme avec un motif obligatoire.
+- L'entreprise reçoit une notification expliquant la suppression.
+- L'action de modération est conservée dans un historique d'audit.
+- Un abonnement payant ne permet pas de contourner les règles de modération.
+- Les quotas ne changent pas les règles de modération.
 
 ## 7. Avantages offerts gratuitement par l'administration
 
