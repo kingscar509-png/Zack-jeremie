@@ -368,6 +368,17 @@ Le propriétaire est inclus dans le nombre total de membres autorisés. Les invi
 
 Les stocks, les mouvements et les permissions doivent être contrôlés côté serveur. Les mises à jour simultanées doivent être sécurisées afin d'éviter les quantités négatives ou incohérentes. Ces décisions sont documentaires et ne constituent pas une implémentation technique.
 
+### 4.23 Réception et traitement des commandes — décisions confirmées
+
+- **Confirmation de disponibilité :** lorsqu'un client passe une commande, le vendeur doit d'abord confirmer la disponibilité des produits ou services concernés avant que la commande soit acceptée. Zack doit distinguer clairement la demande reçue, la vérification de disponibilité et l'acceptation de la commande.
+- **Délai de réponse :** le délai accordé au vendeur pour répondre est fixé à 12 heures. Le point de départ exact du délai et le traitement des heures non ouvrées devront être précisés dans les règles opérationnelles.
+- **Absence de réponse :** si le vendeur ne répond pas dans le délai, le client choisit la suite à donner à la commande. Zack doit lui proposer les actions adaptées, notamment maintenir la demande en attente ou l'annuler. Aucune annulation automatique ne doit être déclenchée sans le choix du client.
+- **Contact au sujet d'une commande :** le client peut contacter le vendeur par la messagerie intégrée de Zack au sujet de sa commande. L'accès à la conversation doit être limité aux participants et aux membres de l'entreprise autorisés.
+- **Modification de quantité en cas de stock insuffisant :** le vendeur peut proposer une quantité différente, mais la modification ne devient effective qu'après acceptation explicite du client. En cas de refus, la ligne concernée suit la règle de refus partiel déjà définie ; les autres lignes de la commande peuvent continuer leur traitement.
+- **Notifications de statut :** le client peut être informé des changements de statut par notification Zack, email et WhatsApp, sous réserve de son consentement pour les canaux concernés et de la disponibilité des services. Les préférences de notification doivent pouvoir être gérées par le client.
+
+Les statuts, délais, modifications de lignes, autorisations et notifications doivent être contrôlés côté serveur et consignés de façon appropriée. Ces décisions complètent les règles déjà définies sur le panier multi-vendeurs, les commandes séparées par vendeur et les refus partiels ; elles ne les remplacent pas.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
