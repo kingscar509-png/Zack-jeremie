@@ -91,3 +91,23 @@ Le modèle détaillé est décrit dans `docs/MODELE-DONNEES-MULTI-VENDEURS-PERMI
 **Attention :** le SQL présenté à la section 3 du document initial `SQL-PROPOSITION-MODULES-MANQUANTS-REVUE.md` est désormais obsolète pour les commandes multi-vendeurs et les permissions d'équipe. Il ne doit pas être appliqué. Il doit être remplacé par une proposition SQL versionnée après validation des règles encore ouvertes.
 
 Aucun SQL n'a été exécuté et aucune migration Supabase n'a été appliquée.
+
+
+---
+
+## Mise à jour du 13 novembre 2026 — décision produit confirmée
+
+La section « Décision produit encore nécessaire » ci-dessus est historique et ne constitue plus une question ouverte.
+
+Le propriétaire a confirmé **le panier multi-vendeurs avec division automatique** :
+- un `checkout_batches` par validation globale ;
+- une commande `orders` distincte par entreprise vendeuse ;
+- des `order_items` rattachés à leur commande vendeur ;
+- chaque commande est traitée indépendamment.
+
+L'option ancienne « un seul panier actif par entreprise » est abandonnée et ne doit pas être implémentée.
+
+Les règles détaillées (livraison, frais, permissions, acceptation/refus article par article, annulations, délais et notifications) sont consignées dans :
+`docs/MODELE-DONNEES-MULTI-VENDEURS-PERMISSIONS.md`.
+
+Le présent document reste un audit historique du prototype HTML et de l'état observé à sa date. Il ne constitue pas une autorisation d'appliquer le SQL proposé dans les sections précédentes.
