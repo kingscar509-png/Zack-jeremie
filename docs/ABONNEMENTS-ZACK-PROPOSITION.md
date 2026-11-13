@@ -336,6 +336,17 @@ Ces règles s'appliquent à la conception des promotions. Les conditions, quanti
 
 Les limites d'utilisation, l'unicité par client, l'éligibilité, la portée et la validité temporelle doivent être vérifiées côté serveur au moment de l'application et de la validation de la commande. Les utilisations concurrentes doivent être traitées de manière atomique afin de ne pas dépasser le nombre maximal défini.
 
+### 4.20 Outils de gestion d'entreprise et fonctionnalités selon l'abonnement — décisions confirmées
+
+- **Nombre de membres d'une entreprise :** les limites exactes par abonnement (Gratuit, Payant et Ultra) ne sont pas encore fixées. Elles seront définies dans une série ultérieure. Les droits d'accès doivent rester fondés sur des rôles et permissions, et non sur le seul fait d'être membre.
+- **Rôles de l'équipe :** Zack proposera des rôles avec des permissions prédéfinies. Le propriétaire et les responsables autorisés pourront attribuer les rôles prévus, sans que l'abonnement permette de contourner les permissions de sécurité.
+- **Téléchargement des statistiques :** cette fonctionnalité est réservée à l'abonnement Ultra. Les indicateurs visibles dans chaque niveau restent soumis à la matrice des statistiques déjà définie.
+- **Gestion des stocks :** une gestion simple des stocks sera disponible dès l'abonnement Gratuit. Elle permettra notamment à l'entreprise d'enregistrer les quantités disponibles et de suivre leur évolution. Le niveau de détail des fonctions avancées reste à définir. Les mises à jour de stock liées aux commandes devront suivre les états de commande retenus et être traitées côté serveur pour éviter les quantités incohérentes.
+- **Gestion des clients :** un outil de suivi des clients (par exemple historique des commandes et coordonnées utiles) sera disponible à partir de Payant. Les données ne seront accessibles qu'aux membres autorisés de l'entreprise et devront respecter les règles de confidentialité et de protection des données.
+- **Devis et factures :** la création de devis et de factures sera disponible à partir de Payant. Les modèles, numérotations, statuts, formats d'exportation et règles fiscales applicables en Haïti restent à définir avant implémentation. Zack ne doit pas présenter un document comme une facture fiscale conforme sans validation des exigences applicables.
+
+Ces fonctionnalités sont des décisions de conception et ne sont pas encore implémentées. Les contrôles d'abonnement, les rôles et les autorisations doivent être appliqués côté serveur.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
