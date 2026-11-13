@@ -173,7 +173,12 @@ Les publications générales peuvent notamment présenter les actualités de l'e
 
 **Règle de quota confirmée :** lorsqu'une publication est supprimée par un administrateur pour non-respect des règles, elle continue de compter dans le quota de publications de l'entreprise pour la période concernée. Sa suppression ne libère donc pas une nouvelle place.
 
-Précisions techniques à définir avant implémentation : période calendaire ou période glissante ; traitement des publications supprimées par leur auteur ; éventuelle distinction entre publications générales et promotions. Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
+**Règles de suppression et de modification par l'entreprise confirmées :**
+- Supprimer une publication déjà publiée ne libère pas la place consommée dans le quota du mois.
+- Modifier une publication existante ne consomme pas une nouvelle place.
+- Un brouillon supprimé avant sa première publication ne consomme aucun quota.
+
+Précisions techniques à définir avant implémentation : période calendaire ou période glissante ; éventuelle distinction entre publications générales et promotions. Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
 
 Ces limites et règles de fonctionnement sont des décisions de conception ; elles ne sont pas encore appliquées techniquement.
 
