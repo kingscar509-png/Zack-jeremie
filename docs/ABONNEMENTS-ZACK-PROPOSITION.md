@@ -51,7 +51,7 @@ Les fonctionnalités exactes et les quotas de chaque axe restent à préciser. I
 
 ## 4. Matrice préliminaire des avantages
 
-Les éléments ci-dessous sont des pistes de conception, pas des quotas ni des fonctionnalités définitivement approuvés. Les différences exactes entre Payant et Ultra doivent encore être validées.
+Les éléments ci-dessous sont des pistes de conception, pas des quotas ni des fonctionnalités définitivement approuvés.
 
 | Fonctionnalité | Gratuit | Payant | Ultra |
 |---|---|---|---|
@@ -82,6 +82,23 @@ Garde-fous à respecter :
 - Les résultats organiques doivent conserver des critères pertinents pour les utilisateurs.
 - Les options concrètes, leur fréquence, leur emplacement et leurs quotas restent à définir.
 - La visibilité payante ne constitue ni une vérification ni une garantie de qualité de l'entreprise.
+
+### 4.2 Progression des outils de gestion — décision confirmée
+
+La progression acceptée est la suivante :
+
+- **Gratuit** : gérer les informations essentielles de l'entreprise.
+- **Payant** : gestion plus complète, statistiques et organisation des activités.
+- **Ultra** : outils avancés, gestion d'équipe et analyses approfondies.
+
+Pistes de fonctionnalités à étudier :
+- Tableau de bord de gestion de la fiche et du catalogue.
+- Organisation et planification des publications et promotions.
+- Statistiques de visites, consultations de produits, demandes et interactions.
+- Gestion d'équipe avec rôles et permissions configurables.
+- Rapports plus détaillés pour aider le propriétaire à comprendre les performances de son entreprise.
+
+Ces avantages doivent respecter les permissions d'équipe déjà décidées : le propriétaire et l'administrateur d'entreprise gèrent les accès ; un éditeur ne reçoit pas automatiquement des droits sur les messages ou commandes. Les abonnements ne doivent jamais contourner les permissions de sécurité.
 
 Les quotas de photos, produits, services, publications et promotions doivent être chiffrés avant la conception SQL finale. La taille des photos, leur compression et les quotas de stockage doivent aussi être définis pour maîtriser les coûts.
 
