@@ -178,7 +178,11 @@ Les publications générales peuvent notamment présenter les actualités de l'e
 - Modifier une publication existante ne consomme pas une nouvelle place.
 - Un brouillon supprimé avant sa première publication ne consomme aucun quota.
 
-Précisions techniques à définir avant implémentation : période calendaire ou période glissante ; éventuelle distinction entre publications générales et promotions. Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
+**Période de renouvellement confirmée : mois calendaire.** Le quota est renouvelé automatiquement le premier jour de chaque mois. Chaque entreprise dispose donc de son quota mensuel du 1er au dernier jour du mois. Le quota non utilisé n'est pas reporté au mois suivant.
+
+L'heure de renouvellement doit être calculée selon un fuseau horaire de référence défini par Zack pour Haïti, afin que les entreprises voient des dates cohérentes.
+
+Précision restant à définir avant implémentation : éventuelle distinction entre publications générales et promotions. Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
 
 Ces limites et règles de fonctionnement sont des décisions de conception ; elles ne sont pas encore appliquées techniquement.
 
