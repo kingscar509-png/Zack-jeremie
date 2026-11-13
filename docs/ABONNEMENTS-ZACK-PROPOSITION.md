@@ -182,7 +182,9 @@ Les publications générales peuvent notamment présenter les actualités de l'e
 
 L'heure de renouvellement doit être calculée selon un fuseau horaire de référence défini par Zack pour Haïti, afin que les entreprises voient des dates cohérentes.
 
-Précision restant à définir avant implémentation : éventuelle distinction entre publications générales et promotions. Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
+**Publications générales et promotions — règle confirmée :** les deux types partagent le même quota mensuel. Une actualité, une annonce, un événement ou une promotion consomme donc une place dans le même compteur. Il n'existe pas de quota supplémentaire réservé aux promotions.
+
+Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
 
 Ces limites et règles de fonctionnement sont des décisions de conception ; elles ne sont pas encore appliquées techniquement.
 
