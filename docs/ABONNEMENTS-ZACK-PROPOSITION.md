@@ -33,7 +33,7 @@ Le choix retenu est de construire les avantages des abonnements autour des trois
 - Présentation de l'entreprise dans l'annuaire national.
 - Mise en valeur de sa fiche et de ses contenus.
 - Outils pour mieux présenter ses produits, services et actualités.
-- Éventuelles options de visibilité supplémentaires, avec des règles transparentes et sans fausser les résultats organiques.
+- Options de visibilité supplémentaires selon le niveau, conformément à la progression précisée à la section 4.1.
 
 ### 3.2 Outils de gestion de l'entreprise
 - Gestion de la fiche et du catalogue.
@@ -67,6 +67,21 @@ Les éléments ci-dessous sont des pistes de conception, pas des quotas ni des f
 | Personnalisation de la fiche | Standard | Options supplémentaires | Options les plus avancées à définir |
 | Outils de gestion de l'entreprise | Essentiels | Outils supplémentaires | Outils avancés à définir |
 | Outils de développement des ventes | Fonctions essentielles | Capacités supplémentaires | Capacités avancées à définir |
+
+### 4.1 Progression de visibilité — décision confirmée
+
+La progression de visibilité acceptée est la suivante :
+
+- **Gratuit** : visibilité normale dans les résultats de recherche et l'annuaire.
+- **Payant** : meilleure mise en valeur de la fiche de l'entreprise.
+- **Ultra** : options de visibilité prioritaires et davantage de possibilités de mise en avant.
+
+Garde-fous à respecter :
+- Une mise en avant payante doit être identifiable comme telle (par exemple « Sponsorisé » ou « Mis en avant »).
+- Aucun abonnement ne garantit une première place permanente dans les résultats.
+- Les résultats organiques doivent conserver des critères pertinents pour les utilisateurs.
+- Les options concrètes, leur fréquence, leur emplacement et leurs quotas restent à définir.
+- La visibilité payante ne constitue ni une vérification ni une garantie de qualité de l'entreprise.
 
 Les quotas de photos, produits, services, publications et promotions doivent être chiffrés avant la conception SQL finale. La taille des photos, leur compression et les quotas de stockage doivent aussi être définis pour maîtriser les coûts.
 
@@ -128,12 +143,13 @@ La décision déjà confirmée est maintenue :
 
 1. Définir les avantages précis de Payant.
 2. Définir les avantages supplémentaires propres à Ultra.
-3. Fixer les quotas exacts de photos, produits, services, publications et promotions.
-4. Définir les statistiques et outils de gestion de chaque niveau.
-5. Définir les outils concrets qui soutiendront le développement des ventes.
-6. Fixer les prix mensuels et annuels après analyse des coûts et du marché haïtien.
-7. Définir les règles de renouvellement, d'expiration, d'échec de paiement et de période de grâce.
-8. Définir la permission administrative permettant d'accorder et de révoquer les offres gratuites.
+3. Définir les options concrètes de visibilité, leur emplacement, leur fréquence et leurs quotas.
+4. Fixer les quotas exacts de photos, produits, services, publications et promotions.
+5. Définir les statistiques et outils de gestion de chaque niveau.
+6. Définir les outils concrets qui soutiendront le développement des ventes.
+7. Fixer les prix mensuels et annuels après analyse des coûts et du marché haïtien.
+8. Définir les règles de renouvellement, d'expiration, d'échec de paiement et de période de grâce.
+9. Définir la permission administrative permettant d'accorder et de révoquer les offres gratuites.
 
 ## 9. Recommandation
 
