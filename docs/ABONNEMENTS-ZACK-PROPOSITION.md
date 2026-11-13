@@ -202,6 +202,9 @@ Ces limites et règles de fonctionnement sont des décisions de conception ; ell
 - Les entreprises peuvent répondre aux commentaires publiés sur leurs contenus, depuis un compte autorisé pour cette entreprise.
 - **Gestion des commentaires par l'entreprise — décision confirmée :** l'entreprise peut répondre aux commentaires, masquer un commentaire sur son propre espace et signaler un commentaire à l'administration Zack. Elle ne peut pas supprimer définitivement le commentaire d'un client. Le masquage doit être réversible et son auteur ainsi que l'administration doivent pouvoir être identifiés dans les traces nécessaires.
 - L'administration Zack conserve la responsabilité des décisions de modération définitives, selon des permissions dédiées.
+- L'entreprise peut modifier ou supprimer sa propre réponse à un commentaire.
+- Le client peut modifier ou supprimer son propre commentaire.
+- Les modifications et suppressions importantes doivent laisser une trace d'audit adaptée (auteur, date et action), sans nécessairement exposer publiquement les anciennes versions.
 - Les règles de notification, de recours, de durée de masquage et de visibilité des commentaires masqués restent à détailler.
 - Les permissions de réponse et de modération doivent être vérifiées côté serveur.
 
