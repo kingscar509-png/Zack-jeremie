@@ -215,6 +215,13 @@ Ces limites et règles de fonctionnement sont des décisions de conception ; ell
 - Les visiteurs non connectés peuvent consulter le contenu et le nombre de mentions « J'aime », mais ne peuvent pas interagir avec cette fonction.
 - Le contrôle de l'unicité et des autorisations doit être effectué côté serveur afin d'éviter les doublons ou manipulations.
 
+### 4.9 Partage des publications — décision confirmée
+
+- Tout visiteur, avec ou sans compte Zack, peut partager une publication publique.
+- Le partage peut se faire par lien direct ou via les applications disponibles sur son appareil, notamment WhatsApp et Facebook.
+- Chaque publication publique dispose d'un lien partageable stable.
+- Le partage ne doit pas révéler de données privées ni contourner les paramètres de visibilité ou une suppression/modération.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
