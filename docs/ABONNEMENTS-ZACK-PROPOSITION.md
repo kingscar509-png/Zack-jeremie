@@ -440,6 +440,19 @@ Les préférences, consentements, canaux autorisés, délais de conservation et 
 
 
 
+
+### 4.32 Administration centrale de Zack — décisions confirmées
+
+- **Tableau de bord administrateur :** le tableau de bord central présente les statistiques générales (utilisateurs, entreprises et commandes), les revenus et abonnements, ainsi que l'activité récente et les alertes importantes. Les indicateurs financiers doivent distinguer les paiements réellement encaissés, les abonnements actifs et les avantages gratuits accordés par l'administration.
+- **Gestion des administrateurs :** Zack prévoit un administrateur principal qui peut attribuer différents rôles et permissions aux autres administrateurs. Les droits doivent suivre le principe du moindre privilège ; les actions sensibles doivent être réservées aux rôles autorisés.
+- **Suspension d'une entreprise :** une entreprise peut être suspendue selon la gravité du problème. Toute suspension exige un motif obligatoire et une trace dans le journal administratif. Les règles doivent distinguer les mesures urgentes de protection des suspensions ordinaires et préciser les notifications et possibilités de recours.
+- **Modification des fiches d'entreprise :** l'administration ne modifie pas directement les informations de la fiche à la place de l'entreprise. Elle peut lui demander de corriger les informations concernées et suivre la réponse ou la correction apportée.
+- **Gestion des signalements :** les signalements sont regroupés dans une liste centralisée avec priorité automatique selon la gravité, suivi de leur traitement et historique des décisions. La priorité automatique aide les administrateurs mais ne remplace pas leur examen ni leur décision.
+- **Journal administratif :** toutes les actions administratives doivent être enregistrées, avec au minimum l'identité de l'administrateur, la date et l'heure, l'action effectuée, l'élément concerné et, lorsqu'il y a lieu, le motif. Le journal doit être protégé contre les modifications non autorisées et son accès réservé aux personnes habilitées.
+
+Les tableaux de bord, rôles, suspensions, demandes de correction, signalements et journaux doivent respecter les permissions et contrôles côté serveur. Les statistiques affichées doivent être fiables, définies et mises à jour selon des règles cohérentes. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
+
+
 ### 4.31 Vérification des entreprises — décisions confirmées
 
 - **Éligibilité :** toutes les entreprises inscrites sur Zack peuvent demander une vérification, quel que soit leur niveau d'abonnement. La vérification reste indépendante des offres Gratuit, Payant et Ultra.
