@@ -438,6 +438,19 @@ Les conversations privées restent accessibles uniquement à leurs participants 
 Les préférences, consentements, canaux autorisés, délais de conservation et envois doivent être gérés de manière sécurisée côté serveur. Les notifications ne doivent exposer que les informations nécessaires ; les détails sensibles d'une commande ou d'une conversation privée doivent rester dans Zack lorsque leur transmission externe n'est pas appropriée. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
 
 
+
+### 4.30 Inscription, connexion et sécurité des comptes — décisions confirmées
+
+- **Création de compte :** l'utilisateur peut s'inscrire avec une adresse email ou un numéro de téléphone. Il n'est pas nécessaire de fournir les deux pour créer un compte.
+- **Vérification à l'inscription :** Zack envoie un code de vérification par email ou par SMS, selon le moyen utilisé lors de l'inscription. Le compte doit être associé au moyen de contact vérifié correspondant.
+- **Connexion :** l'utilisateur peut se connecter avec son adresse email ou son numéro de téléphone, accompagné de son mot de passe.
+- **Double authentification :** aucune double authentification supplémentaire n'est prévue comme exigence au lancement. La possibilité de l'ajouter ultérieurement pourra être réévaluée, en particulier pour les comptes disposant de permissions sensibles.
+- **Mot de passe oublié :** l'utilisateur peut demander une réinitialisation par email ou par SMS, selon les coordonnées vérifiées et les options disponibles pour son compte. Zack ne doit jamais envoyer ni révéler le mot de passe existant.
+- **Tentatives de connexion incorrectes :** le choix retenu est l'affichage d'un avertissement à l'utilisateur, sans blocage temporaire décidé comme règle produit à ce stade.
+
+Les codes de vérification et de réinitialisation doivent être temporaires, à usage limité et protégés contre la réutilisation ou les tentatives automatisées. Même si aucun blocage temporaire visible n'est retenu dans le parcours utilisateur, Zack doit appliquer des protections techniques proportionnées contre les abus, les attaques automatisées et les tentatives répétées, sans exposer les mécanismes de sécurité. Les mots de passe doivent être stockés uniquement sous forme sécurisée par le système d'authentification ; aucun mot de passe ni code secret ne doit être conservé en clair. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
+
+
 ### 4.29 Comptes utilisateurs et profils — décisions confirmées
 
 - **Types de comptes prévus :** Zack distingue trois catégories de comptes : clients, entreprises et livreurs. Les administrateurs Zack constituent un rôle interne de gestion et de modération, avec des permissions dédiées ; ils ne sont pas un type de compte public proposé à l'inscription.
