@@ -426,6 +426,17 @@ Les suggestions de livreurs doivent tenir compte des informations de disponibili
 
 Les conversations privées restent accessibles uniquement à leurs participants et aux membres de l'entreprise autorisés. Les permissions, l'envoi de fichiers, la protection contre les abus, le signalement, la conservation et l'audit doivent être contrôlés côté serveur. Les limites de taille et les formats précis des images, ainsi que le mécanisme de rattachement du premier message invité à un compte, restent à définir avant l'implémentation. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
 
+### 4.28 Notifications et alertes — décisions confirmées
+
+- **Canaux disponibles au lancement :** Zack prévoit des notifications dans l'application, des notifications push sur téléphone, des notifications par email et des notifications WhatsApp. La disponibilité effective dépendra de la configuration technique et des autorisations accordées par l'utilisateur.
+- **Choix des canaux :** l'utilisateur peut choisir les moyens par lesquels il souhaite recevoir ses notifications. Ce choix concerne les canaux de réception ; il ne crée pas de réglages indépendants pour chaque catégorie de notification au lancement.
+- **Activation générale :** un seul réglage global permet à l'utilisateur d'activer ou de désactiver l'ensemble des notifications Zack. Les préférences de canaux choisies restent distinctes de ce réglage général. Les notifications indispensables à la sécurité du compte ou aux obligations de service devront être traitées séparément et clairement expliquées si elles ne peuvent pas être désactivées.
+- **Heures silencieuses :** aucune programmation d'heures sans notifications n'est prévue au lancement.
+- **Conservation :** les notifications sont conservées dans le centre de notifications Zack pendant 30 jours, puis supprimées automatiquement de ce centre. Cette durée ne doit pas être confondue avec la conservation séparée des données nécessaires aux commandes, à la sécurité, aux obligations légales ou aux traces d'audit.
+- **WhatsApp :** l'envoi de notifications WhatsApp exige un accord explicite de l'utilisateur et l'enregistrement de son numéro de téléphone. Zack doit respecter le retrait ultérieur de cet accord et ne pas envoyer de notifications WhatsApp sans consentement.
+
+Les préférences, consentements, canaux autorisés, délais de conservation et envois doivent être gérés de manière sécurisée côté serveur. Les notifications ne doivent exposer que les informations nécessaires ; les détails sensibles d'une commande ou d'une conversation privée doivent rester dans Zack lorsque leur transmission externe n'est pas appropriée. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
