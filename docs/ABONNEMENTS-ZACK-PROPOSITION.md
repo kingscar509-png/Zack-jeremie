@@ -186,6 +186,13 @@ L'heure de renouvellement doit être calculée selon un fuseau horaire de réfé
 
 Le quota sera contrôlé côté serveur et partagé par l'entreprise, pas par membre.
 
+**Durée d'affichage — règle confirmée :**
+- Une publication générale reste visible jusqu'à sa suppression par l'entreprise ou par un administrateur Zack autorisé.
+- Le renouvellement mensuel du quota ne supprime pas les publications déjà publiées.
+- Une promotion peut comporter une date de début et une date de fin.
+- À la date de fin, la promotion devient automatiquement inactive et cesse d'être présentée comme une offre en cours ; elle reste consultable dans l'historique de l'entreprise.
+- Les règles d'affichage exactes des promotions expirées dans les pages publiques restent à préciser.
+
 Ces limites et règles de fonctionnement sont des décisions de conception ; elles ne sont pas encore appliquées techniquement.
 
 ## 5. Périodicité des paiements
@@ -265,4 +272,4 @@ Conserver trois niveaux clairement différenciés. Le niveau Gratuit doit rester
 
 ## 10. État technique
 
-Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, policy RLS, fonction serveur, interface, configuration ou donnée Supabase n'a été créée ou modifiée. Les prix et les détails des avantages restent à valider. Les quotas de publications générales sont confirmés, mais leurs règles détaillées de comptage restent à définir.
+Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, policy RLS, fonction serveur, interface, configuration ou donnée Supabase n'a été créée ou modifiée. Les prix et les détails des avantages restent à valider. Les règles détaillées de comptage et d'affichage des publications sont documentées dans la section 4.6.
