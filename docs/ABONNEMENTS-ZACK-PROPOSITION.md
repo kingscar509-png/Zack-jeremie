@@ -314,6 +314,17 @@ La file doit être traitée de façon fiable et atomique, sans double publicatio
 
 Les promotions doivent respecter les mêmes règles de publication, quota, programmation, archivage, modération et sécurité que les autres publications. La validation des prix, des dates, des éléments de catalogue et des permissions est effectuée côté serveur.
 
+### 4.18 Conditions d'utilisation des promotions — décisions confirmées
+
+- **Dates obligatoires :** chaque promotion doit obligatoirement comporter une date de début et une date de fin. Une promotion sans ces deux dates ne peut pas être publiée.
+- **Type de réduction :** l'entreprise peut définir une réduction sous forme de montant fixe ou de pourcentage. Zack doit calculer et présenter clairement le prix promotionnel final, vérifier la cohérence des valeurs et éviter toute ambiguïté sur la devise et le montant économisé.
+- **Quantité limitée :** l'entreprise peut fixer une quantité maximale d'articles ou de services disponibles dans le cadre de la promotion. Le système doit suivre les quantités restantes et empêcher de présenter comme disponible une offre dont le quota est épuisé. Les règles de réservation et de décrémentation effective de la quantité devront être précisées avec le fonctionnement des commandes.
+- **Conditions d'accès :** l'entreprise peut définir des conditions pour bénéficier d'une promotion (par exemple une clientèle ou une situation particulière). Ces conditions doivent être visibles et compréhensibles avant que le client ne s'engage.
+- **Promotions non cumulables :** lorsque plusieurs promotions concernent le même produit ou service, elles ne se cumulent pas. L'entreprise choisit la promotion applicable ; Zack doit afficher clairement celle qui s'applique et ne pas additionner automatiquement les réductions.
+- **Codes promotionnels :** les entreprises peuvent créer des codes que les clients saisissent pour bénéficier d'une promotion. Les règles de génération, durée, nombre d'utilisations, conditions d'éligibilité, protection contre les usages abusifs et application au panier restent à détailler.
+
+Ces règles s'appliquent à la conception des promotions. Les conditions, quantités, codes et réductions doivent être vérifiés côté serveur au moment pertinent, notamment lors de l'application d'une offre et de la validation d'une commande. Une interface ne doit jamais suffire à accorder un avantage ou à modifier un prix.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
@@ -376,7 +387,7 @@ La décision déjà confirmée est maintenue :
 1. Définir les avantages précis de Payant.
 2. Définir les avantages supplémentaires propres à Ultra.
 3. Définir les options concrètes de visibilité, leur emplacement, leur fréquence et leurs quotas.
-4. Définir les règles détaillées de comptage des publications et déterminer si les promotions utilisent un quota distinct.
+4. Définir les règles détaillées de comptage des publications, le quota commun déjà retenu et les éventuels cas limites.
 5. Définir les règles de comptage des éléments masqués, archivés, en attente de modération ou désactivés.
 6. Définir les règles techniques des photos : poids, formats, compression, miniatures et stockage.
 7. Définir les statistiques et outils de gestion de chaque niveau.
