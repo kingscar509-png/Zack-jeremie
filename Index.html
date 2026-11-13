@@ -1,0 +1,2108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0A1A4F" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Zack Haïti — Plateforme numérique nationale des entreprises</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #0A1A4F;
+      --navy-hover: #102770;
+      --blue: #3B82F6;
+      --blue-soft: rgba(59, 130, 246, 0.11);
+      --yellow: #FFC107;
+      --yellow-hover: #F5B400;
+      --yellow-text: #0A1A4F;
+
+      --outer-bg: #E9EEF7;
+      --bg: #F6F8FC;
+      --surface: #FFFFFF;
+      --surface-alt: #F1F5F9;
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+      --text: #0F172A;
+      --text-muted: #475569;
+      --text-subtle: #64748B;
+
+      --success: #15803D;
+      --success-bg: rgba(21, 128, 61, 0.12);
+      --warning: #B45309;
+      --warning-bg: rgba(180, 83, 9, 0.12);
+      --danger: #B91C1C;
+      --danger-bg: rgba(185, 28, 28, 0.12);
+
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-lg: 18px;
+      --shadow-sm: 0 1px 3px rgba(10, 26, 79, 0.06);
+      --shadow-shell: 0 20px 50px rgba(10, 26, 79, 0.18);
+    }
+
+    html.dark {
+      --outer-bg: #030712;
+      --bg: #070C1B;
+      --surface: #0F172A;
+      --surface-alt: #162036;
+      --border: #1E293B;
+      --border-strong: #334155;
+      --text: #F8FAFC;
+      --text-muted: #CBD5E1;
+      --text-subtle: #94A3B8;
+      --blue-soft: rgba(59, 130, 246, 0.18);
+      --success: #4ADE80;
+      --success-bg: rgba(74, 222, 128, 0.14);
+      --warning: #FBBF24;
+      --warning-bg: rgba(251, 191, 36, 0.14);
+      --danger: #F87171;
+      --danger-bg: rgba(248, 113, 113, 0.14);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --shadow-shell: 0 24px 60px rgba(0, 0, 0, 0.65);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: clip;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--outer-bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .tabular { font-variant-numeric: tabular-nums; }
+
+    /* Desktop outer bar */
+    .desktop-toolbar { display: none; }
+    @media (min-width: 640px) {
+      .desktop-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        max-width: 1240px;
+        margin: 10px auto 0;
+        padding: 8px 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        font-size: 0.78rem;
+      }
+      body { padding: 0 14px 16px; }
+    }
+
+    .toolbar-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .seg-control {
+      display: inline-flex;
+      background: var(--surface-alt);
+      padding: 3px;
+      border-radius: 8px;
+      gap: 2px;
+    }
+    .seg-btn {
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .seg-btn.active { background: var(--navy); color: #FFFFFF; font-weight: 600; }
+    html.dark .seg-btn.active { background: var(--blue); }
+
+    /* App Shell: native page scroll on phone, bounded 9:16 / desktop frame on >= 640px */
+    .app-shell {
+      width: 100%;
+      max-width: 100%;
+      min-height: 100dvh;
+      margin: 0 auto;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    @media (min-width: 640px) {
+      .app-shell.mode-916 {
+        width: 100%;
+        max-width: 412px;
+        height: min(760px, calc(100vh - 88px));
+        min-height: 620px;
+        margin: 12px auto 0;
+        border-radius: 28px;
+        border: 1px solid var(--border-strong);
+        box-shadow: var(--shadow-shell);
+        overflow: hidden;
+      }
+      .app-shell.mode-desktop {
+        max-width: 1240px;
+        height: calc(100vh - 88px);
+        margin: 12px auto 0;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-shell);
+        overflow: hidden;
+      }
+    }
+
+    /* Header */
+    .app-header {
+      flex-shrink: 0;
+      height: 54px;
+      padding: 0 12px;
+      background: var(--navy);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .header-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+    .header-title { font-size: 0.96rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: var(--yellow); color: var(--navy);
+      display: grid; place-items: center; font-weight: 700; font-size: 1rem; flex-shrink: 0;
+    }
+    .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 9px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(255, 255, 255, 0.11); color: #FFFFFF;
+      position: relative; flex-shrink: 0;
+    }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.22); }
+    .lang-pill-btn {
+      height: 30px; padding: 0 8px; border-radius: 8px;
+      background: rgba(255, 255, 255, 0.14); color: #FFFFFF;
+      font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+    }
+    .badge-dot {
+      position: absolute; top: 2px; right: 2px;
+      min-width: 15px; height: 15px; padding: 0 3px; border-radius: 999px;
+      background: var(--yellow); color: var(--navy);
+      font-size: 0.62rem; font-weight: 700; display: grid; place-items: center;
+    }
+
+    /* Body */
+    .screen-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 15px 15px 96px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    @media (min-width: 640px) {
+      .screen-body {
+        flex: 1 1 0%;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+    .app-shell.mode-desktop .screen-body { padding: 24px 24px 100px; }
+    .screen-body > * { min-width: 0; flex-shrink: 0; }
+
+    /* Floating Detached Bottom Dock */
+    .bottom-nav {
+      position: fixed;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 24px);
+      max-width: 392px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-strong);
+      border-radius: 20px;
+      box-shadow: 0 12px 32px rgba(10, 26, 79, 0.22);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      padding: 0 4px;
+      z-index: 45;
+    }
+    @media (min-width: 640px) {
+      .bottom-nav {
+        position: absolute;
+        bottom: 12px;
+      }
+    }
+    html.dark .bottom-nav {
+      background: rgba(15, 23, 42, 0.92);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+    }
+    .bottom-nav.hidden { display: none; }
+    .bnav-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; font-size: 0.66rem; font-weight: 500; color: var(--text-subtle); min-width: 0;
+    }
+    .bnav-btn.active { color: var(--blue); font-weight: 600; }
+    .bnav-fab {
+      width: 40px; height: 40px; border-radius: 13px;
+      background: var(--yellow); color: var(--navy); display: grid; place-items: center;
+      box-shadow: 0 4px 12px rgba(255, 193, 7, 0.45);
+    }
+
+    /* Cards & Grids */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      min-width: 0;
+    }
+    .card-pad { padding: 15px; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .section-title { font-size: 0.98rem; font-weight: 700; }
+    .link-more { font-size: 0.78rem; font-weight: 600; color: var(--blue); white-space: nowrap; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .grid-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .grid-prods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .app-shell.mode-desktop .grid-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .app-shell.mode-desktop .grid-prods { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .h-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .h-scroll::-webkit-scrollbar { display: none; }
+    .story-biz { width: 80px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+    .story-avatar {
+      width: 58px; height: 58px; border-radius: 16px;
+      display: grid; place-items: center; color: #FFFFFF; font-weight: 700; font-size: 1rem;
+      border: 2px solid var(--surface); box-shadow: var(--shadow-sm);
+      overflow: hidden; background-size: cover; background-position: center;
+    }
+    .story-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .story-name { font-size: 0.72rem; font-weight: 600; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 40px; padding: 8px 13px; border-radius: var(--radius-sm);
+      font-size: 0.84rem; font-weight: 600; white-space: nowrap;
+      transition: transform 120ms ease, background 150ms ease;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-sm { min-height: 33px; padding: 5px 10px; font-size: 0.76rem; }
+    .btn-block { width: 100%; }
+    .btn-navy { background: var(--navy); color: #FFFFFF; }
+    .btn-primary { background: var(--blue); color: #FFFFFF; }
+    .btn-yellow { background: var(--yellow); color: var(--yellow-text); }
+    .btn-outline { background: var(--surface); border: 1px solid var(--border-strong); color: var(--text); }
+    .btn-danger { background: var(--danger); color: #FFFFFF; }
+    .btn-success { background: var(--success); color: #FFFFFF; }
+
+    /* Forms */
+    .form-stack { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .field label { font-size: 0.76rem; font-weight: 600; color: var(--text-muted); }
+    .input, .select, .textarea {
+      width: 100%; max-width: 100%; min-width: 0;
+      padding: 9px 11px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong); background: var(--surface);
+      color: var(--text); font-size: 0.85rem;
+    }
+    .textarea { min-height: 78px; resize: vertical; }
+    .input:focus, .select:focus, .textarea:focus {
+      outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft);
+    }
+
+    .home-search {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 5px 10px; min-height: 44px; width: 100%;
+    }
+    .home-search input { flex: 1; min-width: 0; border: none; background: transparent; outline: none; font-size: 0.86rem; }
+
+    .hero-banner {
+      background: linear-gradient(130deg, var(--navy) 0%, #173694 65%, #2563EB 100%);
+      color: #FFFFFF; border-radius: var(--radius-lg); padding: 18px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .hero-banner h1 { font-size: 1.2rem; line-height: 1.28; font-weight: 700; }
+    .hero-banner p { font-size: 0.8rem; color: rgba(255, 255, 255, 0.86); }
+
+    .tabs-bar {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
+      border-bottom: 1px solid var(--border); scrollbar-width: none;
+    }
+    .tabs-bar::-webkit-scrollbar { display: none; }
+    .tab-item {
+      padding: 8px 11px; font-size: 0.8rem; font-weight: 600;
+      color: var(--text-subtle); border-bottom: 2px solid transparent; white-space: nowrap; flex-shrink: 0;
+    }
+    .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+    .menu-list { display: flex; flex-direction: column; }
+    .menu-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; padding: 13px 15px; border-bottom: 1px solid var(--border);
+      text-align: left; width: 100%; background: var(--surface);
+    }
+    .menu-row:last-child { border-bottom: none; }
+    .menu-row:hover { background: var(--surface-alt); }
+    .menu-row-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+
+    /* Media & Image Upload Galleries */
+    .media-box {
+      width: 100%; height: 110px; background: var(--surface-alt);
+      display: grid; place-items: center; overflow: hidden; position: relative;
+    }
+    .media-box img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-strip { display: flex; gap: 8px; flex-wrap: wrap; }
+    .thumb-item {
+      width: 68px; height: 68px; border-radius: 10px; overflow: hidden;
+      border: 1px solid var(--border-strong); position: relative; background: var(--surface-alt);
+    }
+    .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-del {
+      position: absolute; top: 3px; right: 3px; width: 20px; height: 20px;
+      border-radius: 999px; background: rgba(10, 26, 79, 0.85); color: #fff;
+      font-size: 0.7rem; font-weight: 700; display: grid; place-items: center;
+    }
+    .upload-zone {
+      border: 1.5px dashed var(--border-strong); border-radius: 10px;
+      padding: 12px; text-align: center; background: var(--surface-alt);
+      cursor: pointer; display: block; font-size: 0.8rem;
+    }
+    .upload-zone input { display: none; }
+
+    /* Cover banners for profiles */
+    .cover-area {
+      height: 122px; width: 100%; position: relative; padding: 12px;
+      display: flex; align-items: flex-end; justify-content: space-between;
+      background-size: cover; background-position: center; overflow: hidden;
+    }
+    .cover-area img.cover-img {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;
+    }
+    .cover-area > *:not(.cover-img) { position: relative; z-index: 1; }
+
+    .meta { font-size: 0.74rem; color: var(--text-subtle); display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+    .small { font-size: 0.78rem; }
+    .muted { color: var(--text-subtle); }
+    .price-htg { font-weight: 700; color: var(--navy); font-size: 0.94rem; }
+    html.dark .price-htg { color: var(--yellow); }
+    .status-ok { color: var(--success); font-weight: 600; font-size: 0.76rem; }
+    .status-warn { color: var(--warning); font-weight: 600; font-size: 0.76rem; }
+    .status-bad { color: var(--danger); font-weight: 600; font-size: 0.76rem; }
+
+    .notice {
+      padding: 11px 13px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong); background: var(--surface-alt);
+      font-size: 0.78rem; color: var(--text-muted);
+    }
+    .notice-warn { border-color: rgba(180, 83, 9, 0.35); background: var(--warning-bg); color: var(--text); }
+    .notice-info { border-color: rgba(59, 130, 246, 0.35); background: var(--blue-soft); color: var(--text); }
+
+    .chat-feed { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .bubble { max-width: 82%; padding: 10px 13px; border-radius: 14px; font-size: 0.83rem; line-height: 1.45; }
+    .bubble.them { align-self: flex-start; background: var(--surface); border: 1px solid var(--border); }
+    .bubble.me { align-self: flex-end; background: var(--navy); color: #FFFFFF; }
+    html.dark .bubble.me { background: var(--blue); }
+    .bubble-time { font-size: 0.68rem; opacity: 0.72; margin-top: 4px; text-align: right; }
+
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 60; background: rgba(7, 12, 27, 0.6);
+      display: none; align-items: flex-end; justify-content: center; padding: 12px;
+    }
+    .drawer-overlay.open { display: flex; }
+    @media (min-width: 640px) { .drawer-overlay { align-items: center; } }
+    .drawer-sheet {
+      width: 100%; max-width: 400px; max-height: 85vh; overflow-y: auto;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 18px; box-shadow: var(--shadow-shell);
+    }
+
+    .toast-box {
+      position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+      z-index: 80; width: calc(100% - 32px); max-width: 350px;
+      display: flex; flex-direction: column; gap: 6px; pointer-events: none;
+    }
+    .toast {
+      background: var(--navy); color: #FFFFFF; padding: 10px 14px;
+      border-radius: 10px; font-size: 0.8rem; font-weight: 500; text-align: center;
+      box-shadow: var(--shadow-shell);
+    }
+
+    .flex-between { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .flex-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .divider { height: 1px; background: var(--border); margin: 10px 0; }
+  </style>
+</head>
+<body>
+
+  <!-- BARRE EXTERNE ORDINATEUR -->
+  <div class="desktop-toolbar">
+    <div class="toolbar-group">
+      <strong>Zack Haïti</strong>
+      <div class="seg-control">
+        <button type="button" class="seg-btn active" id="btnMode916" onclick="app.setViewport('916')">Mobile 9:16</button>
+        <button type="button" class="seg-btn" id="btnModeDesktop" onclick="app.setViewport('desktop')">Grand écran</button>
+      </div>
+      <div class="seg-control">
+        <button type="button" class="seg-btn active" id="btnLangFr" onclick="app.setLang('fr')">FR</button>
+        <button type="button" class="seg-btn" id="btnLangHt" onclick="app.setLang('ht')">Kreyòl</button>
+      </div>
+    </div>
+    <div class="toolbar-group">
+      <button type="button" class="btn btn-primary btn-sm" style="min-height:28px; padding:3px 9px;" onclick="app.triggerPwaInstall()">Installer PWA / APK</button>
+      <select id="deskCurrency" class="input" style="padding:4px 8px; width:auto;" onchange="app.setCurrency(this.value)" aria-label="Devise">
+        <option value="HTG">HTG</option>
+        <option value="BOTH">HTG + USD</option>
+        <option value="USD">USD</option>
+      </select>
+      <select id="deskTheme" class="input" style="padding:4px 8px; width:auto;" onchange="app.setTheme(this.value)" aria-label="Thème">
+        <option value="auto">Système</option>
+        <option value="light">Clair</option>
+        <option value="dark">Sombre</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- CONTENEUR 9:16 CENTRÉ -->
+  <div class="app-shell mode-916" id="appShell">
+    <header class="app-header" id="appHeader"></header>
+    <main class="screen-body" id="screenBody"></main>
+    <nav class="bottom-nav" id="bottomNav" aria-label="Navigation principale"></nav>
+  </div>
+
+  <div class="drawer-overlay" id="drawerOverlay" onclick="if(event.target===this) app.closeDrawer()">
+    <div class="drawer-sheet" id="drawerSheet"></div>
+  </div>
+  <div class="toast-box" id="toastBox" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* =========================================================
+         1. TRADUCTIONS FRANÇAIS / CRÉOLE HAÏTIEN (FR / HT)
+         ========================================================= */
+      const I18N = {
+        fr: {
+          nav_home: "Accueil", nav_search: "Recherche", nav_msg: "Messages", nav_prof: "Profil",
+          welcome_title: "Bienvenue sur Zack",
+          welcome_sub: "Connectez-vous pour découvrir et gérer les entreprises partout en Haïti.",
+          tab_login: "Connexion", tab_register: "Créer un compte",
+          email_label: "E-mail ou téléphone", pass_label: "Mot de passe", name_label: "Nom complet",
+          remember: "Se souvenir de moi", forgot: "Mot de passe oublié ?",
+          btn_login: "Se connecter", btn_register: "Créer mon compte",
+          btn_guest: "Continuer sans compte (Espace public)",
+          hero_title: "Achetez local, connectez toute Haïti",
+          hero_sub: "Entreprises vérifiées, produits et services dans les 10 départements.",
+          search_ph: "Rechercher une entreprise, un produit...",
+          all_haiti: "Toute Haïti (10 départements)",
+          see_more: "Voir plus", share: "Partager",
+          discover_biz: "Entreprises à découvrir", pop_prods: "Produits populaires",
+          promos: "Promotions", events: "Événements à venir",
+          install_pwa: "Installer l'application (PWA / APK)",
+          add_cart: "Ajouter au panier", contact_seller: "Contacter le vendeur",
+          call: "Appeler", route: "Itinéraire", follow: "Suivre", following: "Suivie ✓",
+          create_biz: "Créer ma fiche Pro", explore: "Explorer",
+          pro_space: "Espace Pro (Entreprise)", admin_space: "Administration Zack",
+          personal_space: "Espace Personnel", public_space: "Espace Public"
+        },
+        ht: {
+          nav_home: "Akèy", nav_search: "Chèche", nav_msg: "Mesaj", nav_prof: "Pwofil",
+          welcome_title: "Byenveni sou Zack",
+          welcome_sub: "Konekte pou dekouvri epi jere antrepriz yo nan tout Ayiti.",
+          tab_login: "Konekte", tab_register: "Kreye yon kont",
+          email_label: "Imèl oswa telefòn", pass_label: "Modpas", name_label: "Non konplè",
+          remember: "Sonje mwen", forgot: "Ou bliye modpas ou ?",
+          btn_login: "Konekte kounye a", btn_register: "Kreye kont mwen",
+          btn_guest: "Kontinye san kont (Espas piblik)",
+          hero_title: "Achte lokal, konekte tout Ayiti",
+          hero_sub: "Antrepriz verifye, pwodui ak sèvis nan tout 10 depatman yo.",
+          search_ph: "Chèche yon antrepriz, yon pwodui...",
+          all_haiti: "Tout Ayiti (10 depatman)",
+          see_more: "Wè plis", share: "Pataje",
+          discover_biz: "Antrepriz pou dekouvri", pop_prods: "Pwodui popilè yo",
+          promos: "Pwomosyon yo", events: "Evènman k ap vini",
+          install_pwa: "Enstale aplikasyon an (PWA / APK)",
+          add_cart: "Mete nan panye", contact_seller: "Kontakte vandè a",
+          call: "Rele", route: "Wout / Kat", follow: "Swiv", following: "W ap swiv ✓",
+          create_biz: "Kreye paj biznis mwen", explore: "Eksplore",
+          pro_space: "Espas Pwofesyonèl", admin_space: "Administrasyon Zack",
+          personal_space: "Espas Pèsonèl", public_space: "Espas Piblik"
+        }
+      };
+
+      function t(k) { return (I18N[STATE.lang] && I18N[STATE.lang][k]) || I18N.fr[k] || k; }
+
+      /* =========================================================
+         2. QUOTAS D'IMAGES SELON L'ABONNEMENT ZACK
+         ========================================================= */
+      const PLAN_QUOTAS = {
+        "Essentiel Gratuit": { maxImages: 2, priceHtg: 0 },
+        "Pro Mensuel": { maxImages: 6, priceHtg: 1500 },
+        "National Entreprise": { maxImages: 12, priceHtg: 15000 }
+      };
+
+      const STAFF_ROLES = [
+        { id: "Owner", labelFr: "Propriétaire (Owner)", labelHt: "Pwopriyetè (Owner)", desc: "Contrôle total, facturation, équipe" },
+        { id: "Admin", labelFr: "Administrateur", labelHt: "Administratè", desc: "Identité boutique, staff, contenus, commandes" },
+        { id: "Manager", labelFr: "Gérant (Manager)", labelHt: "Jeran (Manager)", desc: "Catalogue, promos, commandes, avis" },
+        { id: "Editor", labelFr: "Éditeur / Marketing", labelHt: "Editè / Maketing", desc: "Produits, services, publications, événements" },
+        { id: "Caissier", labelFr: "Caissier / Vendeur", labelHt: "Kesye / Vandè", desc: "Commandes et retraits en boutique" },
+        { id: "Livreur", labelFr: "Livreur", labelHt: "Livè", desc: "Commandes à livrer & mise à jour livraison" }
+      ];
+
+      const HAITI_GEO = {
+        "Ouest": { "Port-au-Prince": ["Centre-ville", "Turgeau", "Bois-Verna", "Pacot"], "Pétion-Ville": ["Place Saint-Pierre", "Juvénat", "Thomassin", "Laboule"], "Delmas": ["Delmas 33", "Delmas 60", "Delmas 75"], "Carrefour": ["Wanay", "Côte-Plage", "Mariani"], "Léogâne": ["Centre-ville", "Dufort"] },
+        "Nord": { "Cap-Haïtien": ["Centre historique", "Carénage", "Vertières", "Haut-du-Cap"], "Limonade": ["Bourg"], "Milot": ["Centre"] },
+        "Artibonite": { "Gonaïves": ["Centre-ville", "Raboteau", "Bienac"], "Saint-Marc": ["Centre-ville", "Pivert"], "Verrettes": ["Centre"] },
+        "Sud": { "Les Cayes": ["Centre-ville", "Quatre-Chemins", "Gelée"], "Camp-Perrin": ["Centre"], "Port-Salut": ["Pointe-Sable"] },
+        "Grand'Anse": { "Jérémie": ["Bord-de-Mer", "Saint-Hélène", "Rochasse"], "Dame-Marie": ["Centre"], "Corail": ["Centre"] },
+        "Sud-Est": { "Jacmel": ["Centre historique", "Lakou New York", "Cyvadier"], "Cayes-Jacmel": ["Centre"] },
+        "Centre": { "Hinche": ["Centre-ville", "Pandias"], "Mirebalais": ["Centre-ville"] },
+        "Nord-Est": { "Ouanaminthe": ["Centre-ville", "Dabon"], "Fort-Liberté": ["Centre historique"] },
+        "Nord-Ouest": { "Port-de-Paix": ["Centre-ville", "La Saline"], "Saint-Louis-du-Nord": ["Centre"] },
+        "Nippes": { "Miragoâne": ["Centre-ville", "Chalon"], "Anse-à-Veau": ["Haut-de-la-Ville"] }
+      };
+
+      const CATEGORIES_DEFAULT = [
+        { id: "agro", name: "Alimentation & Agro" },
+        { id: "mode", name: "Mode & Artisanat" },
+        { id: "tech", name: "Technologie & Services" },
+        { id: "sante", name: "Santé & Bien-être" },
+        { id: "btp", name: "Énergie & Bâtiment" },
+        { id: "food", name: "Restauration & Hôtels" },
+        { id: "log", name: "Transport & Livraison" },
+        { id: "edu", name: "Éducation & Formation" }
+      ];
+
+      function prodSvg(kind) {
+        const svgs = {
+          rice: `<svg width="58" height="58" viewBox="0 0 64 64" fill="none"><ellipse cx="32" cy="40" rx="22" ry="12" fill="#E2E8F0"/><path d="M12 36c0 10 9 18 20 18s20-8 20-18H12z" fill="#0A1A4F"/><ellipse cx="32" cy="34" rx="18" ry="8" fill="#FEF3C7"/><circle cx="25" cy="32" r="2" fill="#D97706"/><circle cx="32" cy="30" r="2" fill="#D97706"/><circle cx="39" cy="33" r="2" fill="#D97706"/></svg>`,
+          honey: `<svg width="58" height="58" viewBox="0 0 64 64" fill="none"><rect x="20" y="20" width="24" height="32" rx="6" fill="#FFC107"/><rect x="22" y="13" width="20" height="7" rx="2" fill="#0A1A4F"/><rect x="24" y="28" width="16" height="12" rx="2" fill="#FFFBEB"/></svg>`,
+          solar: `<svg width="58" height="58" viewBox="0 0 64 64" fill="none"><rect x="10" y="18" width="44" height="28" rx="4" fill="#0A1A4F" stroke="#3B82F6" stroke-width="2"/><path d="M10 28h44M10 37h44M24 18v28M40 18v28" stroke="#3B82F6" stroke-width="1.5"/><circle cx="50" cy="12" r="6" fill="#FFC107"/></svg>`,
+          craft: `<svg width="58" height="58" viewBox="0 0 64 64" fill="none"><path d="M18 22h28l4 28H14l4-28z" fill="#3B82F6"/><path d="M24 22v-4a8 8 0 0 1 16 0v4" stroke="#0A1A4F" stroke-width="3" fill="none"/><circle cx="32" cy="36" r="6" fill="#FFC107"/></svg>`,
+          coffee: `<svg width="58" height="58" viewBox="0 0 64 64" fill="none"><rect x="18" y="18" width="28" height="34" rx="4" fill="#78350F"/><rect x="22" y="26" width="20" height="14" rx="2" fill="#FFC107"/></svg>`,
+          tech: `<svg width="58" height="58" viewBox="0 0 64 64" fill="none"><rect x="10" y="16" width="44" height="28" rx="4" fill="#0F172A" stroke="#3B82F6" stroke-width="2"/><path d="M6 48h52" stroke="#64748B" stroke-width="3" stroke-linecap="round"/><path d="M22 28l6 6 14-12" stroke="#FFC107" stroke-width="3" stroke-linecap="round"/></svg>`
+        };
+        return svgs[kind] || svgs.craft;
+      }
+
+      /* =========================================================
+         3. ÉTAT INITIAL (PREMIÈRE OUVERTURE = PAGE DE CONNEXION)
+         ========================================================= */
+      const STATE = {
+        screen: "auth", // Premier écran à l'ouverture : Connexion !
+        authTab: "login", // login | register
+        showPassword: false,
+        history: [],
+        viewport: "916",
+        lang: "fr", // fr | ht
+        theme: "auto",
+        currency: "HTG",
+        exchangeRate: 132,
+        deferredPwaPrompt: null,
+
+        selectedBizId: "biz-1",
+        bizTab: "products",
+        selectedProdId: "prd-1",
+        selectedProdImgIdx: 0,
+        activeConvId: "conv-1",
+        proBizId: "biz-1",
+        proRole: "Owner",
+        publishType: "product",
+        draftImages: [], // Images uploadées en cours dans Pro Publish
+        adminProfileId: "adm-1",
+
+        searchQuery: "",
+        filterDept: "",
+        filterCommune: "",
+        filterQuartier: "",
+        filterCategory: "",
+        exploreTab: "all",
+
+        user: null, // Non connecté au lancement
+
+        categories: JSON.parse(JSON.stringify(CATEGORIES_DEFAULT)),
+
+        businesses: [
+          {
+            id: "biz-1", name: "Lakou Solèy Haïti", initials: "LS",
+            grad: "linear-gradient(135deg, #0A1A4F, #2563EB)",
+            logoDataUrl: "", coverDataUrl: "",
+            shortDesc: "Équipements solaires, onduleurs et installation dans les 10 départements.",
+            longDesc: "Lakou Solèy accompagne les foyers et commerces partout en Haïti avec des kits solaires garantis et support technique.",
+            categoryId: "btp", dept: "Ouest", commune: "Pétion-Ville", city: "Pétion-Ville", quartier: "Juvénat",
+            address: "42, Rue Panaméricaine, Juvénat", phone: "+509 2813 4400", whatsapp: "50937114400",
+            email: "contact@lakousoley.ht", hours: "Lun–Sam : 08h00 – 17h30",
+            status: "verified", rating: 4.9, reviewCount: 142, followers: 1240, views: 4820,
+            createdAt: "2026-09-12", plan: "Pro Mensuel"
+          },
+          {
+            id: "biz-2", name: "Miel & Café Kenskoff", initials: "MC",
+            grad: "linear-gradient(135deg, #78350F, #D97706)",
+            logoDataUrl: "", coverDataUrl: "",
+            shortDesc: "Café arabica des hauteurs, miel pur et produits du terroir.",
+            longDesc: "Coopérative agricole reliant les producteurs aux consommateurs urbains. Expédition nationale.",
+            categoryId: "agro", dept: "Ouest", commune: "Port-au-Prince", city: "Port-au-Prince", quartier: "Turgeau",
+            address: "18, Avenue Jean-Paul II, Turgeau", phone: "+509 3644 2100", whatsapp: "50936442100",
+            email: "bonjour@mielkenskoff.ht", hours: "Lun–Sam : 07h30 – 18h00",
+            status: "verified", rating: 4.8, reviewCount: 98, followers: 865, views: 3190,
+            createdAt: "2026-10-02", plan: "Essentiel Gratuit"
+          },
+          {
+            id: "biz-3", name: "NordTech Solutions", initials: "NT",
+            grad: "linear-gradient(135deg, #0F172A, #3B82F6)",
+            logoDataUrl: "", coverDataUrl: "",
+            shortDesc: "Maintenance informatique, réseaux et caisses POS au Cap-Haïtien.",
+            longDesc: "Basée au Cap-Haïtien, notre équipe dessert tout le Grand Nord.",
+            categoryId: "tech", dept: "Nord", commune: "Cap-Haïtien", city: "Cap-Haïtien", quartier: "Centre historique",
+            address: "Rue 18 B, Cap-Haïtien", phone: "+509 3822 9012", whatsapp: "50938229012",
+            email: "support@nordtech.ht", hours: "Lun–Ven : 08h30 – 17h00",
+            status: "verified", rating: 4.7, reviewCount: 74, followers: 540, views: 2150,
+            createdAt: "2026-10-15", plan: "Pro Mensuel"
+          },
+          {
+            id: "biz-4", name: "Atelye Kreyòl Jacmel", initials: "AK",
+            grad: "linear-gradient(135deg, #1E3A8A, #0EA5E9)",
+            logoDataUrl: "", coverDataUrl: "",
+            shortDesc: "Artisanat jacmélien, sacs tissés main et mode éthique.",
+            longDesc: "Atelier familial perpétuant le savoir-faire artistique de Jacmel avec livraisons dans toute l'île.",
+            categoryId: "mode", dept: "Sud-Est", commune: "Jacmel", city: "Jacmel", quartier: "Centre historique",
+            address: "24, Rue du Commerce, Jacmel", phone: "+509 4410 7830", whatsapp: "50944107830",
+            email: "atelye@jacmelart.ht", hours: "Mar–Dim : 09h00 – 18h00",
+            status: "verified", rating: 4.9, reviewCount: 64, followers: 710, views: 1940,
+            createdAt: "2026-10-28", plan: "Essentiel Gratuit"
+          },
+          {
+            id: "biz-5", name: "Agro-Riz Artibonite", initials: "AR",
+            grad: "linear-gradient(135deg, #14532D, #16A34A)",
+            logoDataUrl: "", coverDataUrl: "",
+            shortDesc: "Riz national Shelda et Lacroix en gros et détail.",
+            longDesc: "Production directe dans la vallée de l'Artibonite, sacs de 5 kg, 25 kg et 50 kg.",
+            categoryId: "agro", dept: "Artibonite", commune: "Saint-Marc", city: "Saint-Marc", quartier: "Centre-ville",
+            address: "Route Nationale #1, Entrée Pivert", phone: "+509 3901 6620", whatsapp: "50939016620",
+            email: "ventes@agroriz.ht", hours: "Lun–Sam : 07h00 – 16h30",
+            status: "verified", rating: 4.6, reviewCount: 115, followers: 930, views: 3680,
+            createdAt: "2026-11-01", plan: "National Entreprise"
+          },
+          {
+            id: "biz-6", name: "Maison Étoile Grand'Anse", initials: "ME",
+            grad: "linear-gradient(135deg, #0A1A4F, #1D4ED8)",
+            logoDataUrl: "", coverDataUrl: "",
+            shortDesc: "Épicerie fine, savons naturels et huile de coco de la Grand'Anse.",
+            longDesc: "Maison Étoile valorise les récoltes de la Grand'Anse : cacao, huile de coco pressée à froid et épices locales.",
+            categoryId: "agro", dept: "Grand'Anse", commune: "Jérémie", city: "Jérémie", quartier: "Bord-de-Mer",
+            address: "12, Rue Eugène Margron, Jérémie", phone: "+509 3755 1122", whatsapp: "50937551122",
+            email: "maisonetoile@exemple.ht", hours: "Lun–Sam : 08h00 – 18h00",
+            status: "verified", rating: 4.8, reviewCount: 128, followers: 810, views: 2890,
+            createdAt: "2026-11-03", plan: "Essentiel Gratuit"
+          },
+          {
+            id: "biz-7", name: "Clinique Sante Sud", initials: "CS",
+            grad: "linear-gradient(135deg, #0F766E, #0D9488)",
+            logoDataUrl: "", coverDataUrl: "",
+            shortDesc: "Consultations générales, laboratoire et pharmacie aux Cayes.",
+            longDesc: "Centre médical moderne à Quatre-Chemins, Les Cayes.",
+            categoryId: "sante", dept: "Sud", commune: "Les Cayes", city: "Les Cayes", quartier: "Quatre-Chemins",
+            address: "Carrefour Quatre-Chemins, Les Cayes", phone: "+509 2819 3300", whatsapp: "50938193300",
+            email: "accueil@santesud.ht", hours: "7j/7 : 07h00 – 20h00",
+            status: "pending", rating: 0, reviewCount: 0, followers: 0, views: 0,
+            createdAt: "2026-11-11", plan: "Essentiel Gratuit"
+          }
+        ],
+
+        products: [
+          { id: "prd-1", bizId: "biz-5", name: "Riz national Shelda (5 kg)", category: "Alimentation & Agro", priceHtg: 1250, available: true, variants: "Sac 5 kg · Artibonite", desc: "Riz local trié et nettoyé, cuisson rapide et parfum naturel.", art: "rice", images: [] },
+          { id: "prd-2", bizId: "biz-2", name: "Miel pur des montagnes (500 ml)", category: "Alimentation & Agro", priceHtg: 750, available: true, variants: "Pot en verre 500 ml", desc: "Miel non filtré récolté à Kenskoff sans sucre ajouté.", art: "honey", images: [] },
+          { id: "prd-3", bizId: "biz-1", name: "Kit Solaire Autonome 1000W", category: "Énergie & Bâtiment", priceHtg: 89500, available: true, variants: "2 Panneaux + Onduleur + Batterie", desc: "Alimentez éclairage, Wi-Fi, réfrigérateur et ordinateurs sans coupure.", art: "solar", images: [] },
+          { id: "prd-4", bizId: "biz-4", name: "Sac cabas tissé main", category: "Mode & Artisanat", priceHtg: 2400, available: true, variants: "Bleu Marine / Jaune", desc: "Confection artisanale durable avec finitions cuir local.", art: "craft", images: [] }
+        ],
+
+        services: [
+          { id: "srv-1", bizId: "biz-1", name: "Audit & Dimensionnement Solaire", priceHtg: 3500, onQuote: false, conditions: "Déplacement inclus dans l'Ouest ; sur devis en province.", desc: "Évaluation complète de votre consommation électrique.", images: [] },
+          { id: "srv-2", bizId: "biz-3", name: "Installation Réseau Wi-Fi & Caméras", priceHtg: 0, onQuote: true, conditions: "Visite technique préalable sous 48h.", desc: "Déploiement sécurisé pour bureaux et commerces.", images: [] }
+        ],
+
+        publications: [
+          { id: "pub-1", bizId: "biz-1", type: "Actualité", date: "2026-11-10", title: "Nouvelle équipe technique permanente au Cap-Haïtien", content: "Nous assurons désormais les installations sous 24h dans le Nord.", images: [] }
+        ],
+
+        promotions: [
+          { id: "prm-1", bizId: "biz-2", title: "-20% sur le duo Miel + Café Arabica", oldHtg: 1400, newHtg: 1120, start: "2026-11-01", end: "2026-11-30", conditions: "Valable dans tout Haïti.", images: [] },
+          { id: "prm-2", bizId: "biz-1", title: "Remise installation Kit Solaire 1000W", oldHtg: 98000, newHtg: 89500, start: "2026-11-05", end: "2026-12-15", conditions: "Main-d'œuvre offerte dans l'Ouest.", images: [] }
+        ],
+
+        events: [
+          { id: "evt-1", bizId: "biz-4", title: "Foire Nationale de l'Artisanat", date: "2026-11-28", time: "10h00 – 18h00", place: "Place Toussaint Louverture, Jacmel", desc: "Plus de 40 artisans venus des 10 départements.", images: [] },
+          { id: "evt-2", bizId: "biz-3", title: "Atelier Digitalisation des PME", date: "2026-12-05", time: "14h00 – 17h00", place: "Boulevard du Cap, Cap-Haïtien", desc: "Session gratuite de gestion de catalogue.", images: [] }
+        ],
+
+        reviews: [
+          { id: "rev-1", bizId: "biz-1", author: "Réginald Pierre", rating: 5, date: "2026-11-06", comment: "Installation propre à Delmas 75, délais respectés.", reply: "Merci Réginald pour votre confiance !" }
+        ],
+
+        favorites: ["biz-1", "biz-2"],
+        cart: [{ prodId: "prd-1", qty: 1 }],
+        orders: [
+          {
+            id: "CMD-2026-084", date: "2026-11-09 14:22", customerName: "Jean-Marc Baptiste", customerPhone: "+509 3712 4589",
+            bizId: "biz-1", mode: "Livraison", address: "14, Rue Villate, Pétion-Ville, Ouest",
+            items: [{ name: "Kit Solaire Autonome 1000W", qty: 1, priceHtg: 89500 }],
+            totalHtg: 89500, status: "En préparation", paymentNote: "Paiement à la livraison (hors ligne au lancement)"
+          }
+        ],
+
+        conversations: [
+          {
+            id: "conv-1", bizId: "biz-1", unread: 1,
+            messages: [
+              { from: "me", text: "Bonjour, livrez-vous le kit 1000W aux Cayes ?", time: "10:14", read: true },
+              { from: "biz", text: "Bonjour ! Oui, expédition sous 48h vers les 10 départements.", time: "10:18", read: false }
+            ]
+          }
+        ],
+
+        notifications: [
+          { id: "not-1", text: "Lakou Solèy Haïti a répondu à votre message.", time: "Il y a 12 min", read: false }
+        ],
+
+        teamMembers: [
+          { id: "tm-1", bizId: "biz-1", name: "Carl-Henry Théodore", email: "carl@lakousoley.ht", phone: "+509 3700 1001", role: "Owner" },
+          { id: "tm-2", bizId: "biz-1", name: "Stéphanie Jean", email: "stephanie@lakousoley.ht", phone: "+509 3700 1002", role: "Admin" },
+          { id: "tm-3", bizId: "biz-1", name: "Widler Paul", email: "widler@lakousoley.ht", phone: "+509 3700 1003", role: "Editor" },
+          { id: "tm-4", bizId: "biz-1", name: "Mireille Joseph", email: "mireille@lakousoley.ht", phone: "+509 3700 1004", role: "Caissier" },
+          { id: "tm-5", bizId: "biz-1", name: "Peterson Charles", email: "peterson@lakousoley.ht", phone: "+509 3700 1005", role: "Livreur" }
+        ],
+
+        reports: [
+          { id: "rep-1", targetType: "Avis", bizName: "Miel & Café Kenskoff", reason: "Vérification d'authenticité", date: "2026-11-11", status: "Ouvert" }
+        ],
+        admins: [
+          { id: "adm-1", name: "Claire-Marie Deschamps", roleLabel: "Super Administratrice", permissions: ["verify_businesses", "moderate_content", "manage_categories", "manage_admins", "view_audit_logs", "platform_settings"] },
+          { id: "adm-2", name: "Kervens Augustin", roleLabel: "Modérateur National", permissions: ["verify_businesses", "moderate_content", "view_audit_logs"] }
+        ],
+        auditLogs: [
+          { id: "log-1", actor: "Claire-Marie Deschamps", action: "Entreprise « Maison Étoile Grand'Anse » approuvée", time: "2026-11-03 11:15" }
+        ]
+      };
+
+      /* =========================================================
+         4. UTILITAIRES & PERMISSIONS
+         ========================================================= */
+      function esc(s) {
+        if (s === null || s === undefined) return "";
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+      }
+      function money(htg) {
+        const v = Number(htg) || 0;
+        const h = v.toLocaleString("fr-FR") + " HTG";
+        const u = "$" + (v / STATE.exchangeRate).toFixed(2) + " USD";
+        if (STATE.currency === "USD") return `<span class="tabular">${u}</span>`;
+        if (STATE.currency === "BOTH") return `<span class="tabular">${h}</span> <span class="small muted tabular">(${u})</span>`;
+        return `<span class="tabular">${h}</span>`;
+      }
+      function toast(msg) {
+        const box = document.getElementById("toastBox");
+        const el = document.createElement("div");
+        el.className = "toast"; el.textContent = msg;
+        box.appendChild(el);
+        setTimeout(() => el.remove(), 3000);
+      }
+      function getBiz(id) { return STATE.businesses.find((b) => b.id === id); }
+      function getCatName(id) { const c = STATE.categories.find((x) => x.id === id); return c ? c.name : id; }
+      function getMaxImagesForBiz(biz) { return (PLAN_QUOTAS[biz.plan] || PLAN_QUOTAS["Essentiel Gratuit"]).maxImages; }
+
+      function canPro(act) {
+        const m = {
+          Owner: ["identity", "content", "reply", "orders", "delivery", "team", "billing"],
+          Admin: ["identity", "content", "reply", "orders", "delivery", "team"],
+          Manager: ["content", "reply", "orders", "delivery"],
+          Editor: ["content", "reply"],
+          Caissier: ["orders"],
+          Livreur: ["delivery"]
+        };
+        return (m[STATE.proRole] || []).includes(act);
+      }
+      function hasAdm(perm) {
+        const a = STATE.admins.find((x) => x.id === STATE.adminProfileId);
+        return a ? a.permissions.includes(perm) : false;
+      }
+      function addAudit(actor, action) {
+        const d = new Date(), p = (n) => String(n).padStart(2, "0");
+        STATE.auditLogs.unshift({ id: "l-" + Date.now(), actor, action, time: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}` });
+      }
+
+      const darkMq = window.matchMedia("(prefers-color-scheme: dark)");
+      function applyTheme() {
+        const isDark = STATE.theme === "dark" || (STATE.theme === "auto" && darkMq.matches);
+        document.documentElement.classList.toggle("dark", isDark);
+        const sel = document.getElementById("deskTheme");
+        if (sel) sel.value = STATE.theme;
+      }
+      darkMq.addEventListener("change", () => { if (STATE.theme === "auto") applyTheme(); });
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        STATE.deferredPwaPrompt = e;
+      });
+
+      function readFileAsDataUrl(file, cb) {
+        const reader = new FileReader();
+        reader.onload = () => cb(reader.result);
+        reader.readAsDataURL(file);
+      }
+
+      /* =========================================================
+         5. HEADER & NAVIGATION BASSE
+         ========================================================= */
+      function isRootScreen(scr) {
+        return ["auth", "home", "explore", "messages-list", "personal-menu", "pro-dashboard", "admin-menu"].includes(scr);
+      }
+
+      function renderHeader() {
+        const scr = STATE.screen;
+        const titles = {
+          auth: "Zack Haïti", home: "Zack Haïti", explore: t("nav_search"),
+          promos: t("promos"), events: t("events"), "biz-detail": "Profil Entreprise",
+          "prod-detail": "Détail Produit", cart: "Mon Panier",
+          "messages-list": t("nav_msg"), "messages-chat": "Discussion",
+          "personal-menu": t("nav_prof"), "personal-info": "Mes Informations",
+          "personal-favorites": "Favoris", "personal-orders": "Mes Commandes",
+          "personal-notifications": "Notifications", "personal-settings": "Paramètres",
+          "pro-dashboard": t("pro_space"), "pro-publish": "Publier",
+          "pro-identity": "Ma Boutique", "pro-catalog": "Catalogue",
+          "pro-orders": "Commandes & Livraison", "pro-reviews": "Avis clients",
+          "pro-team": "Staff & Équipe", "pro-billing": "Abonnement MonCash",
+          "pro-create": "Nouvelle Entreprise", "admin-menu": t("admin_space")
+        };
+        const showBack = !isRootScreen(scr);
+        const cartCount = STATE.cart.reduce((s, c) => s + c.qty, 0);
+
+        document.getElementById("appHeader").innerHTML = `
+          <div class="header-left">
+            ${showBack ? `
+              <button type="button" class="icon-btn" aria-label="Retour" onclick="app.back()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+            ` : `<span class="brand-mark" aria-hidden="true">Z</span>`}
+            <span class="header-title">${esc(titles[scr] || "Zack Haïti")}</span>
+          </div>
+          <div class="header-actions">
+            <button type="button" class="lang-pill-btn" onclick="app.toggleLang()" title="Changer de langue">${STATE.lang === 'fr' ? 'FR / HT' : 'HT / FR'}</button>
+            ${scr !== "auth" ? `
+              <button type="button" class="icon-btn" title="Panier" aria-label="Panier" onclick="app.open('cart')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                ${cartCount ? `<span class="badge-dot">${cartCount}</span>` : ""}
+              </button>
+              <button type="button" class="icon-btn" title="Menu" aria-label="Menu espaces" onclick="app.openSpaceDrawer()">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
+            ` : ""}
+          </div>
+        `;
+      }
+
+      function renderBottomNav() {
+        const nav = document.getElementById("bottomNav");
+        if (STATE.screen === "auth") {
+          nav.classList.add("hidden");
+          return;
+        }
+        nav.classList.remove("hidden");
+        const s = STATE.screen;
+        nav.innerHTML = `
+          <button type="button" class="bnav-btn ${s === 'home' ? 'active' : ''}" onclick="app.switchRoot('home')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <span>${esc(t("nav_home"))}</span>
+          </button>
+          <button type="button" class="bnav-btn ${['explore','promos','events','biz-detail','prod-detail'].includes(s) ? 'active' : ''}" onclick="app.switchRoot('explore')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span>${esc(t("nav_search"))}</span>
+          </button>
+          <button type="button" class="bnav-btn" aria-label="Publier" onclick="app.open('pro-publish')">
+            <span class="bnav-fab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></span>
+          </button>
+          <button type="button" class="bnav-btn ${s.startsWith('messages-') ? 'active' : ''}" onclick="app.switchRoot('messages-list')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>${esc(t("nav_msg"))}</span>
+          </button>
+          <button type="button" class="bnav-btn ${s.startsWith('personal-') || s.startsWith('admin-') ? 'active' : ''}" onclick="app.switchRoot('personal-menu')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>${esc(t("nav_prof"))}</span>
+          </button>
+        `;
+      }
+
+      /* =========================================================
+         6. ÉCRAN 1 : CONNEXION / INSCRIPTION AU LANCEMENT
+         ========================================================= */
+      function viewAuth() {
+        return `
+          <div style="display:flex; flex-direction:column; gap:14px; padding-top:4px;">
+            <div style="text-align:center;">
+              <div class="brand-mark" style="width:58px; height:58px; font-size:1.6rem; margin:0 auto 10px; border-radius:16px;">Z</div>
+              <h1 style="font-size:1.35rem; font-weight:700;">${esc(t("welcome_title"))}</h1>
+              <p class="small muted" style="margin-top:4px;">${esc(t("welcome_sub"))}</p>
+            </div>
+
+            <div class="card card-pad form-stack">
+              <div class="seg-control" style="width:100%;">
+                <button type="button" class="seg-btn ${STATE.authTab === 'login' ? 'active' : ''}" style="flex:1; padding:8px;" onclick="app.setAuthTab('login')">${esc(t("tab_login"))}</button>
+                <button type="button" class="seg-btn ${STATE.authTab === 'register' ? 'active' : ''}" style="flex:1; padding:8px;" onclick="app.setAuthTab('register')">${esc(t("tab_register"))}</button>
+              </div>
+
+              ${STATE.authTab === 'login' ? `
+                <form class="form-stack" onsubmit="app.submitAuthLogin(event)">
+                  <div class="field">
+                    <label>${esc(t("email_label"))}</label>
+                    <input id="authEmail" class="input" required placeholder="exemple@zack.ht / +509 ..." value="jeanmarc@exemple.ht" />
+                  </div>
+                  <div class="field">
+                    <label>${esc(t("pass_label"))}</label>
+                    <div style="display:flex; gap:6px;">
+                      <input id="authPass" class="input" type="${STATE.showPassword ? 'text' : 'password'}" required value="••••••••" />
+                      <button type="button" class="btn btn-outline btn-sm" onclick="app.togglePass()">${STATE.showPassword ? 'Masquer' : 'Voir'}</button>
+                    </div>
+                  </div>
+                  <div class="flex-between small">
+                    <label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" checked /> <span>${esc(t("remember"))}</span></label>
+                    <button type="button" class="link-more" onclick="app.forgotPass()">${esc(t("forgot"))}</button>
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-block">${esc(t("btn_login"))}</button>
+                </form>
+              ` : `
+                <form class="form-stack" onsubmit="app.submitAuthRegister(event)">
+                  <div class="field"><label>${esc(t("name_label"))}</label><input id="regName" class="input" required placeholder="Jean-Marc Baptiste" /></div>
+                  <div class="field"><label>${esc(t("email_label"))}</label><input id="regEmail" class="input" required placeholder="email@exemple.ht" /></div>
+                  <div class="field"><label>${esc(t("pass_label"))}</label><input id="regPass" type="password" class="input" required /></div>
+                  <button type="submit" class="btn btn-navy btn-block">${esc(t("btn_register"))}</button>
+                </form>
+              `}
+
+              <div class="divider"></div>
+              <div class="small muted" style="text-align:center;">Accès rapide démonstration</div>
+              <div class="grid-2">
+                <button type="button" class="btn btn-outline btn-sm" onclick="app.loginDemo('client')">Client Démo</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="app.loginDemo('pro')">Pro Démo</button>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm btn-block" onclick="app.loginDemo('admin')">Admin Zack Démo</button>
+            </div>
+
+            <button type="button" class="btn btn-yellow btn-block" onclick="app.switchRoot('home')">${esc(t("btn_guest"))}</button>
+            <button type="button" class="btn btn-outline btn-sm btn-block" onclick="app.triggerPwaInstall()">${esc(t("install_pwa"))}</button>
+          </div>
+        `;
+      }
+
+      /* =========================================================
+         7. ESPACE PUBLIC (ACCUEIL, RECHERCHE, VITRINES, PARTAGE)
+         ========================================================= */
+      function renderProdThumb(p, h) {
+        if (p.images && p.images.length) {
+          return `<div class="media-box" style="height:${h}px;"><img src="${p.images[0]}" alt="${esc(p.name)}" /></div>`;
+        }
+        return `<div class="media-box" style="height:${h}px;">${prodSvg(p.art)}</div>`;
+      }
+
+      function renderBizAvatar(b, size) {
+        if (b.logoDataUrl) {
+          return `<div class="story-avatar" style="width:${size}px; height:${size}px; background:#fff;"><img src="${b.logoDataUrl}" alt="${esc(b.name)}" /></div>`;
+        }
+        return `<div class="story-avatar" style="width:${size}px; height:${size}px; background:${b.grad};">${esc(b.initials)}</div>`;
+      }
+
+      function viewHome() {
+        const verified = STATE.businesses.filter((b) => b.status === "verified");
+        return `
+          <select class="select" aria-label="Département" onchange="app.quickDept(this.value)">
+            <option value="">${esc(t("all_haiti"))}</option>
+            ${Object.keys(HAITI_GEO).map((d) => `<option value="${esc(d)}" ${STATE.filterDept === d ? 'selected' : ''}>${esc(d)}</option>`).join("")}
+          </select>
+
+          <form class="home-search" onsubmit="app.submitHomeSearch(event)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="homeSearchInp" type="text" placeholder="${esc(t("search_ph"))}" value="${esc(STATE.searchQuery)}" />
+            <button type="submit" class="btn btn-navy btn-sm">OK</button>
+          </form>
+
+          <div class="hero-banner">
+            <h1>${esc(t("hero_title"))}</h1>
+            <p>${esc(t("hero_sub"))}</p>
+            <div class="flex-row">
+              <button type="button" class="btn btn-yellow btn-sm" onclick="app.open('pro-create')">${esc(t("create_biz"))}</button>
+              <button type="button" class="btn btn-outline btn-sm" style="background:rgba(255,255,255,0.14); color:#fff; border-color:rgba(255,255,255,0.3);" onclick="app.switchRoot('explore')">${esc(t("explore"))}</button>
+            </div>
+          </div>
+
+          <button type="button" class="card card-pad flex-between" style="width:100%; border-color:var(--blue);" onclick="app.triggerPwaInstall()">
+            <div style="text-align:left;">
+              <strong style="font-size:0.86rem;">${esc(t("install_pwa"))}</strong>
+              <div class="small muted">Android, iPhone & mode hors ligne</div>
+            </div>
+            <span class="btn btn-primary btn-sm">Installer</span>
+          </button>
+
+          <div>
+            <div class="section-head">
+              <h2 class="section-title">${esc(t("discover_biz"))}</h2>
+              <button type="button" class="link-more" onclick="app.switchRoot('explore')">${esc(t("see_more"))}</button>
+            </div>
+            <div class="h-scroll">
+              ${verified.map((b) => `
+                <button type="button" class="story-biz" onclick="app.openBiz('${b.id}')">
+                  ${renderBizAvatar(b, 58)}
+                  <span class="story-name">${esc(b.name)}</span>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <div class="section-head">
+              <h2 class="section-title">${esc(t("pop_prods"))}</h2>
+              <button type="button" class="link-more" onclick="app.exploreTab('products')">${esc(t("see_more"))}</button>
+            </div>
+            <div class="grid-prods">
+              ${STATE.products.slice(0, 4).map((p) => `
+                <button type="button" class="card" style="text-align:left; display:flex; flex-direction:column;" onclick="app.openProd('${p.id}')">
+                  ${renderProdThumb(p, 96)}
+                  <div style="padding:10px; display:flex; flex-direction:column; gap:3px;">
+                    <strong style="font-size:0.82rem; line-height:1.3;">${esc(p.name)}</strong>
+                    <div class="price-htg">${money(p.priceHtg)}</div>
+                  </div>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+
+          <div>
+            <div class="section-head">
+              <h2 class="section-title">${esc(t("promos"))}</h2>
+              <button type="button" class="link-more" onclick="app.open('promos')">${esc(t("see_more"))}</button>
+            </div>
+            ${STATE.promotions.slice(0, 2).map((pr) => {
+              const bz = getBiz(pr.bizId);
+              return `
+                <div class="card card-pad" style="margin-bottom:10px;">
+                  ${pr.images && pr.images.length ? `<div class="media-box" style="height:110px; border-radius:8px; margin-bottom:8px;"><img src="${pr.images[0]}" alt="${esc(pr.title)}" /></div>` : ""}
+                  <div class="meta"><span>${esc(bz ? bz.name : '')}</span><span>·</span><span>${esc(pr.end)}</span></div>
+                  <strong style="display:block; margin:4px 0; font-size:0.9rem;">${esc(pr.title)}</strong>
+                  <div class="flex-between">
+                    <div class="price-htg">${money(pr.newHtg)}</div>
+                    <div class="flex-row">
+                      <button type="button" class="btn btn-outline btn-sm" onclick="app.shareItem('Promotion', '${esc(pr.title)}', '${esc(bz ? bz.name : '')}')">${esc(t("share"))}</button>
+                      <button type="button" class="btn btn-navy btn-sm" onclick="app.openBiz('${pr.bizId}')">Voir</button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+
+          <div>
+            <div class="section-head">
+              <h2 class="section-title">${esc(t("events"))}</h2>
+              <button type="button" class="link-more" onclick="app.open('events')">${esc(t("see_more"))}</button>
+            </div>
+            ${STATE.events.slice(0, 2).map((ev) => `
+              <div class="card card-pad" style="margin-bottom:10px;">
+                ${ev.images && ev.images.length ? `<div class="media-box" style="height:110px; border-radius:8px; margin-bottom:8px;"><img src="${ev.images[0]}" alt="${esc(ev.title)}" /></div>` : ""}
+                <div class="meta tabular"><span>${esc(ev.date)}</span><span>·</span><span>${esc(ev.time)}</span></div>
+                <strong style="display:block; margin:4px 0; font-size:0.9rem;">${esc(ev.title)}</strong>
+                <div class="flex-between">
+                  <span class="small muted">${esc(ev.place)}</span>
+                  <button type="button" class="btn btn-outline btn-sm" onclick="app.shareItem('Événement', '${esc(ev.title)}', '${esc(ev.place)}')">${esc(t("share"))}</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }
+
+      function viewExplore() {
+        const communes = STATE.filterDept && HAITI_GEO[STATE.filterDept] ? Object.keys(HAITI_GEO[STATE.filterDept]) : [];
+        const quartiers = (STATE.filterDept && STATE.filterCommune && HAITI_GEO[STATE.filterDept][STATE.filterCommune]) ? HAITI_GEO[STATE.filterDept][STATE.filterCommune] : [];
+        const q = STATE.searchQuery.trim().toLowerCase();
+
+        let bizList = STATE.businesses.filter((b) => b.status === "verified");
+        if (STATE.filterDept) bizList = bizList.filter((b) => b.dept === STATE.filterDept);
+        if (STATE.filterCommune) bizList = bizList.filter((b) => b.commune === STATE.filterCommune);
+        if (STATE.filterQuartier) bizList = bizList.filter((b) => b.quartier === STATE.filterQuartier);
+        if (STATE.filterCategory) bizList = bizList.filter((b) => b.categoryId === STATE.filterCategory);
+        if (q) bizList = bizList.filter((b) => b.name.toLowerCase().includes(q) || b.shortDesc.toLowerCase().includes(q) || b.commune.toLowerCase().includes(q) || b.dept.toLowerCase().includes(q));
+
+        const prodList = STATE.products.filter((p) => {
+          const bz = getBiz(p.bizId);
+          if (!bz || bz.status !== "verified") return false;
+          if (STATE.filterDept && bz.dept !== STATE.filterDept) return false;
+          if (q && !(p.name.toLowerCase().includes(q) || bz.name.toLowerCase().includes(q))) return false;
+          return true;
+        });
+
+        const srvList = STATE.services.filter((s) => {
+          const bz = getBiz(s.bizId);
+          if (!bz || bz.status !== "verified") return false;
+          if (STATE.filterDept && bz.dept !== STATE.filterDept) return false;
+          if (q && !(s.name.toLowerCase().includes(q) || bz.name.toLowerCase().includes(q))) return false;
+          return true;
+        });
+
+        return `
+          <div class="home-search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" placeholder="${esc(t("search_ph"))}" value="${esc(STATE.searchQuery)}" oninput="app.setFilter('searchQuery', this.value)" />
+          </div>
+
+          <div class="tabs-bar">
+            <button type="button" class="tab-item ${STATE.exploreTab === 'all' ? 'active' : ''}" onclick="app.setExploreTab('all')">Tout</button>
+            <button type="button" class="tab-item ${STATE.exploreTab === 'businesses' ? 'active' : ''}" onclick="app.setExploreTab('businesses')">Entreprises (${bizList.length})</button>
+            <button type="button" class="tab-item ${STATE.exploreTab === 'products' ? 'active' : ''}" onclick="app.setExploreTab('products')">Produits (${prodList.length})</button>
+            <button type="button" class="tab-item ${STATE.exploreTab === 'services' ? 'active' : ''}" onclick="app.setExploreTab('services')">Services (${srvList.length})</button>
+          </div>
+
+          <div class="card card-pad">
+            <div class="grid-2">
+              <select class="select" onchange="app.changeDept(this.value)">
+                <option value="">Toute Haïti</option>
+                ${Object.keys(HAITI_GEO).map((d) => `<option value="${esc(d)}" ${STATE.filterDept === d ? 'selected' : ''}>${esc(d)}</option>`).join("")}
+              </select>
+              <select class="select" onchange="app.setFilter('filterCategory', this.value)">
+                <option value="">Toutes catégories</option>
+                ${STATE.categories.map((c) => `<option value="${c.id}" ${STATE.filterCategory === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join("")}
+              </select>
+              <select class="select" ${!STATE.filterDept ? 'disabled' : ''} onchange="app.changeCommune(this.value)">
+                <option value="">Toutes communes</option>
+                ${communes.map((c) => `<option value="${esc(c)}" ${STATE.filterCommune === c ? 'selected' : ''}>${esc(c)}</option>`).join("")}
+              </select>
+              <select class="select" ${!STATE.filterCommune ? 'disabled' : ''} onchange="app.setFilter('filterQuartier', this.value)">
+                <option value="">Tous quartiers</option>
+                ${quartiers.map((qt) => `<option value="${esc(qt)}" ${STATE.filterQuartier === qt ? 'selected' : ''}>${esc(qt)}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+
+          ${(STATE.exploreTab === "all" || STATE.exploreTab === "businesses") ? `
+            <div class="grid-cards">
+              ${bizList.map((b) => `
+                <article class="card card-pad" style="display:flex; gap:12px; align-items:flex-start;">
+                  ${renderBizAvatar(b, 52)}
+                  <div style="flex:1; min-width:0;">
+                    <div class="flex-between">
+                      <strong style="font-size:0.94rem;">${esc(b.name)}</strong>
+                      <span class="small tabular" style="color:#D97706; font-weight:600;">★ ${b.rating.toFixed(1)}</span>
+                    </div>
+                    <div class="meta" style="margin:2px 0 6px;"><span>${esc(getCatName(b.categoryId))}</span><span>·</span><span>${esc(b.commune)}, ${esc(b.dept)}</span></div>
+                    <p class="small muted">${esc(b.shortDesc)}</p>
+                    <div style="margin-top:8px;"><button type="button" class="btn btn-navy btn-sm" onclick="app.openBiz('${b.id}')">Ouvrir</button></div>
+                  </div>
+                </article>
+              `).join("")}
+            </div>
+          ` : ""}
+
+          ${(STATE.exploreTab === "all" || STATE.exploreTab === "products") ? `
+            <div class="grid-prods">
+              ${prodList.map((p) => `
+                <button type="button" class="card" style="text-align:left;" onclick="app.openProd('${p.id}')">
+                  ${renderProdThumb(p, 92)}
+                  <div style="padding:10px;"><strong style="font-size:0.82rem; display:block;">${esc(p.name)}</strong><div class="price-htg">${money(p.priceHtg)}</div></div>
+                </button>
+              `).join("")}
+            </div>
+          ` : ""}
+
+          ${(STATE.exploreTab === "all" || STATE.exploreTab === "services") ? `
+            <div class="grid-cards">
+              ${srvList.map((s) => {
+                const bz = getBiz(s.bizId);
+                return `
+                  <div class="card card-pad">
+                    ${s.images && s.images.length ? `<div class="media-box" style="height:100px; border-radius:8px; margin-bottom:8px;"><img src="${s.images[0]}" alt="${esc(s.name)}" /></div>` : ""}
+                    <div class="meta"><span>${esc(bz.name)}</span><span>·</span><span>${esc(bz.dept)}</span></div>
+                    <strong style="display:block; margin:4px 0;">${esc(s.name)}</strong>
+                    <div class="price-htg">${s.onQuote ? 'Prix sur demande' : money(s.priceHtg)}</div>
+                    <div class="flex-row" style="margin-top:8px;">
+                      <button type="button" class="btn btn-outline btn-sm" onclick="app.startChat('${bz.id}', 'Service : ${esc(s.name)}')">Contacter</button>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="app.shareItem('Service', '${esc(s.name)}', '${esc(bz.name)}')">${esc(t("share"))}</button>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          ` : ""}
+        `;
+      }
+
+      function viewPromos() {
+        return STATE.promotions.map((pr) => {
+          const bz = getBiz(pr.bizId);
+          return `
+            <div class="card card-pad form-stack">
+              ${pr.images && pr.images.length ? `<div class="thumb-strip">${pr.images.map((im) => `<div class="thumb-item"><img src="${im}" alt="" /></div>`).join("")}</div>` : ""}
+              <div class="meta"><span>${esc(bz ? bz.name : '')}</span><span>·</span><span>Jusqu'au ${esc(pr.end)}</span></div>
+              <strong style="font-size:1rem;">${esc(pr.title)}</strong>
+              <p class="small muted">${esc(pr.conditions)}</p>
+              <div class="flex-between">
+                <div class="price-htg">${money(pr.newHtg)}</div>
+                <div class="flex-row">
+                  <button type="button" class="btn btn-outline btn-sm" onclick="app.shareItem('Promotion', '${esc(pr.title)}', '${esc(bz ? bz.name : '')}')">${esc(t("share"))}</button>
+                  <button type="button" class="btn btn-navy btn-sm" onclick="app.openBiz('${pr.bizId}')">Voir</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function viewEvents() {
+        return STATE.events.map((ev) => {
+          const bz = getBiz(ev.bizId);
+          return `
+            <div class="card card-pad form-stack">
+              ${ev.images && ev.images.length ? `<div class="thumb-strip">${ev.images.map((im) => `<div class="thumb-item"><img src="${im}" alt="" /></div>`).join("")}</div>` : ""}
+              <div class="meta tabular"><span>${esc(ev.date)} · ${esc(ev.time)}</span><span>·</span><span>${esc(bz ? bz.name : '')}</span></div>
+              <strong style="font-size:1rem;">${esc(ev.title)}</strong>
+              <p class="small"><strong>Lieu :</strong> ${esc(ev.place)}</p>
+              <p class="small muted">${esc(ev.desc)}</p>
+              <div class="flex-row">
+                <button type="button" class="btn btn-outline btn-sm" onclick="app.shareItem('Événement', '${esc(ev.title)}', '${esc(ev.place)}')">${esc(t("share"))}</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="app.openBiz('${ev.bizId}')">Organisateur</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function viewBizDetail() {
+        const b = getBiz(STATE.selectedBizId);
+        if (!b) return viewHome();
+        const isFav = STATE.favorites.includes(b.id);
+        const prods = STATE.products.filter((p) => p.bizId === b.id);
+        const srvs = STATE.services.filter((s) => s.bizId === b.id);
+        const pubs = STATE.publications.filter((p) => p.bizId === b.id);
+        const revs = STATE.reviews.filter((r) => r.bizId === b.id);
+        const mapsUrl = "https://maps.google.com/?q=" + encodeURIComponent(`${b.address}, ${b.commune}, ${b.dept}, Haïti`);
+
+        let tabBody = "";
+        if (STATE.bizTab === "products") {
+          tabBody = prods.length ? `<div class="grid-prods">${prods.map((p) => `
+            <button type="button" class="card" style="text-align:left;" onclick="app.openProd('${p.id}')">
+              ${renderProdThumb(p, 92)}
+              <div style="padding:10px;"><strong style="font-size:0.82rem; display:block;">${esc(p.name)}</strong><div class="price-htg">${money(p.priceHtg)}</div></div>
+            </button>
+          `).join("")}</div>` : `<div class="notice">Aucun produit publié.</div>`;
+        } else if (STATE.bizTab === "services") {
+          tabBody = srvs.length ? srvs.map((s) => `
+            <div class="card card-pad form-stack">
+              ${s.images && s.images.length ? `<div class="thumb-strip">${s.images.map((im) => `<div class="thumb-item"><img src="${im}" alt="" /></div>`).join("")}</div>` : ""}
+              <strong>${esc(s.name)}</strong>
+              <p class="small muted">${esc(s.desc)}</p>
+              <div class="price-htg">${s.onQuote ? "Prix sur demande" : money(s.priceHtg)}</div>
+              <div class="flex-row">
+                <button type="button" class="btn btn-outline btn-sm" onclick="app.startChat('${b.id}', 'Service : ${esc(s.name)}')">Devis</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="app.shareItem('Service', '${esc(s.name)}', '${esc(b.name)}')">${esc(t("share"))}</button>
+              </div>
+            </div>
+          `).join("") : `<div class="notice">Aucun service publié.</div>`;
+        } else if (STATE.bizTab === "posts") {
+          tabBody = pubs.length ? pubs.map((p) => `
+            <div class="card card-pad">
+              <div class="meta"><span>${esc(p.type)}</span><span>·</span><span class="tabular">${esc(p.date)}</span></div>
+              <strong style="display:block; margin:4px 0;">${esc(p.title)}</strong>
+              <p class="small muted">${esc(p.content)}</p>
+            </div>
+          `).join("") : `<div class="notice">Aucune publication.</div>`;
+        } else if (STATE.bizTab === "about") {
+          tabBody = `
+            <div class="card card-pad form-stack">
+              <div><strong>Présentation</strong><p class="small muted">${esc(b.longDesc)}</p></div>
+              <div><strong>Localisation</strong><p class="small muted">${esc(b.address)} · ${esc(b.quartier)}, ${esc(b.commune)} (${esc(b.dept)})</p></div>
+              <div><strong>Horaires</strong><p class="small muted">${esc(b.hours)}</p></div>
+            </div>
+          `;
+        } else {
+          tabBody = `
+            <div class="form-stack">
+              ${revs.map((r) => `
+                <div class="card card-pad">
+                  <div class="flex-between"><strong>${esc(r.author)}</strong><span class="small tabular" style="color:#D97706;">★ ${r.rating}/5</span></div>
+                  <p class="small" style="margin:6px 0;">${esc(r.comment)}</p>
+                  ${r.reply ? `<div class="notice">${esc(r.reply)}</div>` : ""}
+                </div>
+              `).join("")}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="card">
+            <div class="cover-area" style="background:${b.grad};">
+              ${b.coverDataUrl ? `<img class="cover-img" src="${b.coverDataUrl}" alt="Couverture" />` : ""}
+              ${renderBizAvatar(b, 62)}
+              <div class="flex-row">
+                <button type="button" class="btn btn-outline btn-sm" style="background:rgba(255,255,255,0.9); color:#0A1A4F;" onclick="app.shareItem('Entreprise', '${esc(b.name)}', '${esc(b.commune)}, ${esc(b.dept)}')">${esc(t("share"))}</button>
+                <button type="button" class="btn btn-yellow btn-sm" onclick="app.toggleFav('${b.id}')">${isFav ? esc(t("following")) : esc(t("follow"))}</button>
+              </div>
+            </div>
+            <div class="card-pad">
+              <h1 style="font-size:1.15rem; font-weight:700;">${esc(b.name)}</h1>
+              <div class="meta" style="margin:4px 0 12px;">
+                <span>${esc(getCatName(b.categoryId))}</span><span>·</span>
+                <span>${esc(b.commune)}, ${esc(b.dept)}</span><span>·</span>
+                <span class="tabular">${b.followers} abonnés</span>
+              </div>
+              <div class="grid-2" style="gap:8px;">
+                <a class="btn btn-outline btn-sm" href="tel:${esc(b.phone)}">${esc(t("call"))}</a>
+                <a class="btn btn-outline btn-sm" href="https://wa.me/${esc(b.whatsapp)}" target="_blank" rel="noopener">WhatsApp</a>
+                <button type="button" class="btn btn-primary btn-sm" onclick="app.startChat('${b.id}', '')">Message</button>
+                <a class="btn btn-outline btn-sm" href="${mapsUrl}" target="_blank" rel="noopener">${esc(t("route"))}</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabs-bar">
+            <button type="button" class="tab-item ${STATE.bizTab === 'products' ? 'active' : ''}" onclick="app.setBizTab('products')">Produits</button>
+            <button type="button" class="tab-item ${STATE.bizTab === 'services' ? 'active' : ''}" onclick="app.setBizTab('services')">Services</button>
+            <button type="button" class="tab-item ${STATE.bizTab === 'posts' ? 'active' : ''}" onclick="app.setBizTab('posts')">Publications</button>
+            <button type="button" class="tab-item ${STATE.bizTab === 'about' ? 'active' : ''}" onclick="app.setBizTab('about')">À propos</button>
+            <button type="button" class="tab-item ${STATE.bizTab === 'reviews' ? 'active' : ''}" onclick="app.setBizTab('reviews')">Avis</button>
+          </div>
+          ${tabBody}
+        `;
+      }
+
+      function viewProdDetail() {
+        const p = STATE.products.find((x) => x.id === STATE.selectedProdId) || STATE.products[0];
+        const bz = getBiz(p.bizId);
+        const imgs = p.images || [];
+        const activeImg = imgs[STATE.selectedProdImgIdx] || imgs[0] || "";
+
+        return `
+          <div class="card">
+            <div class="media-box" style="height:190px;">
+              ${activeImg ? `<img src="${activeImg}" alt="${esc(p.name)}" />` : prodSvg(p.art)}
+            </div>
+            ${imgs.length > 1 ? `
+              <div class="thumb-strip" style="padding:10px 15px 0;">
+                ${imgs.map((im, idx) => `<button type="button" class="thumb-item" style="border-color:${idx === STATE.selectedProdImgIdx ? 'var(--blue)' : 'var(--border)'};" onclick="app.setProdImg(${idx})"><img src="${im}" alt="" /></button>`).join("")}
+              </div>
+            ` : ""}
+            <div class="card-pad form-stack">
+              <div class="flex-between">
+                <div class="price-htg" style="font-size:1.25rem;">${money(p.priceHtg)}</div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="app.shareItem('Produit', '${esc(p.name)}', '${esc(bz.name)} · ${p.priceHtg} HTG')">${esc(t("share"))}</button>
+              </div>
+              <h1 style="font-size:1.15rem; font-weight:700;">${esc(p.name)}</h1>
+              <button type="button" class="card card-pad flex-between" style="width:100%;" onclick="app.openBiz('${bz.id}')">
+                <div style="text-align:left;"><strong>${esc(bz.name)}</strong><div class="small muted">${esc(bz.commune)}, ${esc(bz.dept)}</div></div>
+                <span class="link-more">Boutique</span>
+              </button>
+              <p class="small muted">${esc(p.desc)}</p>
+              <button type="button" class="btn btn-primary btn-block" ${!p.available ? 'disabled style="opacity:0.5;"' : ''} onclick="app.addToCart('${p.id}')">${esc(t("add_cart"))}</button>
+              <button type="button" class="btn btn-outline btn-block" onclick="app.startChat('${bz.id}', 'Produit : ${esc(p.name)}')">${esc(t("contact_seller"))}</button>
+            </div>
+          </div>
+        `;
+      }
+
+      /* =========================================================
+         8. PANIER, MESSAGES & ESPACE PERSONNEL (AVEC PHOTO PROFIL & COUVERTURE)
+         ========================================================= */
+      function viewCart() {
+        const lines = STATE.cart.map((c) => { const p = STATE.products.find((x) => x.id === c.prodId); return p ? { ...c, p } : null; }).filter(Boolean);
+        const total = lines.reduce((s, l) => s + l.qty * l.p.priceHtg, 0);
+        if (!lines.length) return `<div class="card card-pad" style="text-align:center;"><p class="small muted" style="margin-bottom:12px;">Panier vide.</p><button type="button" class="btn btn-navy" onclick="app.switchRoot('explore')">Explorer</button></div>`;
+        return `
+          <div class="notice notice-info">Sans paiement en ligne au lancement (paiement à la livraison ou retrait).</div>
+          <div class="card card-pad form-stack">
+            ${lines.map((l) => `<div class="flex-between"><div><strong class="small">${esc(l.p.name)}</strong><div class="small muted">${l.qty} × ${l.p.priceHtg} HTG</div></div><button type="button" class="btn btn-outline btn-sm" onclick="app.removeFromCart('${l.p.id}')">Retirer</button></div>`).join("")}
+            <div class="flex-between" style="font-weight:700;"><span>Total</span><span>${money(total)}</span></div>
+          </div>
+          <form class="card card-pad form-stack" onsubmit="app.placeOrder(event)">
+            <div class="field"><label>Nom complet</label><input id="oName" class="input" required value="${esc(STATE.user ? STATE.user.name : '')}" /></div>
+            <div class="field"><label>Téléphone</label><input id="oPhone" class="input" required value="${esc(STATE.user ? STATE.user.phone : '')}" /></div>
+            <div class="field"><label>Mode</label><select id="oMode" class="select"><option>Livraison</option><option>Retrait sur place</option></select></div>
+            <div class="field"><label>Adresse complète</label><input id="oAddr" class="input" required value="${esc(STATE.user ? STATE.user.commune + ', ' + STATE.user.dept : '')}" /></div>
+            <button type="submit" class="btn btn-yellow btn-block">Confirmer la commande</button>
+          </form>
+        `;
+      }
+
+      function viewMessagesList() {
+        return `
+          <div class="notice notice-info">Messagerie de démonstration locale.</div>
+          <div class="card"><div class="menu-list">
+            ${STATE.conversations.map((c) => {
+              const bz = getBiz(c.bizId), last = c.messages[c.messages.length - 1];
+              return `<button type="button" class="menu-row" onclick="app.openChat('${c.id}')"><div class="menu-row-left">${renderBizAvatar(bz, 42)}<div style="min-width:0;flex:1;"><strong class="small" style="display:block;">${esc(bz.name)}</strong><span class="small muted" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(last ? last.text : '')}</span></div></div><span>›</span></button>`;
+            }).join("")}
+          </div></div>
+        `;
+      }
+
+      function viewMessagesChat() {
+        const c = STATE.conversations.find((x) => x.id === STATE.activeConvId) || STATE.conversations[0];
+        const bz = getBiz(c.bizId);
+        return `
+          <div class="card card-pad flex-between"><strong>${esc(bz.name)}</strong><a class="btn btn-outline btn-sm" href="tel:${esc(bz.phone)}">${esc(t("call"))}</a></div>
+          <div class="chat-feed">${c.messages.map((m) => `<div class="bubble ${m.from === 'me' ? 'me' : 'them'}"><div>${esc(m.text)}</div><div class="bubble-time">${esc(m.time)}</div></div>`).join("")}</div>
+          <form class="flex-row" onsubmit="app.sendChat(event, '${c.id}')"><input id="chatInp" class="input" style="flex:1;" required placeholder="Message..." /><button type="submit" class="btn btn-primary">Envoyer</button></form>
+        `;
+      }
+
+      function viewPersonalMenu() {
+        if (!STATE.user) {
+          return `<div class="card card-pad" style="text-align:center;"><p class="small muted" style="margin-bottom:12px;">Non connecté.</p><button type="button" class="btn btn-primary btn-block" onclick="app.switchRoot('auth')">Se connecter</button></div>`;
+        }
+        return `
+          <div class="card">
+            <div class="cover-area" style="background:linear-gradient(135deg, #0A1A4F, #3B82F6); height:110px;">
+              ${STATE.user.coverDataUrl ? `<img class="cover-img" src="${STATE.user.coverDataUrl}" alt="Arrière-plan" />` : ""}
+              <div class="story-avatar" style="width:64px; height:64px; background:var(--navy);">
+                ${STATE.user.avatarDataUrl ? `<img src="${STATE.user.avatarDataUrl}" alt="${esc(STATE.user.name)}" />` : esc(STATE.user.name.slice(0,2).toUpperCase())}
+              </div>
+              <button type="button" class="btn btn-yellow btn-sm" onclick="app.open('personal-info')">Modifier photos</button>
+            </div>
+            <div class="card-pad">
+              <strong style="font-size:1.05rem;">${esc(STATE.user.name)}</strong>
+              <div class="small muted">${esc(STATE.user.email)} · ${esc(STATE.user.commune)}, ${esc(STATE.user.dept)}</div>
+            </div>
+          </div>
+          <div class="card"><div class="menu-list">
+            <button type="button" class="menu-row" onclick="app.open('personal-info')"><span>Profil, photo & arrière-plan</span><span>›</span></button>
+            <button type="button" class="menu-row" onclick="app.open('personal-favorites')"><span>Favoris (${STATE.favorites.length})</span><span>›</span></button>
+            <button type="button" class="menu-row" onclick="app.open('personal-orders')"><span>Commandes (${STATE.orders.length})</span><span>›</span></button>
+            <button type="button" class="menu-row" onclick="app.open('personal-settings')"><span>Langue (FR/Kreyòl), Thème & Devise</span><span>›</span></button>
+            <button type="button" class="menu-row" onclick="app.triggerPwaInstall()"><span>${esc(t("install_pwa"))}</span><span>›</span></button>
+            <button type="button" class="menu-row" onclick="app.switchRoot('pro-dashboard')"><strong>${esc(t("pro_space"))}</strong><span>›</span></button>
+            <button type="button" class="menu-row" onclick="app.switchRoot('admin-menu')"><strong>${esc(t("admin_space"))}</strong><span>›</span></button>
+            <button type="button" class="menu-row" style="color:var(--danger);" onclick="app.logout()"><span>Déconnexion</span><span>›</span></button>
+          </div></div>
+        `;
+      }
+
+      function viewPersonalSub(scr) {
+        if (scr === "personal-info") {
+          return `
+            <div class="card card-pad form-stack">
+              <strong>Photos du profil personnel</strong>
+              <div class="grid-2">
+                <label class="upload-zone">
+                  <input type="file" accept="image/*" onchange="app.uploadUserPhoto(event, 'avatarDataUrl')" />
+                  <strong>Photo de profil</strong>
+                  <div class="small muted">${STATE.user.avatarDataUrl ? 'Modifiable ✓' : 'Choisir une image'}</div>
+                </label>
+                <label class="upload-zone">
+                  <input type="file" accept="image/*" onchange="app.uploadUserPhoto(event, 'coverDataUrl')" />
+                  <strong>Arrière-plan</strong>
+                  <div class="small muted">${STATE.user.coverDataUrl ? 'Modifiable ✓' : 'Choisir une image'}</div>
+                </label>
+              </div>
+            </div>
+            <form class="card card-pad form-stack" onsubmit="app.saveProfile(event)">
+              <div class="field"><label>Nom complet</label><input id="pName" class="input" value="${esc(STATE.user.name)}" required /></div>
+              <div class="field"><label>E-mail</label><input id="pMail" class="input" value="${esc(STATE.user.email)}" required /></div>
+              <div class="field"><label>Téléphone</label><input id="pPhone" class="input" value="${esc(STATE.user.phone)}" /></div>
+              <div class="field"><label>Département</label><select id="pDept" class="select">${Object.keys(HAITI_GEO).map((d) => `<option ${STATE.user.dept === d ? 'selected' : ''}>${esc(d)}</option>`).join("")}</select></div>
+              <div class="field"><label>Commune</label><input id="pComm" class="input" value="${esc(STATE.user.commune)}" /></div>
+              <button type="submit" class="btn btn-navy btn-block">Enregistrer</button>
+            </form>
+          `;
+        }
+        if (scr === "personal-favorites") {
+          return STATE.businesses.filter((b) => STATE.favorites.includes(b.id)).map((b) => `
+            <button type="button" class="card card-pad flex-between" style="width:100%;" onclick="app.openBiz('${b.id}')"><div><strong>${esc(b.name)}</strong><div class="small muted">${esc(b.commune)}, ${esc(b.dept)}</div></div><span>›</span></button>
+          `).join("") || `<div class="notice">Aucun favori.</div>`;
+        }
+        if (scr === "personal-orders") {
+          return STATE.orders.map((o) => `<div class="card card-pad"><div class="flex-between"><strong>${esc(o.id)}</strong><span class="status-ok">${esc(o.status)}</span></div><div class="small muted">${esc(o.mode)} · ${esc(o.address)}</div><div class="price-htg" style="margin-top:4px;">${money(o.totalHtg)}</div></div>`).join("");
+        }
+        return `
+          <div class="card card-pad form-stack">
+            <div class="field"><label>Langue / Lang</label>
+              <select class="select" onchange="app.setLang(this.value)">
+                <option value="fr" ${STATE.lang === 'fr' ? 'selected' : ''}>Français</option>
+                <option value="ht" ${STATE.lang === 'ht' ? 'selected' : ''}>Kreyòl Ayisyen</option>
+              </select>
+            </div>
+            <div class="field"><label>Thème</label>
+              <select class="select" onchange="app.setTheme(this.value)">
+                <option value="auto" ${STATE.theme === 'auto' ? 'selected' : ''}>Automatique</option>
+                <option value="light" ${STATE.theme === 'light' ? 'selected' : ''}>Clair</option>
+                <option value="dark" ${STATE.theme === 'dark' ? 'selected' : ''}>Sombre</option>
+              </select>
+            </div>
+            <div class="field"><label>Devise</label>
+              <select class="select" onchange="app.setCurrency(this.value)">
+                <option value="HTG" ${STATE.currency === 'HTG' ? 'selected' : ''}>HTG</option>
+                <option value="BOTH" ${STATE.currency === 'BOTH' ? 'selected' : ''}>HTG + USD</option>
+                <option value="USD" ${STATE.currency === 'USD' ? 'selected' : ''}>USD</option>
+              </select>
+            </div>
+          </div>
+        `;
+      }
+
+      /* =========================================================
+         9. ESPACE PRO (QUOTAS IMAGES PAR ABONNEMENT + STAFF COMPLET)
+         ========================================================= */
+      function viewProDashboard() {
+        const biz = getBiz(STATE.proBizId) || STATE.businesses[0];
+        const maxImgs = getMaxImagesForBiz(biz);
+        return `
+          <div class="card card-pad form-stack">
+            <select class="select" aria-label="Entreprise" onchange="app.setProBiz(this.value)">
+              ${STATE.businesses.map((b) => `<option value="${b.id}" ${b.id === biz.id ? 'selected' : ''}>${esc(b.name)} (${b.plan})</option>`).join("")}
+            </select>
+            <div class="flex-between">
+              <span class="small muted">Quota photos : <strong>${maxImgs} images / publication</strong></span>
+              <select class="select" style="width:auto; padding:5px 8px; font-size:0.76rem;" onchange="app.setProRole(this.value)">
+                ${STAFF_ROLES.map((r) => `<option value="${r.id}" ${STATE.proRole === r.id ? 'selected' : ''}>Test : ${r.id}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <div class="card"><div class="menu-list">
+            ${canPro("content") ? `<button type="button" class="menu-row" onclick="app.open('pro-publish')"><span>Publier Produit / Service / Promo / Événement</span><span>›</span></button>` : ""}
+            ${canPro("identity") ? `<button type="button" class="menu-row" onclick="app.open('pro-identity')"><span>Ma boutique (Logo, Couverture & Adresse)</span><span>›</span></button>` : ""}
+            <button type="button" class="menu-row" onclick="app.open('pro-orders')"><span>${STATE.proRole === 'Livreur' ? 'Commandes à livrer (Vue Livreur)' : 'Commandes reçues & livraisons'}</span><span>›</span></button>
+            ${canPro("team") ? `<button type="button" class="menu-row" onclick="app.open('pro-team')"><span>Staff & Équipe (Admin, Caissier, Livreur...)</span><span>›</span></button>` : ""}
+            ${canPro("billing") ? `<button type="button" class="menu-row" onclick="app.open('pro-billing')"><span>Abonnement Zack & MonCash (${esc(biz.plan)})</span><span>›</span></button>` : ""}
+            <button type="button" class="menu-row" onclick="app.open('pro-create')"><strong>+ Enregistrer une nouvelle entreprise</strong><span>›</span></button>
+          </div></div>
+        `;
+      }
+
+      function viewProPublish() {
+        const biz = getBiz(STATE.proBizId) || STATE.businesses[0];
+        const maxImgs = getMaxImagesForBiz(biz);
+        const curImgs = STATE.draftImages.length;
+
+        const imgUploader = `
+          <div class="card card-pad form-stack" style="background:var(--surface-alt);">
+            <div class="flex-between">
+              <strong class="small">Photos (${curImgs} / ${maxImgs} max)</strong>
+              <span class="small muted">${esc(biz.plan)}</span>
+            </div>
+            ${curImgs > 0 ? `
+              <div class="thumb-strip">
+                ${STATE.draftImages.map((im, i) => `
+                  <div class="thumb-item">
+                    <img src="${im}" alt="" />
+                    <button type="button" class="thumb-del" onclick="app.removeDraftImg(${i})">×</button>
+                  </div>
+                `).join("")}
+              </div>
+            ` : ""}
+            ${curImgs < maxImgs ? `
+              <label class="upload-zone">
+                <input type="file" accept="image/*" multiple onchange="app.handleDraftImages(event)" />
+                <strong>+ Ajouter des images</strong>
+                <div class="small muted">Encore ${maxImgs - curImgs} image(s) disponible(s) avec votre abonnement</div>
+              </label>
+            ` : `
+              <div class="notice notice-warn">
+                Limite de ${maxImgs} images atteinte pour <strong>${esc(biz.plan)}</strong>.
+                <button type="button" class="link-more" style="margin-left:4px;" onclick="app.open('pro-billing')">Passer à Pro (6) ou Entreprise (12)</button>
+              </div>
+            `}
+          </div>
+        `;
+
+        let form = "";
+        if (STATE.publishType === "product") {
+          form = `<form class="card card-pad form-stack" onsubmit="app.addProduct(event, '${biz.id}')">${imgUploader}<div class="field"><label>Nom du produit</label><input id="npName" class="input" required /></div><div class="field"><label>Prix (HTG)</label><input id="npPrice" type="number" class="input" required /></div><div class="field"><label>Variante</label><input id="npVar" class="input" placeholder="Ex. 5 kg" /></div><div class="field"><label>Description</label><textarea id="npDesc" class="textarea" required></textarea></div><button type="submit" class="btn btn-yellow btn-block">Publier le produit</button></form>`;
+        } else if (STATE.publishType === "service") {
+          form = `<form class="card card-pad form-stack" onsubmit="app.addService(event, '${biz.id}')">${imgUploader}<div class="field"><label>Nom du service</label><input id="nsName" class="input" required /></div><div class="field"><label>Tarif HTG (0 = Sur demande)</label><input id="nsPrice" type="number" class="input" value="0" /></div><div class="field"><label>Conditions</label><input id="nsCond" class="input" required /></div><div class="field"><label>Description</label><textarea id="nsDesc" class="textarea" required></textarea></div><button type="submit" class="btn btn-yellow btn-block">Publier le service</button></form>`;
+        } else if (STATE.publishType === "promo") {
+          form = `<form class="card card-pad form-stack" onsubmit="app.addPromo(event, '${biz.id}')">${imgUploader}<div class="field"><label>Titre promotion</label><input id="nprmTitle" class="input" required /></div><div class="grid-2"><div class="field"><label>Prix initial</label><input id="nprmOld" type="number" class="input" required /></div><div class="field"><label>Prix promo</label><input id="nprmNew" type="number" class="input" required /></div></div><div class="field"><label>Fin</label><input id="nprmEnd" type="date" class="input" value="2026-12-31" required /></div><div class="field"><label>Conditions</label><input id="nprmCond" class="input" required /></div><button type="submit" class="btn btn-yellow btn-block">Lancer la promotion</button></form>`;
+        } else {
+          form = `<form class="card card-pad form-stack" onsubmit="app.addEvent(event, '${biz.id}')">${imgUploader}<div class="field"><label>Nom événement</label><input id="nevTitle" class="input" required /></div><div class="grid-2"><div class="field"><label>Date</label><input id="nevDate" type="date" class="input" value="2026-12-12" required /></div><div class="field"><label>Heure</label><input id="nevTime" class="input" value="10h00" required /></div></div><div class="field"><label>Lieu</label><input id="nevPlace" class="input" required /></div><div class="field"><label>Description</label><textarea id="nevDesc" class="textarea" required></textarea></div><button type="submit" class="btn btn-yellow btn-block">Publier l'événement</button></form>`;
+        }
+
+        return `
+          <div class="tabs-bar">
+            <button type="button" class="tab-item ${STATE.publishType === 'product' ? 'active' : ''}" onclick="app.setPubType('product')">Produit</button>
+            <button type="button" class="tab-item ${STATE.publishType === 'service' ? 'active' : ''}" onclick="app.setPubType('service')">Service</button>
+            <button type="button" class="tab-item ${STATE.publishType === 'promo' ? 'active' : ''}" onclick="app.setPubType('promo')">Promotion</button>
+            <button type="button" class="tab-item ${STATE.publishType === 'event' ? 'active' : ''}" onclick="app.setPubType('event')">Événement</button>
+          </div>
+          ${form}
+        `;
+      }
+
+      function viewProSub(scr) {
+        const biz = getBiz(STATE.proBizId) || STATE.businesses[0];
+        if (scr === "pro-identity") {
+          return `
+            <div class="card card-pad form-stack">
+              <strong>Logo & Photo de couverture (arrière-plan)</strong>
+              <div class="grid-2">
+                <label class="upload-zone">
+                  <input type="file" accept="image/*" onchange="app.uploadBizPhoto(event, '${biz.id}', 'logoDataUrl')" />
+                  <strong>Logo / Profil</strong>
+                  <div class="small muted">${biz.logoDataUrl ? 'Chargé ✓' : 'Choisir image'}</div>
+                </label>
+                <label class="upload-zone">
+                  <input type="file" accept="image/*" onchange="app.uploadBizPhoto(event, '${biz.id}', 'coverDataUrl')" />
+                  <strong>Arrière-plan</strong>
+                  <div class="small muted">${biz.coverDataUrl ? 'Chargé ✓' : 'Choisir image'}</div>
+                </label>
+              </div>
+            </div>
+            <form class="card card-pad form-stack" onsubmit="app.saveBizId(event, '${biz.id}')">
+              <div class="field"><label>Nom commercial</label><input id="edName" class="input" value="${esc(biz.name)}" required /></div>
+              <div class="field"><label>Département</label><select id="edDept" class="select">${Object.keys(HAITI_GEO).map((d) => `<option ${biz.dept === d ? 'selected' : ''}>${esc(d)}</option>`).join("")}</select></div>
+              <div class="field"><label>Commune</label><input id="edComm" class="input" value="${esc(biz.commune)}" required /></div>
+              <div class="field"><label>Quartier</label><input id="edQuart" class="input" value="${esc(biz.quartier)}" required /></div>
+              <div class="field"><label>Adresse</label><input id="edAddr" class="input" value="${esc(biz.address)}" required /></div>
+              <button type="submit" class="btn btn-navy btn-block">Enregistrer</button>
+            </form>
+          `;
+        }
+        if (scr === "pro-orders") {
+          const ords = STATE.orders.filter((o) => o.bizId === biz.id);
+          const isDeliveryOnly = STATE.proRole === "Livreur";
+          return `
+            ${isDeliveryOnly ? `<div class="notice notice-info">Mode <strong>Livreur</strong> : vous pouvez consulter l'adresse de livraison et actualiser l'état de livraison.</div>` : ""}
+            ${ords.map((o) => `
+              <div class="card card-pad form-stack">
+                <div class="flex-between"><strong>${esc(o.id)}</strong><span>${esc(o.customerName)}</span></div>
+                <div class="small muted">${esc(o.mode)} · ${esc(o.address)} · ${esc(o.customerPhone)}</div>
+                <select class="select" onchange="app.setOrderStatus('${o.id}', this.value)">
+                  ${(isDeliveryOnly ? ["En préparation", "En livraison", "Livrée"] : ["En attente", "Confirmée", "En préparation", "En livraison", "Livrée"]).map((s) => `<option ${o.status === s ? 'selected' : ''}>${s}</option>`).join("")}
+                </select>
+              </div>
+            `).join("") || `<div class="notice">Aucune commande.</div>`}
+          `;
+        }
+        if (scr === "pro-team") {
+          const members = STATE.teamMembers.filter((m) => m.bizId === biz.id);
+          return `
+            <div class="notice notice-info">Ajoutez tout votre staff (Administrateur, Gérant, Éditeur, Caissier, Livreur). Contrôle vérifié côté serveur RLS.</div>
+            <form class="card card-pad form-stack" onsubmit="app.addStaffMember(event, '${biz.id}')">
+              <strong>+ Intégrer un nouveau membre au staff</strong>
+              <div class="field"><label>Nom complet</label><input id="stName" class="input" required placeholder="Ex. Jean-Robert Pierre" /></div>
+              <div class="grid-2">
+                <div class="field"><label>E-mail</label><input id="stEmail" type="email" class="input" required placeholder="staff@entreprise.ht" /></div>
+                <div class="field"><label>Téléphone</label><input id="stPhone" class="input" required placeholder="+509 ..." /></div>
+              </div>
+              <div class="field"><label>Rôle dans l'entreprise</label>
+                <select id="stRole" class="select">
+                  ${STAFF_ROLES.filter((r) => r.id !== "Owner").map((r) => `<option value="${r.id}">${esc(r.labelFr)} — ${esc(r.desc)}</option>`).join("")}
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Ajouter au staff</button>
+            </form>
+            <div class="card"><div class="menu-list">
+              ${members.map((m) => `
+                <div class="menu-row">
+                  <div style="min-width:0; flex:1;">
+                    <strong class="small">${esc(m.name)}</strong>
+                    <div class="small muted">${esc(m.email)} · ${esc(m.phone || "")}</div>
+                  </div>
+                  <div class="flex-row">
+                    <select class="select" style="width:auto; padding:4px 8px; font-size:0.75rem;" ${m.role === 'Owner' ? 'disabled' : ''} onchange="app.changeRole('${m.id}', this.value)">
+                      ${STAFF_ROLES.map((r) => `<option value="${r.id}" ${m.role === r.id ? 'selected' : ''}>${r.id}</option>`).join("")}
+                    </select>
+                    ${m.role !== 'Owner' ? `<button type="button" class="btn btn-outline btn-sm" style="color:var(--danger);" onclick="app.removeStaff('${m.id}')">×</button>` : ""}
+                  </div>
+                </div>
+              `).join("")}
+            </div></div>
+          `;
+        }
+        if (scr === "pro-billing") {
+          return `
+            <div class="notice notice-warn">Sécurité MonCash : ne jamais saisir de PIN, mot de passe ou OTP. Vérification serveur Digicel requise.</div>
+            ${Object.entries(PLAN_QUOTAS).map(([name, info]) => `
+              <div class="card card-pad form-stack" style="${biz.plan === name ? 'border-color:var(--blue); border-width:2px;' : ''}">
+                <div class="flex-between">
+                  <strong>${esc(name)}</strong>
+                  <span class="price-htg">${info.priceHtg === 0 ? 'Gratuit' : money(info.priceHtg)}</span>
+                </div>
+                <div class="small muted">Jusqu'à <strong>${info.maxImages} images</strong> par produit, service, promo et événement.</div>
+                ${biz.plan === name ? `<span class="status-ok">Offre active</span>` : info.priceHtg > 0 ? `<button type="button" class="btn btn-primary btn-sm" onclick="app.openMonCash('${biz.id}', '${esc(name)}', ${info.priceHtg})">Passer à ${esc(name)} (MonCash)</button>` : ""}
+              </div>
+            `).join("")}
+          `;
+        }
+        return `
+          <div class="notice notice-warn">Toute nouvelle entreprise passe au statut <strong>En attente de validation</strong>.</div>
+          <form class="card card-pad form-stack" onsubmit="app.createBiz(event)">
+            <div class="field"><label>Nom commercial *</label><input id="nbName" class="input" required /></div>
+            <div class="field"><label>Catégorie *</label><select id="nbCat" class="select">${STATE.categories.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select></div>
+            <div class="field"><label>Département *</label><select id="nbDept" class="select" onchange="app.fillComm(this.value)">${Object.keys(HAITI_GEO).map((d) => `<option>${esc(d)}</option>`).join("")}</select></div>
+            <div class="field"><label>Commune *</label><select id="nbComm" class="select"></select></div>
+            <div class="field"><label>Quartier *</label><input id="nbQuart" class="input" required /></div>
+            <div class="field"><label>Adresse *</label><input id="nbAddr" class="input" required /></div>
+            <div class="field"><label>Téléphone *</label><input id="nbPhone" class="input" required /></div>
+            <div class="field"><label>Description *</label><textarea id="nbDesc" class="textarea" required></textarea></div>
+            <button type="submit" class="btn btn-navy btn-block">Soumettre pour validation</button>
+          </form>
+        `;
+      }
+
+      /* =========================================================
+         10. ADMIN ZACK
+         ========================================================= */
+      function viewAdminMenu() {
+        const pend = STATE.businesses.filter((b) => b.status === "pending").length;
+        return `
+          <div class="card"><div class="menu-list">
+            <button type="button" class="menu-row" onclick="app.open('admin-verify')"><span>Entreprises & validations (${pend} en attente)</span><span>›</span></button>
+            <button type="button" class="menu-row" onclick="app.open('admin-logs')"><span>Journaux d'activité</span><span>›</span></button>
+          </div></div>
+        `;
+      }
+      function viewAdminSub(scr) {
+        if (scr === "admin-verify") {
+          return STATE.businesses.map((b) => `
+            <div class="card card-pad form-stack">
+              <div class="flex-between"><strong>${esc(b.name)}</strong><span class="${b.status === 'verified' ? 'status-ok' : 'status-warn'}">${esc(b.status)}</span></div>
+              <div class="small muted">${esc(b.commune)}, ${esc(b.dept)}</div>
+              <div class="flex-row">
+                ${b.status !== 'verified' ? `<button type="button" class="btn btn-success btn-sm" onclick="app.admSetStatus('${b.id}', 'verified')">Approuver</button>` : ""}
+                ${b.status === 'verified' ? `<button type="button" class="btn btn-outline btn-sm" onclick="app.admSetStatus('${b.id}', 'suspended')">Suspendre</button>` : ""}
+              </div>
+            </div>
+          `).join("");
+        }
+        return `<div class="card"><div class="menu-list">${STATE.auditLogs.map((l) => `<div class="menu-row"><div><strong class="small">${esc(l.actor)}</strong><div class="small muted">${esc(l.action)} · ${esc(l.time)}</div></div></div>`).join("")}</div></div>`;
+      }
+
+      /* =========================================================
+         11. CONTRÔLEUR
+         ========================================================= */
+      window.app = {
+        switchRoot(scr) { STATE.history = []; STATE.screen = scr; render(); },
+        open(scr) { if (STATE.screen !== scr) STATE.history.push(STATE.screen); STATE.screen = scr; render(); },
+        back() { STATE.screen = STATE.history.pop() || "home"; render(); },
+        setViewport(m) {
+          STATE.viewport = m;
+          const sh = document.getElementById("appShell");
+          sh.classList.toggle("mode-916", m === "916");
+          sh.classList.toggle("mode-desktop", m === "desktop");
+          document.getElementById("btnMode916").classList.toggle("active", m === "916");
+          document.getElementById("btnModeDesktop").classList.toggle("active", m === "desktop");
+        },
+        setLang(l) {
+          STATE.lang = l;
+          const b1 = document.getElementById("btnLangFr"), b2 = document.getElementById("btnLangHt");
+          if (b1 && b2) { b1.classList.toggle("active", l === "fr"); b2.classList.toggle("active", l === "ht"); }
+          render();
+        },
+        toggleLang() { this.setLang(STATE.lang === "fr" ? "ht" : "fr"); },
+        setTheme(th) { STATE.theme = th; applyTheme(); },
+        setCurrency(c) { STATE.currency = c; render(); },
+
+        setAuthTab(tab) { STATE.authTab = tab; render(); },
+        togglePass() { STATE.showPassword = !STATE.showPassword; render(); },
+        forgotPass() { toast("Lien de réinitialisation simulé envoyé."); },
+        submitAuthLogin(e) {
+          e.preventDefault();
+          const mail = document.getElementById("authEmail").value.trim();
+          STATE.user = { id: "u1", name: "Jean-Marc Baptiste", email: mail, phone: "+509 3712 4589", dept: "Ouest", commune: "Pétion-Ville", avatarDataUrl: "", coverDataUrl: "" };
+          toast("Connexion réussie.");
+          this.switchRoot("home");
+        },
+        submitAuthRegister(e) {
+          e.preventDefault();
+          STATE.user = { id: "u-" + Date.now(), name: document.getElementById("regName").value.trim(), email: document.getElementById("regEmail").value.trim(), phone: "+509", dept: "Ouest", commune: "Port-au-Prince", avatarDataUrl: "", coverDataUrl: "" };
+          toast("Compte créé !");
+          this.switchRoot("home");
+        },
+        loginDemo(type) {
+          if (type === "client") { STATE.user = { id: "u1", name: "Jean-Marc Baptiste", email: "jeanmarc@exemple.ht", phone: "+509 3712 4589", dept: "Ouest", commune: "Pétion-Ville", avatarDataUrl: "", coverDataUrl: "" }; this.switchRoot("home"); }
+          else if (type === "pro") { STATE.user = { id: "u2", name: "Carl-Henry Théodore", email: "carl@lakousoley.ht", phone: "+509 2813 4400", dept: "Ouest", commune: "Pétion-Ville", avatarDataUrl: "", coverDataUrl: "" }; this.switchRoot("pro-dashboard"); }
+          else { STATE.user = { id: "u3", name: "Claire-Marie Deschamps", email: "admin@zack.ht", phone: "+509 2800 0001", dept: "Ouest", commune: "Port-au-Prince", avatarDataUrl: "", coverDataUrl: "" }; this.switchRoot("admin-menu"); }
+          toast("Session démo active.");
+        },
+        logout() { STATE.user = null; this.switchRoot("auth"); },
+
+        quickDept(v) { STATE.filterDept = v; STATE.filterCommune = ""; STATE.filterQuartier = ""; this.open("explore"); },
+        submitHomeSearch(e) { e.preventDefault(); STATE.searchQuery = document.getElementById("homeSearchInp").value; this.open("explore"); },
+        exploreTab(tab) { STATE.exploreTab = tab; this.open("explore"); },
+        setExploreTab(tab) { STATE.exploreTab = tab; render(); },
+        setFilter(k, v) { STATE[k] = v; render(); },
+        changeDept(v) { STATE.filterDept = v; STATE.filterCommune = ""; STATE.filterQuartier = ""; render(); },
+        changeCommune(v) { STATE.filterCommune = v; STATE.filterQuartier = ""; render(); },
+        openBiz(id) { STATE.selectedBizId = id; STATE.bizTab = "products"; this.open("biz-detail"); },
+        setBizTab(tab) { STATE.bizTab = tab; render(); },
+        openProd(id) { STATE.selectedProdId = id; STATE.selectedProdImgIdx = 0; this.open("prod-detail"); },
+        setProdImg(idx) { STATE.selectedProdImgIdx = idx; render(); },
+        toggleFav(id) { const i = STATE.favorites.indexOf(id); if (i >= 0) STATE.favorites.splice(i, 1); else STATE.favorites.push(id); render(); },
+        addToCart(id) { const it = STATE.cart.find((c) => c.prodId === id); if (it) it.qty += 1; else STATE.cart.push({ prodId: id, qty: 1 }); toast("Ajouté au panier."); render(); },
+        removeFromCart(id) { STATE.cart = STATE.cart.filter((c) => c.prodId !== id); render(); },
+        placeOrder(e) {
+          e.preventDefault();
+          const first = STATE.products.find((p) => p.id === STATE.cart[0].prodId);
+          const items = STATE.cart.map((c) => { const p = STATE.products.find((x) => x.id === c.prodId); return { name: p.name, qty: c.qty, priceHtg: p.priceHtg }; });
+          const total = items.reduce((s, i) => s + i.qty * i.priceHtg, 0);
+          STATE.orders.unshift({ id: "CMD-" + Math.floor(1000 + Math.random() * 8999), date: "2026-11-12", customerName: document.getElementById("oName").value, customerPhone: document.getElementById("oPhone").value, bizId: first.bizId, mode: document.getElementById("oMode").value, address: document.getElementById("oAddr").value, items, totalHtg: total, status: "En attente", paymentNote: "Hors ligne au lancement" });
+          STATE.cart = [];
+          toast("Commande confirmée !");
+          this.open("personal-orders");
+        },
+        openChat(id) { STATE.activeConvId = id; this.open("messages-chat"); },
+        startChat(bizId, prefill) {
+          let c = STATE.conversations.find((x) => x.bizId === bizId);
+          if (!c) { c = { id: "conv-" + Date.now(), bizId, unread: 0, messages: [] }; STATE.conversations.unshift(c); }
+          if (prefill) c.messages.push({ from: "me", text: prefill, time: "À l'instant", read: false });
+          this.openChat(c.id);
+        },
+        sendChat(e, cid) { e.preventDefault(); const v = document.getElementById("chatInp").value.trim(); if (!v) return; STATE.conversations.find((c) => c.id === cid).messages.push({ from: "me", text: v, time: "À l'instant", read: true }); render(); },
+
+        uploadUserPhoto(e, field) {
+          const f = e.target.files[0]; if (!f || !STATE.user) return;
+          readFileAsDataUrl(f, (url) => { STATE.user[field] = url; toast("Photo mise à jour !"); render(); });
+        },
+        uploadBizPhoto(e, bizId, field) {
+          const f = e.target.files[0]; if (!f) return;
+          readFileAsDataUrl(f, (url) => { getBiz(bizId)[field] = url; toast("Image boutique mise à jour !"); render(); });
+        },
+        saveProfile(e) {
+          e.preventDefault();
+          STATE.user.name = document.getElementById("pName").value;
+          STATE.user.email = document.getElementById("pMail").value;
+          STATE.user.phone = document.getElementById("pPhone").value;
+          STATE.user.dept = document.getElementById("pDept").value;
+          STATE.user.commune = document.getElementById("pComm").value;
+          toast("Profil enregistré.");
+          this.back();
+        },
+
+        setProBiz(id) { STATE.proBizId = id; STATE.draftImages = []; render(); },
+        setProRole(r) { STATE.proRole = r; render(); },
+        setPubType(tp) { STATE.publishType = tp; STATE.draftImages = []; render(); },
+
+        handleDraftImages(e) {
+          const biz = getBiz(STATE.proBizId) || STATE.businesses[0];
+          const max = getMaxImagesForBiz(biz);
+          const files = Array.from(e.target.files || []);
+          const remaining = max - STATE.draftImages.length;
+          if (files.length > remaining) {
+            toast(`Quota atteint (${max} images max pour ${biz.plan}).`);
+          }
+          files.slice(0, remaining).forEach((file) => {
+            readFileAsDataUrl(file, (url) => {
+              STATE.draftImages.push(url);
+              render();
+            });
+          });
+        },
+        removeDraftImg(idx) { STATE.draftImages.splice(idx, 1); render(); },
+
+        addProduct(e, bizId) {
+          e.preventDefault();
+          STATE.products.unshift({ id: "prd-" + Date.now(), bizId, name: document.getElementById("npName").value.trim(), category: getCatName(getBiz(bizId).categoryId), priceHtg: Number(document.getElementById("npPrice").value), available: true, variants: document.getElementById("npVar").value.trim() || "Standard", desc: document.getElementById("npDesc").value.trim(), art: "craft", images: [...STATE.draftImages] });
+          STATE.draftImages = [];
+          toast("Produit publié avec images !");
+          this.switchRoot("home");
+        },
+        addService(e, bizId) {
+          e.preventDefault();
+          const p = Number(document.getElementById("nsPrice").value);
+          STATE.services.unshift({ id: "srv-" + Date.now(), bizId, name: document.getElementById("nsName").value.trim(), priceHtg: p, onQuote: p === 0, conditions: document.getElementById("nsCond").value.trim(), desc: document.getElementById("nsDesc").value.trim(), images: [...STATE.draftImages] });
+          STATE.draftImages = [];
+          toast("Service publié !");
+          this.back();
+        },
+        addPromo(e, bizId) {
+          e.preventDefault();
+          STATE.promotions.unshift({ id: "prm-" + Date.now(), bizId, title: document.getElementById("nprmTitle").value.trim(), oldHtg: Number(document.getElementById("nprmOld").value), newHtg: Number(document.getElementById("nprmNew").value), start: "2026-11-12", end: document.getElementById("nprmEnd").value, conditions: document.getElementById("nprmCond").value.trim(), images: [...STATE.draftImages] });
+          STATE.draftImages = [];
+          toast("Promotion lancée !");
+          this.open("promos");
+        },
+        addEvent(e, bizId) {
+          e.preventDefault();
+          STATE.events.unshift({ id: "evt-" + Date.now(), bizId, title: document.getElementById("nevTitle").value.trim(), date: document.getElementById("nevDate").value, time: document.getElementById("nevTime").value, place: document.getElementById("nevPlace").value.trim(), desc: document.getElementById("nevDesc").value.trim(), images: [...STATE.draftImages] });
+          STATE.draftImages = [];
+          toast("Événement publié !");
+          this.open("events");
+        },
+
+        saveBizId(e, bizId) {
+          e.preventDefault();
+          const b = getBiz(bizId);
+          b.name = document.getElementById("edName").value.trim();
+          b.dept = document.getElementById("edDept").value;
+          b.commune = document.getElementById("edComm").value.trim();
+          b.quartier = document.getElementById("edQuart").value.trim();
+          b.address = document.getElementById("edAddr").value.trim();
+          toast("Boutique enregistrée.");
+          this.back();
+        },
+        setOrderStatus(id, s) { const o = STATE.orders.find((x) => x.id === id); if (o) { o.status = s; toast("Statut : " + s); } },
+
+        addStaffMember(e, bizId) {
+          e.preventDefault();
+          STATE.teamMembers.push({
+            id: "tm-" + Date.now(), bizId,
+            name: document.getElementById("stName").value.trim(),
+            email: document.getElementById("stEmail").value.trim(),
+            phone: document.getElementById("stPhone").value.trim(),
+            role: document.getElementById("stRole").value
+          });
+          toast("Nouveau membre intégré au staff !");
+          render();
+        },
+        changeRole(id, r) { const m = STATE.teamMembers.find((x) => x.id === id); if (m) { m.role = r; toast("Rôle modifié : " + r); } },
+        removeStaff(id) { STATE.teamMembers = STATE.teamMembers.filter((m) => m.id !== id); toast("Membre retiré."); render(); },
+
+        fillComm(dept) {
+          const sel = document.getElementById("nbComm"); if (!sel) return;
+          sel.innerHTML = (HAITI_GEO[dept] ? Object.keys(HAITI_GEO[dept]) : []).map((c) => `<option>${esc(c)}</option>`).join("");
+        },
+        createBiz(e) {
+          e.preventDefault();
+          const name = document.getElementById("nbName").value.trim();
+          const id = "biz-" + Date.now();
+          STATE.businesses.unshift({ id, name, initials: name.slice(0,2).toUpperCase(), grad: "linear-gradient(135deg, #0A1A4F, #3B82F6)", logoDataUrl: "", coverDataUrl: "", shortDesc: document.getElementById("nbDesc").value.trim(), longDesc: document.getElementById("nbDesc").value.trim(), categoryId: document.getElementById("nbCat").value, dept: document.getElementById("nbDept").value, commune: document.getElementById("nbComm").value, city: document.getElementById("nbComm").value, quartier: document.getElementById("nbQuart").value.trim(), address: document.getElementById("nbAddr").value.trim(), phone: document.getElementById("nbPhone").value.trim(), whatsapp: "", email: "", hours: "Lun–Sam : 08h–17h", status: "pending", rating: 0, reviewCount: 0, followers: 0, views: 0, createdAt: "2026-11-12", plan: "Essentiel Gratuit" });
+          STATE.proBizId = id;
+          toast("Fiche soumise (en attente de validation).");
+          this.switchRoot("pro-dashboard");
+        },
+        openMonCash(bizId, planName, amt) {
+          document.getElementById("drawerSheet").innerHTML = `
+            <div class="flex-between" style="margin-bottom:10px;"><strong>MonCash (Simulation)</strong><button type="button" class="btn btn-outline btn-sm" onclick="app.closeDrawer()">Fermer</button></div>
+            <div class="notice notice-warn" style="margin-bottom:10px;">Ne jamais saisir de PIN, mot de passe ou OTP.</div>
+            <form class="form-stack" onsubmit="app.confirmMonCash(event, '${bizId}', '${esc(planName)}')">
+              <div><strong>${esc(planName)}</strong> · ${money(amt)} (Quota : ${PLAN_QUOTAS[planName].maxImages} images)</div>
+              <input class="input" required placeholder="+509 37XX XXXX" />
+              <button type="submit" class="btn btn-yellow btn-block">Simuler confirmation MonCash</button>
+            </form>
+          `;
+          document.getElementById("drawerOverlay").classList.add("open");
+        },
+        confirmMonCash(e, bizId, planName) {
+          e.preventDefault();
+          getBiz(bizId).plan = planName;
+          this.closeDrawer();
+          toast("Abonnement mis à jour : " + planName);
+          render();
+        },
+        admSetStatus(id, s) { getBiz(id).status = s; toast("Statut : " + s); render(); },
+
+        /* PARTAGE NATIF + WHATSAPP + COPIE */
+        async shareItem(kind, title, details) {
+          const shareText = `${kind} sur Zack Haïti : ${title} (${details})`;
+          const shareUrl = window.location.href.startsWith("http") ? window.location.href : "https://zack.ht";
+          if (navigator.share) {
+            try {
+              await navigator.share({ title: title, text: shareText, url: shareUrl });
+              return;
+            } catch (_) {}
+          }
+          const waUrl = "https://wa.me/?text=" + encodeURIComponent(shareText + " — " + shareUrl);
+          document.getElementById("drawerSheet").innerHTML = `
+            <div class="flex-between" style="margin-bottom:10px;"><strong>Partager : ${esc(kind)}</strong><button type="button" class="btn btn-outline btn-sm" onclick="app.closeDrawer()">Fermer</button></div>
+            <p class="small muted" style="margin-bottom:12px;">${esc(shareText)}</p>
+            <div class="form-stack">
+              <a class="btn btn-success btn-block" href="${waUrl}" target="_blank" rel="noopener">Partager sur WhatsApp</a>
+              <button type="button" class="btn btn-navy btn-block" onclick="app.copyShareText('${esc(shareText)}')">Copier le texte</button>
+            </div>
+          `;
+          document.getElementById("drawerOverlay").classList.add("open");
+        },
+        copyShareText(txt) {
+          if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+          this.closeDrawer();
+          toast("Texte copié pour partage !");
+        },
+
+        /* INSTALLATION PWA / APK */
+        async triggerPwaInstall() {
+          if (STATE.deferredPwaPrompt) {
+            STATE.deferredPwaPrompt.prompt();
+            await STATE.deferredPwaPrompt.userChoice;
+            STATE.deferredPwaPrompt = null;
+            return;
+          }
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: "ZACK_TRIGGER_PWA_INSTALL" }, "*");
+          }
+          document.getElementById("drawerSheet").innerHTML = `
+            <div class="flex-between" style="margin-bottom:10px;"><strong>Installer Zack (PWA / Android APK)</strong><button type="button" class="btn btn-outline btn-sm" onclick="app.closeDrawer()">Fermer</button></div>
+            <div class="form-stack small muted">
+              <p><strong>Android (Chrome) :</strong> Menu (⋮) → <em>Installer l'application</em> ou <em>Ajouter à l'écran d'accueil</em>.</p>
+              <p><strong>iPhone / iPad (Safari) :</strong> Icône <em>Partager</em> → <em>Sur l'écran d'accueil</em>.</p>
+              <p><strong>Générer le fichier .apk :</strong> déployez cette PWA en HTTPS puis utilisez <em>PWABuilder</em> ou <em>Bubblewrap</em> pour obtenir votre APK signé.</p>
+            </div>
+          `;
+          document.getElementById("drawerOverlay").classList.add("open");
+        },
+
+        openSpaceDrawer() {
+          document.getElementById("drawerSheet").innerHTML = `
+            <div class="flex-between" style="margin-bottom:10px;"><strong>Zack Haïti</strong><button type="button" class="btn btn-outline btn-sm" onclick="app.closeDrawer()">Fermer</button></div>
+            <div class="form-stack">
+              <button type="button" class="btn btn-navy btn-block" onclick="app.closeDrawer(); app.switchRoot('home');">${esc(t("public_space"))}</button>
+              <button type="button" class="btn btn-outline btn-block" onclick="app.closeDrawer(); app.switchRoot('personal-menu');">${esc(t("personal_space"))}</button>
+              <button type="button" class="btn btn-primary btn-block" onclick="app.closeDrawer(); app.switchRoot('pro-dashboard');">${esc(t("pro_space"))}</button>
+              <button type="button" class="btn btn-yellow btn-block" onclick="app.closeDrawer(); app.switchRoot('admin-menu');">${esc(t("admin_space"))}</button>
+              <button type="button" class="btn btn-outline btn-block" onclick="app.closeDrawer(); app.switchRoot('auth');">Page de connexion</button>
+              <div class="grid-2">
+                <select class="select" onchange="app.setLang(this.value)"><option value="fr" ${STATE.lang==='fr'?'selected':''}>Français</option><option value="ht" ${STATE.lang==='ht'?'selected':''}>Kreyòl</option></select>
+                <select class="select" onchange="app.setTheme(this.value)"><option value="auto" ${STATE.theme==='auto'?'selected':''}>Auto</option><option value="light" ${STATE.theme==='light'?'selected':''}>Clair</option><option value="dark" ${STATE.theme==='dark'?'selected':''}>Sombre</option></select>
+              </div>
+            </div>
+          `;
+          document.getElementById("drawerOverlay").classList.add("open");
+        },
+        closeDrawer() { document.getElementById("drawerOverlay").classList.remove("open"); }
+      };
+
+      function render() {
+        renderHeader();
+        renderBottomNav();
+        const body = document.getElementById("screenBody");
+        const s = STATE.screen;
+        let html = "";
+        if (s === "auth") html = viewAuth();
+        else if (s === "home") html = viewHome();
+        else if (s === "explore") html = viewExplore();
+        else if (s === "promos") html = viewPromos();
+        else if (s === "events") html = viewEvents();
+        else if (s === "biz-detail") html = viewBizDetail();
+        else if (s === "prod-detail") html = viewProdDetail();
+        else if (s === "cart") html = viewCart();
+        else if (s === "messages-list") html = viewMessagesList();
+        else if (s === "messages-chat") html = viewMessagesChat();
+        else if (s === "personal-menu") html = viewPersonalMenu();
+        else if (s.startsWith("personal-")) html = viewPersonalSub(s);
+        else if (s === "pro-dashboard") html = viewProDashboard();
+        else if (s === "pro-publish") html = viewProPublish();
+        else if (s.startsWith("pro-")) html = viewProSub(s);
+        else if (s === "admin-menu") html = viewAdminMenu();
+        else if (s.startsWith("admin-")) html = viewAdminSub(s);
+        else html = viewAuth();
+
+        body.innerHTML = html;
+        body.scrollTop = 0;
+        if (s === "pro-create") { const d = document.getElementById("nbDept"); if (d) window.app.fillComm(d.value); }
+      }
+
+      applyTheme();
+      render();
+    })();
+  </script>
+</body>
+</html>
