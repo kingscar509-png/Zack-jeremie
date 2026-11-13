@@ -439,6 +439,19 @@ Les préférences, consentements, canaux autorisés, délais de conservation et 
 
 
 
+
+### 4.31 Vérification des entreprises — décisions confirmées
+
+- **Éligibilité :** toutes les entreprises inscrites sur Zack peuvent demander une vérification, quel que soit leur niveau d'abonnement. La vérification reste indépendante des offres Gratuit, Payant et Ultra.
+- **Justificatif demandé :** la pièce d'identité du propriétaire est le document retenu pour le processus initial. Les contrôles complémentaires et les cas où des documents légaux de l'entreprise seraient nécessaires restent à préciser selon les activités et les exigences applicables.
+- **Examen des demandes :** un administrateur Zack autorisé examine les demandes et prend la décision. L'accès aux documents doit être strictement limité aux personnes habilitées.
+- **Affichage public :** une entreprise approuvée reçoit un badge public « Entreprise vérifiée ». Aucun affichage public de la pièce d'identité ou des documents privés n'est autorisé.
+- **Renouvellement du contrôle :** aucune revérification périodique automatique n'est prévue après l'approbation initiale. Zack peut toutefois réexaminer une entreprise si un signalement, un doute sérieux ou un changement important le justifie.
+- **Fausse information découverte après vérification :** Zack retire immédiatement le badge de vérification lorsque des informations fausses ou trompeuses sont découvertes. Après ce retrait, Zack contacte l'entreprise pour lui demander des explications et les informations ou justificatifs nécessaires. La suite à donner au compte et à la fiche de l'entreprise dépend de l'examen de sa réponse et des règles de modération applicables ; le retrait du badge ne doit pas être confondu automatiquement avec la suppression de la fiche.
+
+Les demandes, décisions, retraits de badge, motifs et échanges de vérification doivent être protégés et tracés. Les pièces d'identité sont des données personnelles sensibles : leur collecte, leur accès, leur durée de conservation et leur suppression doivent être encadrés et limités au strict nécessaire. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
+
+
 ### 4.30 Inscription, connexion et sécurité des comptes — décisions confirmées
 
 - **Création de compte :** l'utilisateur peut s'inscrire avec une adresse email ou un numéro de téléphone. Il n'est pas nécessaire de fournir les deux pour créer un compte.
