@@ -481,3 +481,64 @@ Scénarios essentiels :
 ---
 
 **Règle de clôture :** ce document est un plan de préparation. Il ne constitue pas une autorisation d'appliquer les migrations, de changer les paramètres Auth, de modifier le bucket, de déployer des Edge Functions ou de publier Zack. Chaque changement réel devra être présenté avec son objectif, son impact, son script ou sa procédure, puis validé avant exécution.
+
+
+## 14. Compléments après vérification de la documentation officielle Supabase
+
+### 14.1 Révocation ciblée de la fonction d'audit
+
+La documentation Supabase confirme que les fonctions sont exécutables par défaut et recommande une révocation ciblée de `EXECUTE` depuis `PUBLIC` et les rôles concernés. Le SQL candidat, **non exécuté**, est :
+
+```sql
+begin;
+
+revoke execute
+on function public.log_admin_content_action()
+from public;
+
+revoke execute
+on function public.log_admin_content_action()
+from anon, authenticated;
+
+commit;
+```
+
+La documentation PostgreSQL précise que le privilège `EXECUTE` est nécessaire pour créer un déclencheur sur une fonction. Les déclencheurs existants doivent donc être conservés et leur fonctionnement testé après toute révocation. La correction ne doit pas être considérée comme terminée avant :
+- vérification que `anon` et `authenticated` ne peuvent plus appeler la fonction par RPC ;
+- vérification que les déclencheurs existants sont toujours attachés ;
+- test contrôlé d'une action auditée dans une transaction annulée ou un environnement de test ;
+- nouveau contrôle des advisors.
+
+Références :
+- Supabase — Database Functions : https://supabase.com/docs/guides/database/functions
+- Supabase — How can I revoke execution of a Postgres function? : https://supabase.com/kb/troubleshooting/how-can-i-revoke-execution-of-a-postgresql-function-2GYb0A
+- PostgreSQL — CREATE TRIGGER : https://www.postgresql.org/docs/current/sql-createtrigger.html
+
+### 14.2 Protection des mots de passe compromis et plan Free
+
+La documentation Supabase indique que la protection contre les mots de passe divulgués via HaveIBeenPwned est disponible sur le plan Pro et supérieur. Comme le propriétaire a indiqué commencer sur Free, cette protection ne doit pas être décrite comme un simple réglage activable sans changement de forfait.
+
+Action à planifier :
+- confirmer le forfait réel dans le tableau de bord ;
+- si Zack reste sur Free pendant le développement, consigner cette protection comme contrôle indisponible sur ce forfait ;
+- prévoir le passage à un forfait éligible avant production si cette protection est exigée ;
+- après activation, tester inscription et changement de mot de passe.
+
+Référence : https://supabase.com/docs/guides/auth/password-security
+
+### 14.3 Changement de l'exposition Data API pour les nouvelles tables
+
+Le changelog Supabase signale qu'à compter du 30 octobre 2026, les nouvelles tables ne sont plus automatiquement exposées à la Data API par défaut pour tous les projets. Lors de la conception des nouvelles tables :
+- décider explicitement si chaque table doit être accessible par Data API ;
+- ne pas confondre exposition API et RLS ;
+- accorder uniquement les privilèges nécessaires ;
+- privilégier les Edge Functions ou un schéma non exposé pour les tables sensibles ;
+- tester les accès REST réels après création.
+
+Référence : https://supabase.com/changelog/breaking-change-data-api-tables-not-exposed-by-default
+
+### 14.4 Supabase CLI v3
+
+Le changelog du 4 novembre 2026 précise que Supabase CLI v3 cible la stack locale par défaut et exige des précautions explicites pour les opérations distantes. Tout futur processus CI/CD doit épingler la version CLI et utiliser les commandes documentées pour la version choisie. Aucune commande de migration ne doit être lancée sans vérifier la cible.
+
+Référence : https://supabase.com/changelog/breaking-change-supabase-cli-v3-local-by-default
