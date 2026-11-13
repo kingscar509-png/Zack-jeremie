@@ -9,7 +9,7 @@
 
 Définir une offre accessible aux entreprises de toutes tailles, sans empêcher les entreprises gratuites d'être découvertes et contactées. Les abonnements financent des capacités supplémentaires, mais ne doivent pas être confondus avec la vérification administrative ni avec l'achat de publicité.
 
-Aucun prix ni quota définitif n'est fixé à ce stade.
+Aucun prix définitif n'est fixé à ce stade.
 
 ## 2. Structure confirmée des abonnements
 
@@ -51,7 +51,7 @@ Les fonctionnalités exactes et les quotas de chaque axe restent à préciser. I
 
 ## 4. Matrice préliminaire des avantages
 
-Les éléments ci-dessous sont des pistes de conception, pas des quotas ni des fonctionnalités définitivement approuvés.
+Les éléments ci-dessous sont des pistes de conception, sauf les décisions explicitement marquées comme confirmées.
 
 | Fonctionnalité | Gratuit | Payant | Ultra |
 |---|---|---|---|
@@ -59,7 +59,7 @@ Les éléments ci-dessous sont des pistes de conception, pas des quotas ni des f
 | Fiche d'entreprise et informations essentielles | Oui | Oui | Oui |
 | Téléphone, adresse, horaires et liens sociaux | Oui | Oui | Oui |
 | Galerie de présentation | Quota de base | Quota supérieur | Quota maximal à définir |
-| Catalogue produits et services | Quota de base | Quota supérieur | Quota maximal à définir |
+| Catalogue produits et services | 10 au total | 100 au total | 500 au total |
 | Messagerie avec les clients | Fonctions essentielles | Fonctions avancées à définir | Fonctions avancées à définir |
 | Réception de demandes de contact | Oui | Oui | Oui |
 | Publications et promotions | Quotas de base | Quotas supérieurs | Quotas les plus élevés à définir |
@@ -113,14 +113,31 @@ La progression acceptée est la suivante :
 Principe d'équité confirmé : une entreprise au niveau Gratuit ne doit pas être exclue du commerce sur Zack. Elle peut recevoir et gérer ses commandes avec les fonctions de base. Les niveaux payants apportent des outils supplémentaires, mais ne réservent pas le commerce aux seuls abonnés.
 
 Pistes à détailler avant toute implémentation :
-- Limites de catalogue et présentation enrichie des produits/services selon le niveau.
 - Outils de suivi des demandes et commandes adaptés aux droits de chaque membre.
 - Rapports sur les ventes, les articles consultés et les commandes, avec définitions précises des indicateurs.
 - Fonctionnalités avancées qui ne changent pas les règles métier communes du commerce Zack.
 
 Les abonnements ne doivent pas modifier les règles fondamentales déjà retenues : panier multi-vendeurs, commandes séparées par vendeur, paiements de commandes hors plateforme au lancement, annulations et permissions contrôlées côté serveur. Un abonnement ne peut pas donner à un vendeur accès aux commandes d'une autre entreprise ni contourner les permissions de ses employés.
 
-Les quotas de photos, produits, services, publications et promotions doivent être chiffrés avant la conception SQL finale. La taille des photos, leur compression et les quotas de stockage doivent aussi être définis pour maîtriser les coûts.
+### 4.4 Quotas du catalogue — décision confirmée
+
+Les limites proposées et acceptées sont :
+
+- **Gratuit : 10** produits et services au total.
+- **Payant : 100** produits et services au total.
+- **Ultra : 500** produits et services au total.
+
+Règles de comptage :
+- Les produits et les services partagent un seul quota commun par entreprise. Par exemple, une entreprise Gratuit peut publier 6 produits et 4 services, soit 10 éléments au total.
+- Modifier un élément existant ne consomme pas une place supplémentaire.
+- Supprimer un élément libère une place dans le quota.
+- Les limites sont cumulées au niveau de l'entreprise, pas séparément pour chaque membre de son équipe.
+- Les quotas doivent être contrôlés côté serveur afin qu'un utilisateur ne puisse pas les contourner en modifiant l'interface.
+- Les règles concernant les éléments masqués, archivés, en attente de modération ou désactivés devront être précisées dans la conception détaillée.
+
+Ces quotas sont des décisions de conception ; ils ne sont pas encore appliqués techniquement.
+
+Les quotas de photos, publications et promotions restent à définir. La taille des photos, leur compression et les quotas de stockage doivent aussi être définis pour maîtriser les coûts.
 
 ## 5. Périodicité des paiements
 
@@ -181,12 +198,13 @@ La décision déjà confirmée est maintenue :
 1. Définir les avantages précis de Payant.
 2. Définir les avantages supplémentaires propres à Ultra.
 3. Définir les options concrètes de visibilité, leur emplacement, leur fréquence et leurs quotas.
-4. Fixer les quotas exacts de photos, produits, services, publications et promotions.
-5. Définir les statistiques et outils de gestion de chaque niveau.
-6. Définir les outils concrets de vente et de suivi des performances.
-7. Fixer les prix mensuels et annuels après analyse des coûts et du marché haïtien.
-8. Définir les règles de renouvellement, d'expiration, d'échec de paiement et de période de grâce.
-9. Définir la permission administrative permettant d'accorder et de révoquer les offres gratuites.
+4. Fixer les quotas exacts de photos, publications et promotions.
+5. Définir les règles de comptage des éléments masqués, archivés, en attente de modération ou désactivés.
+6. Définir les statistiques et outils de gestion de chaque niveau.
+7. Définir les outils concrets de vente et de suivi des performances.
+8. Fixer les prix mensuels et annuels après analyse des coûts et du marché haïtien.
+9. Définir les règles de renouvellement, d'expiration, d'échec de paiement et de période de grâce.
+10. Définir la permission administrative permettant d'accorder et de révoquer les offres gratuites.
 
 ## 9. Recommandation
 
@@ -194,4 +212,4 @@ Conserver trois niveaux clairement différenciés. Le niveau Gratuit doit rester
 
 ## 10. État technique
 
-Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, policy RLS, fonction serveur, interface, configuration ou donnée Supabase n'a été créée ou modifiée. Les prix, quotas et détails des avantages restent à valider.
+Cette mise à jour est uniquement documentaire. Aucune table, migration SQL, policy RLS, fonction serveur, interface, configuration ou donnée Supabase n'a été créée ou modifiée. Les prix, les quotas de photos/publications/promotions et les détails des avantages restent à valider.
