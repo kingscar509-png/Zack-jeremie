@@ -325,6 +325,17 @@ Les promotions doivent respecter les mêmes règles de publication, quota, progr
 
 Ces règles s'appliquent à la conception des promotions. Les conditions, quantités, codes et réductions doivent être vérifiés côté serveur au moment pertinent, notamment lors de l'application d'une offre et de la validation d'une commande. Une interface ne doit jamais suffire à accorder un avantage ou à modifier un prix.
 
+### 4.19 Règles d'utilisation des codes promotionnels — décisions confirmées
+
+- **Distribution des codes :** les codes promotionnels sont partagés directement par l'entreprise avec les clients. Zack ne les propose pas automatiquement dans un catalogue public de codes.
+- **Nombre d'utilisations :** l'entreprise peut fixer un nombre maximal total d'utilisations pour chaque code. Le code devient indisponible lorsque cette limite est atteinte.
+- **Utilisation par client :** un même client ne peut utiliser un code donné qu'une seule fois.
+- **Portée du code :** l'entreprise choisit si le code s'applique à un seul produit ou service, à plusieurs éléments déterminés ou à l'ensemble d'une commande, selon les options prévues par Zack.
+- **Nouveaux clients :** une promotion peut être réservée aux nouveaux clients. La définition technique d'un nouveau client (par exemple selon l'existence d'une commande antérieure auprès de l'entreprise concernée) devra être précisée pour éviter les abus.
+- **Code invalide ou expiré :** Zack affiche un message expliquant clairement pourquoi le code ne peut pas être utilisé, sans révéler d'informations sensibles ni permettre de tester abusivement les codes.
+
+Les limites d'utilisation, l'unicité par client, l'éligibilité, la portée et la validité temporelle doivent être vérifiées côté serveur au moment de l'application et de la validation de la commande. Les utilisations concurrentes doivent être traitées de manière atomique afin de ne pas dépasser le nombre maximal défini.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
