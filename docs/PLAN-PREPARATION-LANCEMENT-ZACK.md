@@ -542,3 +542,27 @@ Référence : https://supabase.com/changelog/breaking-change-data-api-tables-not
 Le changelog du 4 novembre 2026 précise que Supabase CLI v3 cible la stack locale par défaut et exige des précautions explicites pour les opérations distantes. Tout futur processus CI/CD doit épingler la version CLI et utiliser les commandes documentées pour la version choisie. Aucune commande de migration ne doit être lancée sans vérifier la cible.
 
 Référence : https://supabase.com/changelog/breaking-change-supabase-cli-v3-local-by-default
+
+
+## 15. Vérification complémentaire du frontend historique (branche main)
+
+Le fichier `index.html` existe sur la branche `main` (ancienne application HTML), mais pas dans la branche de préparation React/TanStack au moment du contrôle. Il a été relu en lecture seule.
+
+Le risque de lien externe signalé dans le rapport Claude est **confirmé dans cet ancien fichier** : autour de la ligne 259, les champs `website`, `facebook_url`, `instagram_url`, `tiktok_url` et `youtube_url` sont insérés dans un attribut `href` après échappement HTML via `esc()`, sans validation du protocole. L'échappement HTML ne suffit pas à interdire un protocole dangereux comme `javascript:`.
+
+Correction à intégrer au frontend retenu :
+- parser et normaliser chaque URL ;
+- autoriser uniquement `https:` et `http:` si nécessaire ;
+- rejeter les schémas `javascript:`, `data:`, `vbscript:`, les URLs relatives non voulues et les valeurs malformées ;
+- afficher le lien comme texte non cliquable si l'URL est invalide ;
+- ajouter des tests automatisés sur les cinq champs et sur les variantes avec espaces, majuscules, caractères encodés et URL malformées.
+
+Cette vulnérabilité a été confirmée dans le fichier historique `main/index.html`. Elle ne signifie pas que le prototype Google AI Studio utilise exactement le même code. Aucun fichier applicatif n'a été modifié pendant ce contrôle.
+
+## 16. Document de correction ciblée disponible
+
+Le brouillon SQL de révocation ciblée de la fonction d'audit est conservé séparément, sans être une migration et sans être exécuté :
+
+`docs/drafts/SQL-SECURITE-LOG-ADMIN-NON-EXECUTE.md`.
+
+Il comprend le SQL candidat, les contrôles d'ACL et les tests à réaliser en environnement de développement.
