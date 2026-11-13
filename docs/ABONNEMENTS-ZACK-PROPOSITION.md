@@ -200,7 +200,9 @@ Ces limites et règles de fonctionnement sont des décisions de conception ; ell
 - Tous les visiteurs peuvent consulter les publications publiques.
 - Seuls les utilisateurs connectés à un compte Zack peuvent publier un commentaire.
 - Les entreprises peuvent répondre aux commentaires publiés sur leurs contenus, depuis un compte autorisé pour cette entreprise.
-- Les règles de modération des commentaires, de signalement, de suppression et de conservation de l'historique restent à détailler.
+- **Gestion des commentaires par l'entreprise — décision confirmée :** l'entreprise peut répondre aux commentaires, masquer un commentaire sur son propre espace et signaler un commentaire à l'administration Zack. Elle ne peut pas supprimer définitivement le commentaire d'un client. Le masquage doit être réversible et son auteur ainsi que l'administration doivent pouvoir être identifiés dans les traces nécessaires.
+- L'administration Zack conserve la responsabilité des décisions de modération définitives, selon des permissions dédiées.
+- Les règles de notification, de recours, de durée de masquage et de visibilité des commentaires masqués restent à détailler.
 - Les permissions de réponse et de modération doivent être vérifiées côté serveur.
 
 ## 5. Périodicité des paiements
@@ -273,7 +275,7 @@ La décision déjà confirmée est maintenue :
 9. Fixer les prix mensuels et annuels après analyse des coûts et du marché haïtien.
 10. Définir les règles de renouvellement, d'expiration, d'échec de paiement et de période de grâce.
 11. Définir la permission administrative permettant d'accorder et de révoquer les offres gratuites.
-12. Définir les règles de modération, signalement et suppression des commentaires.
+12. Définir les règles détaillées de modération, notification, recours et conservation des commentaires.
 
 ## 9. Recommandation
 
