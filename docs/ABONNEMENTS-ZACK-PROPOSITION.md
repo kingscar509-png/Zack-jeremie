@@ -379,6 +379,18 @@ Les stocks, les mouvements et les permissions doivent être contrôlés côté s
 
 Les statuts, délais, modifications de lignes, autorisations et notifications doivent être contrôlés côté serveur et consignés de façon appropriée. Ces décisions complètent les règles déjà définies sur le panier multi-vendeurs, les commandes séparées par vendeur et les refus partiels ; elles ne les remplacent pas.
 
+
+### 4.24 Paiements et remboursements des commandes — décisions confirmées
+
+- **Moyens de paiement acceptés :** le client peut payer directement le vendeur avec tous les moyens de paiement que celui-ci accepte. Zack ne limite donc pas les paiements des commandes à une liste fixe de moyens.
+- **Affichage des moyens de paiement :** le vendeur peut indiquer facultativement sur sa fiche les moyens de paiement qu'il accepte. L'absence de cette information ne signifie pas qu'il n'accepte aucun moyen de paiement.
+- **Déclaration du paiement par le client :** le client peut simplement déclarer que le paiement a été effectué ou joindre une preuve de paiement. La preuve est facultative et ne constitue pas, à elle seule, une vérification automatique du paiement.
+- **Confirmation par le vendeur :** le vendeur doit obligatoirement confirmer la réception du paiement dans Zack avant que la commande soit considérée comme payée. La déclaration du client ou une preuve jointe ne remplace pas cette confirmation.
+- **Remboursements :** le vendeur et le client s'organisent directement pour effectuer le remboursement. Le vendeur peut ensuite enregistrer le remboursement dans Zack afin de conserver le suivi de la commande. Zack ne traite pas lui-même le transfert de remboursement au lancement.
+- **Historique des paiements :** Zack conserve l'historique des paiements uniquement pour les abonnements Zack. L'historique détaillé des paiements des commandes n'est pas prévu dans le périmètre retenu pour le lancement.
+
+Ces décisions concernent les commandes payées directement auprès des vendeurs, hors plateforme au lancement. Zack doit distinguer clairement les déclarations du client, la confirmation de réception par le vendeur et l'enregistrement éventuel d'un remboursement. Aucun statut « payé » ne doit être attribué automatiquement sur la seule base d'une déclaration ou d'une pièce jointe du client. Les paiements d'abonnement Zack restent un flux distinct, avec vérification côté serveur.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
