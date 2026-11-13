@@ -281,6 +281,17 @@ Les limites de poids et formats doivent être contrôlées côté serveur, et le
 
 La programmation doit être exécutée par un mécanisme serveur fiable, avec protection contre les doubles publications, journalisation des tentatives et traitement idempotent. Une publication programmée ne doit jamais être publiée si le quota n'est plus disponible, si l'entreprise a perdu les droits nécessaires ou si le contenu est devenu invalide. Les règles de modération a posteriori déjà définies restent applicables.
 
+### 4.15 Quotas, brouillons et duplication — décisions confirmées
+
+- **Quota épuisé à l'heure d'une publication programmée :** la publication est conservée en attente jusqu'à ce qu'un quota soit de nouveau disponible. Elle ne doit pas être publiée en dépassant le quota. L'entreprise doit être informée de cette attente et de la date à laquelle une nouvelle tentative est prévue. La règle exacte de priorité entre plusieurs publications en attente reste à définir.
+- **Délai de programmation :** une publication peut être programmée jusqu'à 12 mois à l'avance. La date et l'heure doivent être valides et postérieures à l'instant de programmation, selon le fuseau horaire de référence d'Haïti.
+- **Nombre de brouillons :** une entreprise peut conserver un nombre illimité de brouillons. Les brouillons non publiés ne consomment pas le quota mensuel des publications.
+- **Sauvegarde des brouillons :** les brouillons sont sauvegardés sur le compte Zack de l'entreprise et accessibles depuis ses appareils autorisés. L'accès doit respecter les rôles et permissions des membres de l'entreprise.
+- **Duplication :** la duplication d'une publication existante pour en créer une nouvelle est réservée aux abonnements Payant et Ultra. La copie est un nouveau brouillon ; elle ne consomme aucun quota tant qu'elle n'est pas publiée. Elle ne doit pas copier les interactions, commentaires, statistiques ou identifiants de l'original.
+- **Quota mensuel atteint :** Zack bloque la publication de nouveaux contenus lorsque le quota mensuel est épuisé et indique à l'entreprise qu'elle doit attendre le renouvellement du quota. Aucun achat ponctuel de publications supplémentaires ni changement automatique d'abonnement n'est effectué. Les brouillons peuvent toutefois continuer à être créés et modifiés.
+
+Les contrôles de quota doivent être atomiques et exécutés côté serveur pour éviter qu'une publication simultanée dépasse la limite. Les brouillons et copies doivent rester privés jusqu'à leur publication explicite ou programmée.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
