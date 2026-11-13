@@ -347,6 +347,27 @@ Les limites d'utilisation, l'unicité par client, l'éligibilité, la portée et
 
 Ces fonctionnalités sont des décisions de conception et ne sont pas encore implémentées. Les contrôles d'abonnement, les rôles et les autorisations doivent être appliqués côté serveur.
 
+### 4.21 Nombre de membres autorisés par entreprise — décision confirmée
+
+Les limites de membres par entreprise sont fixées comme suit :
+
+- **Gratuit : 1 membre.**
+- **Payant : 5 membres.**
+- **Ultra : 20 membres.**
+
+Le propriétaire est inclus dans le nombre total de membres autorisés. Les invitations et l'ajout de membres doivent être bloqués côté serveur lorsque la limite de l'abonnement est atteinte. Les rôles et permissions prédéfinis restent applicables à chaque membre.
+
+### 4.22 Gestion des stocks — décisions confirmées
+
+- **Moment de diminution du stock :** la quantité disponible est diminuée lorsque la commande est remise au client. Les règles de réservation temporaire des quantités pendant la préparation, ainsi que le traitement des annulations et des livraisons échouées, restent à définir afin d'éviter les ventes en dépassement de stock.
+- **Plusieurs magasins ou entrepôts :** une entreprise peut gérer plusieurs lieux de stockage dès le lancement. Chaque quantité doit être rattachée au lieu concerné ; les règles de transfert entre lieux et de disponibilité globale restent à détailler.
+- **Produit en rupture :** lorsque le stock atteint zéro, le produit reste visible dans le catalogue, avec une indication claire qu'il est indisponible. Il ne doit pas pouvoir être commandé comme un article disponible.
+- **Seuil d'alerte :** l'entreprise peut définir un seuil de stock faible et recevoir une notification lorsque la quantité atteint ce seuil. Les préférences de notification doivent être respectées.
+- **Historique des mouvements :** Zack conserve l'historique des entrées, des ventes et des corrections de stock, avec au minimum la quantité concernée, le type de mouvement, la date et le membre autorisé à l'origine de l'action.
+- **Droits de modification :** le propriétaire et les membres auxquels les permissions correspondantes ont été attribuées peuvent modifier les quantités. Les autres membres ne doivent pas pouvoir modifier le stock.
+
+Les stocks, les mouvements et les permissions doivent être contrôlés côté serveur. Les mises à jour simultanées doivent être sécurisées afin d'éviter les quantités négatives ou incohérentes. Ces décisions sont documentaires et ne constituent pas une implémentation technique.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
