@@ -566,3 +566,48 @@ Le brouillon SQL de révocation ciblée de la fonction d'audit est conservé sé
 `docs/drafts/SQL-SECURITE-LOG-ADMIN-NON-EXECUTE.md`.
 
 Il comprend le SQL candidat, les contrôles d'ACL et les tests à réaliser en environnement de développement.
+
+
+## 17. Compléments de structure et de reproductibilité
+
+### 17.1 Catégories et géographie actuelles
+
+Le schéma vérifié montre :
+- `categories` contient actuellement `id`, `name`, `icon`, `display_order`, `is_active`, `created_at`, sans `parent_id` ni hiérarchie déclarée ;
+- `businesses.category` est actuellement un champ texte, et non une clé étrangère vers `categories` ;
+- `businesses` possède `street`, `city`, `neighborhood`, `latitude` et `longitude`, mais pas encore d'identifiants géographiques nationaux.
+
+La géographie et la hiérarchie de catégories doivent donc être préparées comme de vraies relations de données, avec une stratégie de migration et de compatibilité, et non seulement comme des listes déroulantes dans l'interface.
+
+### 17.2 Champs média à aligner
+
+Le schéma autorise encore les types `image` et `video` dans `posts.media_type` et `business_media.media_type`. Le bucket accepte aussi GIF et formats vidéo. La décision « photos uniquement » exige donc un alignement coordonné :
+- validation des formulaires et composants ;
+- validation des fonctions serveur ;
+- contraintes de base de données ;
+- paramètres MIME du stockage ;
+- traitement des éventuels anciens fichiers vidéo avant toute suppression ou migration.
+
+### 17.3 Bucket public et accès aux médias en attente
+
+La documentation Supabase confirme qu'un bucket public permet à toute personne disposant de l'URL de récupérer les fichiers, sans que les politiques RLS de lecture ne protègent ces téléchargements. Les politiques continuent de contrôler les autres opérations comme l'upload et la suppression.
+
+Pour une modération centralisée, ne pas déposer directement les médias non approuvés dans un emplacement public. Prévoir un bucket privé de brouillon/quarantaine ou un mécanisme équivalent, puis une publication contrôlée après approbation.
+
+Références :
+- https://supabase.com/docs/guides/storage/buckets/fundamentals
+- https://supabase.com/docs/guides/storage/serving/downloads
+
+### 17.4 Fichiers de migrations dans le dépôt
+
+Les chemins suivants n'ont pas été trouvés dans la branche de préparation lors de ce contrôle :
+- `supabase/migrations/20261111210641_m5_business_stats.sql`
+- `supabase/migrations/20261111210649_m6_admin_management.sql`
+- `supabase/migrations/20261111210655_m7_admin_audit_triggers.sql`
+- `supabase/config.toml`
+
+La recherche GitHub par nom exact `m5_business_stats` n'a pas non plus retourné de fichier dans le dépôt. Les migrations figurent bien dans l'historique hébergé Supabase, mais leurs scripts sources ne sont pas retrouvés dans les chemins attendus de cette branche.
+
+Avant d'ajouter de nouvelles migrations, il faut reconstituer et versionner proprement les scripts historiques disponibles, ou produire un baseline fiable depuis le schéma existant. Ne pas fabriquer rétroactivement des migrations prétendant être les originaux. Le fichier SQL de révocation préparé reste dans `docs/drafts` et n'est pas une migration exécutable.
+
+Les fichiers `package-lock.json` et `pnpm-lock.yaml` n'ont pas été trouvés non plus ; vérifier si le projet utilise un autre gestionnaire et son lockfile avant toute installation ou mise à jour de dépendances.
