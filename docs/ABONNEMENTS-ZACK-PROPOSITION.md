@@ -437,6 +437,19 @@ Les conversations privées restent accessibles uniquement à leurs participants 
 
 Les préférences, consentements, canaux autorisés, délais de conservation et envois doivent être gérés de manière sécurisée côté serveur. Les notifications ne doivent exposer que les informations nécessaires ; les détails sensibles d'une commande ou d'une conversation privée doivent rester dans Zack lorsque leur transmission externe n'est pas appropriée. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
 
+
+### 4.29 Comptes utilisateurs et profils — décisions confirmées
+
+- **Types de comptes prévus :** Zack distingue trois catégories de comptes : clients, entreprises et livreurs. Les administrateurs Zack constituent un rôle interne de gestion et de modération, avec des permissions dédiées ; ils ne sont pas un type de compte public proposé à l'inscription.
+- **Plusieurs rôles sur un même compte :** un utilisateur peut cumuler les rôles compatibles. Par exemple, une même personne peut utiliser Zack comme client et être propriétaire ou membre autorisé d'une entreprise. Les droits doivent être vérifiés séparément pour chaque contexte et chaque entreprise.
+- **Accès propriétaire à une entreprise :** une personne qui souhaite devenir propriétaire soumet une demande à Zack et attend son approbation. La création ou la revendication d'une fiche ne doit pas lui donner automatiquement les droits de propriétaire avant validation.
+- **Entreprises avec plusieurs responsables :** Zack prévoit un propriétaire principal et des responsables autorisés. Le propriétaire principal conserve la responsabilité principale du compte entreprise et peut déléguer des permissions définies aux responsables. Les règles de transfert ou de remplacement du propriétaire principal restent à préciser.
+- **Modification du profil personnel :** l'utilisateur peut modifier librement son nom, sa photo et ses coordonnées. Les mécanismes de vérification et les traces de sécurité doivent rester disponibles en cas de changement sensible ou de suspicion d'abus, sans imposer une validation administrative systématique à chaque modification.
+- **Suppression du compte :** la demande de suppression déclenche une période de désactivation de 30 jours avant la suppression définitive. Les modalités de notification, d'annulation de la demande pendant ce délai et de traitement des données soumises à des obligations légales ou nécessaires aux commandes, transactions, à la sécurité et à l'audit doivent être définies clairement. La suppression du compte ne doit pas effacer les éléments que Zack est légalement tenu ou légitimement autorisé à conserver.
+
+Les rôles, demandes d'accès, approbations, délégations et suppressions doivent être contrôlés côté serveur et consignés de façon appropriée. Un compte multi-rôles ne doit jamais permettre de contourner les permissions d'une entreprise, d'un client, d'un livreur ou de l'administration. Ces décisions sont documentaires et ne créent ni tables ni fonctions dans Supabase.
+
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
