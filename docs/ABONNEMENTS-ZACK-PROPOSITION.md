@@ -237,6 +237,17 @@ La répartition suivante est acceptée :
 
 Les définitions de chaque indicateur, les périodes d'analyse, les règles de comptage (notamment vues uniques ou totales) et la présentation des tableaux de bord restent à préciser avant implémentation. Les statistiques doivent être calculées et protégées côté serveur.
 
+### 4.11 Formats et gestion des publications — décisions confirmées
+
+- **Contenus publiables :** texte et photos. La vidéo n'est pas incluse dans le périmètre de lancement actuellement retenu.
+- **Photos par publication :** maximum de 5 photos par publication.
+- **Modification :** l'entreprise peut modifier une publication déjà publiée immédiatement, sans validation préalable. La publication modifiée reste soumise au contrôle a posteriori de Zack et peut être retirée si elle enfreint les règles.
+- **Notifications :** les utilisateurs qui suivent une entreprise peuvent recevoir une notification lorsqu'elle publie, selon leurs préférences et les notifications pertinentes qu'ils ont activées. Les notifications doivent respecter le consentement et les paramètres de chaque utilisateur.
+- **Signalement :** un utilisateur peut signaler une publication et sélectionner un motif, notamment arnaque, contenu offensant, fausse information ou publicité trompeuse. La liste définitive des motifs et le traitement des signalements restent à définir.
+- **Archivage :** l'entreprise peut archiver manuellement ses propres publications et les retrouver dans son espace de gestion. Les règles de visibilité publique d'une publication archivée, de restauration et d'incidence sur le quota restent à préciser.
+
+Ces fonctions doivent être autorisées et vérifiées côté serveur. Les notifications ne doivent pas révéler de données privées et leur échec ne doit pas empêcher la publication.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
@@ -308,6 +319,8 @@ La décision déjà confirmée est maintenue :
 10. Définir les règles de renouvellement, d'expiration, d'échec de paiement et de période de grâce.
 11. Définir la permission administrative permettant d'accorder et de révoquer les offres gratuites.
 12. Définir les règles détaillées de modération, notification, recours et conservation des commentaires.
+13. Définir les règles de visibilité, restauration et quota des publications archivées.
+14. Finaliser la liste des motifs de signalement et le traitement des signalements de publications.
 
 ## 9. Recommandation
 
