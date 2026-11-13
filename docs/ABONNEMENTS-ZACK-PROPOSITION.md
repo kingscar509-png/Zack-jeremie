@@ -403,6 +403,18 @@ Ces décisions concernent les commandes payées directement auprès des vendeurs
 
 Les frais, options disponibles, affectations de livreurs et incidents doivent être visibles et compréhensibles avant la confirmation de la commande. Les changements de statut et les preuves de livraison doivent être enregistrés de manière fiable et accessibles uniquement aux personnes autorisées. Ces décisions complètent les règles déjà retenues sur le suivi simple des livraisons, l'attribution manuelle par défaut, la disponibilité et la capacité des livreurs, l'acceptation ou le refus d'une mission, la preuve de remise et la rémunération configurée.
 
+
+### 4.26 Attribution, suivi et rémunération des livreurs — décisions confirmées
+
+- **Attribution des missions :** le vendeur choisit manuellement le livreur, avec la possibilité pour Zack de lui suggérer des livreurs disponibles. La suggestion est une aide à la décision ; elle ne remplace pas l'attribution validée par le vendeur.
+- **Acceptation d'une mission :** le livreur doit obligatoirement accepter la mission qui lui est proposée avant de commencer la livraison. En cas de refus ou d'absence de réponse, la mission reste à réattribuer selon les règles opérationnelles qui seront définies.
+- **Informations visibles par le client :** le client peut consulter le profil professionnel du livreur. Les informations affichées doivent être limitées aux données utiles et autorisées, par exemple son nom, sa photo, ses coordonnées professionnelles et les informations de confiance que Zack aura décidé de rendre publiques. Les données personnelles sensibles ne doivent pas être exposées.
+- **Suivi de livraison :** le suivi prévu au lancement repose sur des statuts simples, notamment en attente, mission acceptée, commande récupérée, en cours de livraison et livrée. Le suivi GPS en temps réel sur une carte n'est pas retenu dans cette décision de lancement.
+- **Preuve de remise au client :** plusieurs méthodes de confirmation pourront être proposées selon le contexte : confirmation du livreur, code communiqué au client et vérifié lors de la remise, ou preuve par photo ou signature. Les méthodes activées et leurs conditions doivent être définies par Zack et présentées clairement aux parties. Une simple déclaration du livreur ne doit pas être considérée comme une preuve renforcée lorsqu'un code, une photo ou une signature est exigé.
+- **Rémunération :** les modalités de rémunération sont convenues directement entre le vendeur et le livreur. Zack ne collecte ni ne redistribue cette rémunération dans le périmètre de lancement retenu. Les conditions convenues doivent être suffisamment claires pour éviter les désaccords.
+
+Les suggestions de livreurs doivent tenir compte des informations de disponibilité et de capacité déjà prévues. L'attribution, l'acceptation, les changements de statut, les incidents et les preuves de remise doivent être enregistrés et protégés par des permissions adaptées. Le suivi simple par statuts est la portée retenue pour le lancement ; toute géolocalisation en temps réel nécessitera une décision distincte sur le consentement, la confidentialité, la consommation de données et les conditions techniques.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
