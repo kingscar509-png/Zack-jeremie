@@ -718,3 +718,68 @@ Avant l'ouverture publique, définir des alertes internes et examiner régulièr
 Préparer la migration du forfait avant d'atteindre les quotas, en vérifiant les coûts projetés et les besoins de disponibilité. Le forfait Free peut convenir au prototype et aux premiers essais, mais ne doit pas être considéré comme le plan de production garanti pour 10 000 entreprises.
 
 **Statut :** décision de dimensionnement documentée ; aucune table, migration, donnée, configuration ou ressource Supabase n'a été modifiée ou créée par cette section.
+
+## 37. Abonnements Zack et avantages payants offerts par l'administration
+
+**Décision confirmée le 13 novembre 2026 :** un administrateur Zack autorisé peut accorder à une entreprise les avantages d'un niveau payant sans paiement réel, pour une durée limitée ou illimitée. L'offre illimitée reste active jusqu'à révocation ou remplacement explicite par un administrateur autorisé.
+
+### 37.1 Séparer paiement, abonnement et droit d'accès
+
+Le modèle doit distinguer trois notions :
+- **Transaction** : preuve d'un paiement réellement effectué (par exemple via MonCash). Une offre gratuite ne crée jamais une transaction fictive.
+- **Abonnement** : période ou attribution donnant accès à un niveau Zack, avec son origine et son statut.
+- **Droits effectifs** : avantages réellement disponibles à l'entreprise à l'instant présent, calculés côté serveur à partir des abonnements et offres valides.
+
+Une attribution gratuite doit porter une origine explicite, par exemple `admin_grant` (nom technique indicatif), distincte d'un abonnement issu d'un paiement vérifié.
+
+### 37.2 Informations à conserver pour une attribution offerte
+
+Chaque attribution doit conserver au minimum :
+- l'entreprise bénéficiaire ;
+- le niveau accordé et la version des avantages correspondante ;
+- l'origine de l'attribution (offre administrative) ;
+- l'administrateur qui l'a accordée ;
+- la date et l'heure de début ;
+- la date de fin, ou une valeur nulle pour une attribution illimitée ;
+- le motif obligatoire ;
+- le statut (prévue, active, expirée, révoquée ou remplacée) ;
+- l'administrateur, la date et le motif de toute révocation ou modification.
+
+Les événements d'attribution, de renouvellement, de remplacement et de révocation doivent être historisés et auditables. L'historique ne doit pas être effacé lorsqu'un accès est retiré.
+
+### 37.3 Règles d'accès et de facturation
+
+- Une offre ne doit pas être présentée comme « payée » dans les écrans de facturation, les reçus ou les rapports de revenus.
+- Les paiements MonCash doivent rester liés à des transactions vérifiées côté serveur ; un administrateur ne peut pas fabriquer un paiement en modifiant le niveau d'une entreprise.
+- Seuls les administrateurs Zack disposant d'une permission dédiée de gestion des abonnements peuvent accorder, remplacer ou révoquer une offre. La permission exacte et son attribution aux rôles d'administration doivent être définies dans la matrice des rôles avant implémentation.
+- Les propriétaires, administrateurs d'entreprise et éditeurs ne peuvent pas s'accorder eux-mêmes un niveau payant.
+- Le frontend ne décide jamais seul du niveau effectif : les fonctions serveur et les règles d'accès vérifient l'avantage actif.
+- Une offre illimitée n'a pas de date d'expiration automatique ; elle reste révocable et doit être réexaminée dans l'historique administratif.
+
+### 37.4 Coexistence d'un abonnement payé et d'une offre
+
+Le système doit conserver séparément chaque droit d'accès valide. Une offre ne supprime ni ne réécrit un abonnement payé existant. Pour déterminer les avantages effectifs, Zack applique le niveau valide le plus élevé parmi les droits actifs, selon une règle de priorité documentée. La fin ou la révocation de l'offre ne doit pas interrompre un abonnement payé qui est encore valide.
+
+Si deux droits donnent le même niveau, la date de fin et l'origine de chacun restent visibles dans l'historique. Aucun remboursement ni prolongement payé ne doit être déduit automatiquement d'une offre administrative.
+
+### 37.5 Interface d'administration attendue
+
+Dans la fiche entreprise, l'administrateur autorisé doit pouvoir :
+1. consulter le niveau effectif et la source de cet accès (paiement ou offre) ;
+2. sélectionner le niveau à accorder ;
+3. choisir une durée prédéfinie, une date de fin personnalisée ou « illimitée » ;
+4. saisir un motif obligatoire ;
+5. confirmer l'attribution ;
+6. consulter l'historique et révoquer ou remplacer une offre, avec motif obligatoire.
+
+Une confirmation explicite doit rappeler que l'entreprise recevra les avantages sans paiement et que l'opération sera inscrite dans le journal d'audit.
+
+### 37.6 Questions restant à fixer avant le SQL
+
+- liste définitive des niveaux Zack et matrice exacte des avantages de chaque niveau ;
+- permission administrative exacte et quels rôles peuvent l'obtenir ;
+- règles d'essai, de renouvellement et de suspension d'un abonnement payé ;
+- traitement d'une entreprise suspendue ou supprimée qui possède une offre active ;
+- éventuelles limites internes ou procédure de révision des offres illimitées.
+
+**État :** spécification fonctionnelle ajoutée ; aucune table, migration, policy RLS, fonction serveur, interface ou donnée Supabase n'a été créée ou modifiée.
