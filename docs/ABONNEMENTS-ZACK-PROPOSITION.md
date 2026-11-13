@@ -259,6 +259,17 @@ Ces fonctions doivent être autorisées et vérifiées côté serveur. Les notif
 
 Les contrôles d'accès, de quota, de restauration, de signalement et de préférences de notification doivent être effectués côté serveur.
 
+### 4.13 Paramètres des photos, promotions, signalements et programmation — décisions confirmées
+
+- **Poids des photos :** poids maximal de 2 Mo par photo envoyée dans une publication.
+- **Formats acceptés :** JPG/JPEG, PNG et WebP.
+- **Promotions terminées :** l'entreprise choisit le traitement d'affichage de chaque promotion après sa date de fin. Les options exactes à proposer dans l'interface restent à formaliser ; la promotion doit néanmoins être considérée comme terminée et ne plus être présentée comme une offre en cours.
+- **Motifs de signalement :** Zack proposera une liste détaillée de motifs, comprenant notamment arnaque, contenu offensant, fausse information et publicité trompeuse, avec des catégories complémentaires pertinentes. La liste finale et les éventuels champs de précision restent à établir.
+- **Information après modération :** l'entreprise est informée de la décision prise sur un signalement concernant sa publication, avec le motif communiqué par l'administration. Les informations personnelles du signalant ne doivent pas être divulguées.
+- **Programmation :** une entreprise autorisée peut programmer une publication pour une date et une heure futures. La publication programmée doit être publiée automatiquement à l'heure prévue, sous réserve des contrôles serveur, des droits de l'entreprise et des règles de modération. Les règles de quota, de modification, d'annulation, de fuseau horaire et de gestion des échecs de publication restent à préciser avant implémentation.
+
+Les limites de poids et formats doivent être contrôlées côté serveur, et les fichiers doivent être validés avant stockage. La programmation ne doit pas permettre de contourner les quotas ni les règles de modération.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
