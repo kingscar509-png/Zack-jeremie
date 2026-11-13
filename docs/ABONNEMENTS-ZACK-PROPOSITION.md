@@ -208,6 +208,13 @@ Ces limites et règles de fonctionnement sont des décisions de conception ; ell
 - Les règles de notification, de recours, de durée de masquage et de visibilité des commentaires masqués restent à détailler.
 - Les permissions de réponse et de modération doivent être vérifiées côté serveur.
 
+### 4.8 Mentions « J'aime » — décision confirmée
+
+- Seuls les utilisateurs connectés à un compte Zack peuvent aimer une publication.
+- Un utilisateur ne peut enregistrer qu'une seule mention « J'aime » active par publication ; il peut la retirer.
+- Les visiteurs non connectés peuvent consulter le contenu et le nombre de mentions « J'aime », mais ne peuvent pas interagir avec cette fonction.
+- Le contrôle de l'unicité et des autorisations doit être effectué côté serveur afin d'éviter les doublons ou manipulations.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
