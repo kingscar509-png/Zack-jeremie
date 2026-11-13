@@ -303,6 +303,17 @@ Les contrôles de quota doivent être atomiques et exécutés côté serveur pou
 
 La file doit être traitée de façon fiable et atomique, sans double publication ni dépassement de quota. Le choix de publication automatique ou avec confirmation ne doit jamais permettre de publier un contenu supprimé, invalide, non autorisé ou contraire aux règles de modération.
 
+### 4.17 Création et affichage des promotions commerciales — décisions confirmées
+
+- **Informations obligatoires d'une promotion :** titre, description, prix normal, prix promotionnel, dates de début et de fin, ainsi que photos. Le système doit vérifier que les prix et les dates sont cohérents ; le prix promotionnel doit être inférieur au prix normal pour être présenté comme une réduction.
+- **Promotion indépendante du catalogue :** une promotion peut être créée sans être liée à un produit ou service déjà présent dans le catalogue de l'entreprise. Elle peut donc présenter une offre ponctuelle ou un ensemble de prestations. Lorsqu'elle est liée à un élément du catalogue, le lien doit être explicite.
+- **Présentation des prix :** l'ancien prix est affiché barré et le nouveau prix promotionnel est mis en évidence. Zack ne doit pas afficher de réduction trompeuse ; les valeurs doivent être saisies et confirmées par l'entreprise.
+- **Promotions simultanées :** une entreprise peut avoir plusieurs promotions actives en même temps, dans la limite de son quota de publications commun aux promotions et aux publications générales.
+- **Promotions multi-produits/services :** une même promotion peut concerner plusieurs éléments du catalogue. Les éléments concernés doivent être identifiés clairement et le prix ou l'avantage doit être compréhensible pour chaque élément. Les règles de prix groupé, de variantes et d'exclusions restent à préciser.
+- **Fin prochaine :** Zack signale automatiquement aux visiteurs qu'une promotion approche de sa date de fin, par exemple avec une mention « Se termine bientôt ». Le seuil exact de cette indication reste à définir. À sa date de fin, la promotion cesse d'être présentée comme une offre en cours ; le traitement de son affichage après expiration suit le choix de l'entreprise déjà confirmé.
+
+Les promotions doivent respecter les mêmes règles de publication, quota, programmation, archivage, modération et sécurité que les autres publications. La validation des prix, des dates, des éléments de catalogue et des permissions est effectuée côté serveur.
+
 ## 5. Périodicité des paiements
 
 Pour les niveaux Payant et Ultra :
