@@ -63,6 +63,8 @@ Les éléments ci-dessous sont des pistes de conception, pas des quotas ni des f
 | Messagerie avec les clients | Fonctions essentielles | Fonctions avancées à définir | Fonctions avancées à définir |
 | Réception de demandes de contact | Oui | Oui | Oui |
 | Publications et promotions | Quotas de base | Quotas supérieurs | Quotas les plus élevés à définir |
+| Gestion des commandes reçues | Gestion simple | Outils supplémentaires | Gestion approfondie |
+| Suivi des ventes | Suivi simple des commandes | Suivi plus complet | Suivi des performances et analyses avancées |
 | Statistiques | Essentielles | Plus détaillées | Analyses avancées à définir |
 | Personnalisation de la fiche | Standard | Options supplémentaires | Options les plus avancées à définir |
 | Outils de gestion de l'entreprise | Essentiels | Outils supplémentaires | Outils avancés à définir |
@@ -104,9 +106,11 @@ Ces avantages doivent respecter les permissions d'équipe déjà décidées : le
 
 La progression acceptée est la suivante :
 
-- **Gratuit** : présenter les produits et services et recevoir des demandes de contact.
-- **Payant** : catalogue plus complet, gestion des commandes et suivi des ventes.
-- **Ultra** : outils avancés de vente, gestion approfondie des commandes et suivi des performances commerciales.
+- **Gratuit** : présenter les produits et services, recevoir des demandes de contact et gérer simplement les commandes reçues.
+- **Payant** : disposer d'un catalogue plus complet, d'outils supplémentaires de gestion des commandes et d'un suivi plus complet des ventes.
+- **Ultra** : disposer d'outils avancés de vente, d'une gestion approfondie des commandes et d'un suivi des performances commerciales avec analyses avancées.
+
+Principe d'équité confirmé : une entreprise au niveau Gratuit ne doit pas être exclue du commerce sur Zack. Elle peut recevoir et gérer ses commandes avec les fonctions de base. Les niveaux payants apportent des outils supplémentaires, mais ne réservent pas le commerce aux seuls abonnés.
 
 Pistes à détailler avant toute implémentation :
 - Limites de catalogue et présentation enrichie des produits/services selon le niveau.
@@ -134,8 +138,8 @@ Pour les niveaux Payant et Ultra :
 ### 6.1 Équité entre entreprises
 
 - Une entreprise au niveau Gratuit reste consultable dans l'annuaire national.
-- Elle peut recevoir des demandes de contact et utiliser les fonctions essentielles autorisées.
-- Le paiement ne doit pas être une condition pour exister ou être visible sur Zack.
+- Elle peut recevoir des demandes de contact, utiliser les fonctions essentielles autorisées et gérer simplement les commandes reçues.
+- Le paiement ne doit pas être une condition pour exister, être visible ou recevoir et traiter des commandes de base sur Zack.
 - Les limites doivent être clairement affichées avant qu'une entreprise atteigne son quota.
 
 ### 6.2 Abonnement et vérification sont deux notions différentes
