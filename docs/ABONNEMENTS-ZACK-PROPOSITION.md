@@ -243,10 +243,21 @@ Les définitions de chaque indicateur, les périodes d'analyse, les règles de c
 - **Photos par publication :** maximum de 5 photos par publication.
 - **Modification :** l'entreprise peut modifier une publication déjà publiée immédiatement, sans validation préalable. La publication modifiée reste soumise au contrôle a posteriori de Zack et peut être retirée si elle enfreint les règles.
 - **Notifications :** les utilisateurs qui suivent une entreprise peuvent recevoir une notification lorsqu'elle publie, selon leurs préférences et les notifications pertinentes qu'ils ont activées. Les notifications doivent respecter le consentement et les paramètres de chaque utilisateur.
-- **Signalement :** un utilisateur peut signaler une publication et sélectionner un motif, notamment arnaque, contenu offensant, fausse information ou publicité trompeuse. La liste définitive des motifs et le traitement des signalements restent à définir.
-- **Archivage :** l'entreprise peut archiver manuellement ses propres publications et les retrouver dans son espace de gestion. Les règles de visibilité publique d'une publication archivée, de restauration et d'incidence sur le quota restent à préciser.
+- **Signalement :** un utilisateur peut signaler une publication et sélectionner un motif, notamment arnaque, contenu offensant, fausse information ou publicité trompeuse. Un signalement ne provoque pas de suppression ni de masquage automatique : la publication reste visible jusqu'à son examen par un administrateur Zack autorisé.
+- **Archivage :** l'entreprise peut archiver manuellement ses propres publications. Une publication archivée devient invisible au public et reste accessible dans les archives privées de l'espace de gestion de l'entreprise. Elle continue de compter dans le quota mensuel. L'entreprise peut la restaurer sans consommer une nouvelle place.
 
 Ces fonctions doivent être autorisées et vérifiées côté serveur. Les notifications ne doivent pas révéler de données privées et leur échec ne doit pas empêcher la publication.
+
+### 4.12 Archivage, historique, signalements et notifications — décisions confirmées
+
+- **Visibilité des archives :** une publication archivée est retirée de l'affichage public et conservée dans les archives privées de l'entreprise.
+- **Quota après archivage :** l'archivage ne libère pas de place ; la publication continue de compter dans le quota mensuel partagé de l'entreprise.
+- **Restauration :** l'entreprise peut restaurer une publication archivée sans consommer une nouvelle place de quota. La restauration ne doit pas créer une publication indépendante ni remettre à zéro son historique de quota.
+- **Historique des modifications :** aucun historique des versions successives du contenu n'est prévu dans l'espace entreprise ni dans l'interface d'administration. Cette décision ne supprime pas les traces d'audit nécessaires pour les actions sensibles de modération, de sécurité ou d'administration.
+- **Traitement des signalements :** le simple dépôt d'un signalement ne masque pas et ne supprime pas automatiquement la publication. Elle reste visible jusqu'à l'examen par un administrateur Zack autorisé, qui applique ensuite les mesures appropriées selon les règles de modération.
+- **Notifications d'interactions :** les notifications peuvent concerner les nouveaux commentaires, les réponses et les mentions « J'aime ». L'utilisateur doit pouvoir activer ou désactiver séparément chaque catégorie, dans le respect de ses préférences et consentements. Les notifications doivent être envoyées aux personnes concernées uniquement et ne pas exposer de contenu privé.
+
+Les contrôles d'accès, de quota, de restauration, de signalement et de préférences de notification doivent être effectués côté serveur.
 
 ## 5. Périodicité des paiements
 
