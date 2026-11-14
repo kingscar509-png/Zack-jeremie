@@ -140,3 +140,16 @@ Le défaut `promotions.is_active = true` est conservé : il correspond au compor
 - [ ] Tester le parcours complet avec comptes de test et faux paiements avant activation.
 
 Aucune donnée de paiement, de compte destinataire ou de plan n'a été ajoutée. Aucune migration n'a été appliquée.
+
+
+## 14. Revue finale du destinataire MonCash et snapshots
+
+- [x] Confirmé qu'aucun destinataire n'est encore configuré et qu'aucun plan Pro/Ultra n'est actif.
+- [x] Confirmé que `payment_recipients` ne garantit pas encore l'unicité d'un compte actif par fournisseur.
+- [x] Confirmé qu'aucun trigger d'audit/mise à jour n'est présent sur les tables d'abonnement et paiement inspectées.
+- [x] Confirmé que le montant est copié dans `payments.amount`, mais que le nom/code/durée du plan et le compte destinataire ne sont pas conservés comme snapshots.
+- [x] Confirmé que la durée d'abonnement est relue depuis `subscription_plans` au moment de l'approbation ; une modification de durée après la demande pourrait donc modifier la période accordée.
+- [x] Ajouté ces écarts à la spécification MonCash.
+- [ ] Ajouter l'unicité du destinataire actif par fournisseur et les snapshots dans une migration testée.
+- [ ] Ajouter l'audit des changements de plan et de destinataire.
+- [ ] Bloquer l'encaissement réel tant que ces écarts et le parcours frontend ne sont pas résolus.
