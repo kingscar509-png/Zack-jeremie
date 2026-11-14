@@ -60,7 +60,7 @@ Le workflow a ensuite réussi sur le commit `a1a35ca7998ed951e651bfa0313e31e6bba
 - build Vite de production : réussie ;
 - `tsc --noEmit` : réussie.
 
-Les commits documentaires postérieurs déclenchent leurs propres contrôles ; vérifier le run le plus récent avant de considérer le HEAD actuel validé.
+Le HEAD documentaire `705928ee3c69c4667977f1b38b756ec6f1f42903` a également passé le workflow `Zack frontend checks` (run GitHub Actions `43591633231`) : installation, build Vite et typecheck réussis. Le dernier contrôle disponible au moment de la mise à jour de cet audit est donc vert.
 
 Limites restantes :
 - aucun test complet dans un navigateur n'a été effectué ;
