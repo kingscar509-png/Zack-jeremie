@@ -261,3 +261,16 @@ Aucune fonction SQL n'a été modifiée et aucune requête d'écriture n'a été
 - [ ] Interface de demande de paiement et interface de revue admin, seulement après validation des RPC.
 
 Aucune migration, aucune écriture de production, aucun paiement, aucune branche Supabase payante, aucune fusion et aucun déploiement. `main` reste intacte.
+
+
+## 23. Contrôle Supabase Advisors — 14 novembre 2026
+
+- [x] Advisors sécurité : 1 fonction SECURITY DEFINER accessible à anon, 23 accessibles à authenticated, protection des mots de passe compromis désactivée.
+- [x] Relecture de `business_counts(uuid)` : ne renvoie que les compteurs agrégés d'entreprises vérifiées ; exposition publique potentiellement voulue, aucun retrait automatique.
+- [x] Advisors performance : 12 clés étrangères sans index couvrant, 28 index inutilisés signalés, 47 combinaisons de policies permissives multiples.
+- [x] Advisors santé : aucun avertissement retourné.
+- [x] Ajout des résultats et des décisions de traitement dans le rapport de sécurité.
+- [ ] Revue individuelle des fonctions SECURITY DEFINER et activation contrôlée de la protection contre les mots de passe compromis, après validation de l'impact Auth.
+- [ ] Audit des policies multiples et index avant toute optimisation.
+
+Aucun droit, policy, index ou paramètre Auth n'a été modifié. Les avertissements Advisors ne sont pas traités comme des vulnérabilités confirmées sans analyse de leur comportement.
