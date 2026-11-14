@@ -36,24 +36,29 @@ function ProfessionalPage() {
     event.preventDefault()
     setMessage('')
     setBusy(true)
-    const result = await createBusiness({
-      data: {
-        name,
-        slug: makeSlug(name),
-        category,
-        description,
-        address,
-        neighborhood,
-        city,
-        phone,
-        whatsapp,
-        email,
-      },
-    })
-    setBusy(false)
-    setMessage(result.message)
-    if (result.success) {
-      window.setTimeout(() => window.location.reload(), 1800)
+    try {
+      const result = await createBusiness({
+        data: {
+          name,
+          slug: makeSlug(name),
+          category,
+          description,
+          address,
+          neighborhood,
+          city,
+          phone,
+          whatsapp,
+          email,
+        },
+      })
+      setMessage(result.message)
+      if (result.success) {
+        window.setTimeout(() => window.location.reload(), 1800)
+      }
+    } catch {
+      setMessage('Une erreur temporaire a empêché l’envoi. Vos données n’ont pas forcément été enregistrées ; vérifiez la liste de vos entreprises avant de réessayer.')
+    } finally {
+      setBusy(false)
     }
   }
 
