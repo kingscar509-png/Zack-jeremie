@@ -315,3 +315,20 @@ La règle 2 peut être implémentée en prolongeant la période active existante
 5. Relire la migration et ses résultats avant toute demande distincte d'autorisation de production.
 
 Aucune migration, écriture SQL, activation de forfait payant ou configuration de destinataire n'a été effectuée.
+
+
+### 14.6 Contraintes de statut réellement présentes et précision de renouvellement
+
+La lecture de `pg_constraint` confirme les valeurs suivantes :
+- `business_subscriptions.status` : `pending_payment`, `active`, `expired`, `cancelled`.
+- `payments.status` : `initiated`, `pending`, `needs_review`, `succeeded`, `failed`, `cancelled`.
+- `payments.provider` et `payment_recipients.provider` autorisent encore `moncash` et `natcash`.
+- La durée du forfait est limitée à 1–366 jours ; le code du plan est unique ; le montant du paiement doit être positif et la devise est HTG.
+
+Ne pas introduire un statut `scheduled` sans migration et sans mécanisme d'activation vérifié. Pour conserver la règle de renouvellement du même forfait sans créer une deuxième ligne active, le contrat RPC cible doit fonctionner ainsi :
+- renouvellement du même forfait avec abonnement actif : le paiement référence l'abonnement actif existant ; aucune nouvelle ligne `pending_payment` n'est créée pour cette demande ;
+- première souscription ou changement de forfait : le paiement référence une nouvelle ligne `pending_payment` ;
+- approbation d'un renouvellement : prolonger `ends_at` de l'abonnement actif de la durée snapshot ;
+- approbation d'un changement : expirer l'ancien abonnement et activer la ligne pending à la date de validation.
+
+Cette distinction doit être testée en concurrence et avec des demandes répétées. La fonction actuelle crée une nouvelle ligne pending dans tous les cas ; elle doit donc être refactorisée avant d'appliquer la règle de renouvellement proposée.
