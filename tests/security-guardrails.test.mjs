@@ -22,6 +22,14 @@ const professionalPage = readFileSync(
   new URL('../src/routes/pro.tsx', import.meta.url),
   'utf8',
 )
+const catalogFunctions = readFileSync(
+  new URL('../src/features/auth/catalog.functions.ts', import.meta.url),
+  'utf8',
+)
+const catalogManager = readFileSync(
+  new URL('../src/components/business/CatalogManager.tsx', import.meta.url),
+  'utf8',
+)
 
 test('la page abonnements reste strictement en lecture seule', () => {
   assert.match(subscriptionsPage, /createServerFn\(\{\s*method:\s*'GET'/)
@@ -80,18 +88,25 @@ test('la fiche entreprise affiche les produits et services sans activer de comma
   assert.doesNotMatch(businessPage, /place_order|\.insert\s*\(/)
 })
 
-test('la gestion du catalogue est limitée aux rôles autorisés et à leur entreprise', () => {
-  assert.match(professionalPage, /\['owner', 'admin', 'editor'\]\.includes\(membership\.role\)/)
-  assert.match(professionalPage, /\.eq\('business_id', businessId\)/)
-  assert.match(professionalPage, /\.from\('products'\)\.insert\(values\)/)
-  assert.match(professionalPage, /\.from\('services'\)\.insert\(values\)/)
-  assert.match(professionalPage, /\.from\('products'\)\.delete\(\)/)
-  assert.match(professionalPage, /\.from\('services'\)\.delete\(\)/)
+test('la gestion du catalogue vérifie le compte, le rôle et l’entreprise côté serveur', () => {
+  assert.match(catalogFunctions, /supabase\.auth\.getUser\(\)/)
+  assert.match(catalogFunctions, /\.eq\('business_id', data\.businessId\)/)
+  assert.match(catalogFunctions, /\.eq\('user_id', user\.id\)/)
+  assert.match(catalogFunctions, /\['owner', 'admin', 'editor'\]\.includes\(membership\.role\)/)
+  assert.match(catalogFunctions, /\.eq\('id', data\.itemId!\)\.eq\('business_id', data\.businessId\)/)
 })
 
-test('le catalogue permet de masquer un élément sans modération préalable', () => {
-  assert.match(professionalPage, /is_available: isAvailable/)
-  assert.match(professionalPage, /Rendre visible/)
-  assert.match(professionalPage, /sans file de validation/)
-  assert.doesNotMatch(professionalPage, /moderation_queue|approval_required|pending_approval/)
+test('le gestionnaire permet de créer, modifier, désactiver et supprimer les éléments', () => {
+  assert.match(catalogManager, /action: editingId \? 'update' : 'create'/)
+  assert.match(catalogManager, /action: 'delete'/)
+  assert.match(catalogManager, /toggleAvailability/)
+  assert.match(catalogManager, /isAvailable: !item\.is_available/)
+  assert.match(professionalPage, /<CatalogManager businessId=\{membership\.business_id\} role=\{membership\.role\}/)
+})
+
+test('les images du catalogue doivent utiliser HTTPS et aucune modération préalable', () => {
+  assert.match(catalogFunctions, /value\.startsWith\('https:\/\/'\)/)
+  assert.match(catalogFunctions, /is_available: data\.isAvailable/)
+  assert.doesNotMatch(catalogFunctions, /moderation_queue|approval_required|pending_approval/)
+  assert.doesNotMatch(catalogManager, /moderation_queue|approval_required|pending_approval/)
 })
