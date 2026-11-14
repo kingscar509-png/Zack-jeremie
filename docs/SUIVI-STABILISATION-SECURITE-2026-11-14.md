@@ -233,3 +233,15 @@ Le fichier `src/routes/pro.tsx` ne contient actuellement que l'inscription et la
 - [ ] Le prochain chantier technique est la refonte des RPC MonCash et les écrans de paiement, après tests de contrat sur environnement de développement gratuit.
 
 Aucune modification de Supabase, aucun paiement, aucune fusion et aucun déploiement n'ont été réalisés. PR #2 reste draft et ouverte ; `main` reste intacte.
+
+
+## 21. Contrat RPC MonCash et risque de refus de renouvellement — 14 novembre 2026
+
+- [x] Relu les définitions SQL exactes de `request_subscription_payment`, `admin_review_payment` et `get_payment_recipients` en lecture seule.
+- [x] Confirmé que la demande crée actuellement toujours une ligne `pending_payment`, même pour un renouvellement.
+- [x] Confirmé que le refus annule systématiquement la ligne `subscription_id` liée ; le futur RPC doit impérativement distinguer un abonnement actif d'une demande pending.
+- [x] Documenté le contrat cible : renouvellement même plan lié à la ligne active, refus sans effet sur l'abonnement actif, première souscription/changement lié à une ligne pending.
+- [x] Documenté les snapshots serveur, le verrouillage de l'entreprise, l'unicité des demandes ouvertes et la sélection serveur du destinataire MonCash.
+- [ ] Implémenter et tester les RPC dans un environnement de développement gratuit, avant toute migration de production.
+
+Aucune fonction SQL n'a été modifiée et aucune requête d'écriture n'a été exécutée.
