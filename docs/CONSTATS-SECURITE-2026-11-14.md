@@ -201,3 +201,30 @@ La décision produit est désormais explicite : les entreprises doivent pouvoir 
 La sécurité doit être testée au niveau de l'appartenance à l'entreprise et des rôles, pas par un mécanisme de modération préalable.
 
 **État : modèle produit confirmé ; aucun changement de production ni migration appliquée.**
+
+
+## 13. Vérification complémentaire — idempotence des paiements et exposition des compteurs
+
+### Paiements
+
+Les colonnes et index ont été inspectés en lecture seule :
+
+- `payments.status` vaut `needs_review` par défaut.
+- L'index unique partiel `payments_proof_uq` couvre `(provider, proof_reference)` dès que le statut est `needs_review` ou `succeeded`.
+- La fonction `request_subscription_payment` insère une nouvelle ligne de paiement dans l'état par défaut `needs_review`, après insertion de l'abonnement et de l'événement dans la même transaction.
+- Par conséquent, deux demandes utilisant le même fournisseur et la même référence sont bloquées par l'index unique, y compris dès la création de la demande. L'index `payments_provider_tx_uq` protège aussi l'identifiant de transaction externe lorsqu'il est renseigné.
+- La table `payments` ne contient aucune ligne au moment du contrôle. Les index et contraintes peuvent donc être examinés sans données historiques à migrer.
+
+Conclusion : une protection d'unicité de référence existe déjà ; ne pas ajouter une seconde contrainte redondante. Il reste à vérifier le comportement applicatif lorsqu'une référence dupliquée provoque une erreur SQL, afin d'afficher un message compréhensible et de permettre à l'utilisateur de corriger sa saisie. L'acceptation de NatCash reste une incohérence : la fonction et la contrainte `payments_provider_check` autorisent encore `natcash`.
+
+### Compteurs publics d'entreprise
+
+`business_counts(uuid)` est une fonction SQL `STABLE SECURITY DEFINER`, avec `search_path` vide. Elle retourne seulement le nombre de followers et de favoris pour une entreprise dont le statut est `verified`. Elle est exécutable par `anon`, `authenticated`, `service_role` et `postgres`.
+
+Cette exposition peut être cohérente avec des compteurs publics visibles sur les fiches entreprises ; elle ne retourne pas la liste des utilisateurs ni leurs identifiants. À confirmer dans la spécification d'affichage, mais aucun retrait d'accès n'est recommandé sans preuve que ces compteurs doivent être privés.
+
+### Bootstrap administrateur
+
+Les contraintes confirment que `admin_roles.user_id` est la clé primaire et que le champ `role` accepte `main_admin` ou `admin`. Aucune contrainte unique ne garantit un seul `main_admin`. Le risque de course concurrente identifié en section 11 reste donc à corriger dans une migration contrôlée : unicité partielle sur `role = 'main_admin'` et verrouillage transactionnel dans la fonction de bootstrap.
+
+Aucune écriture SQL, migration ou modification de configuration n'a été exécutée.
