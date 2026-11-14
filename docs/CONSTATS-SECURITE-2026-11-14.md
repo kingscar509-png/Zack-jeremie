@@ -100,16 +100,16 @@ Une lecture directe de `pg_policies`, des valeurs par défaut et des définition
 - La fonction `claim_main_admin()` vérifie l'absence d'un rôle `main_admin`, puis insère le rôle ; elle ne prend pas de verrou transactionnel dédié à ce bootstrap.
 - Au moment de la vérification complémentaire, un seul enregistrement `main_admin` existe. La table a une clé primaire unique sur `user_id`, mais aucun index unique dédié à la valeur `role = 'main_admin'`.
 
-### Approche de correction à tester (pas encore appliquée)
+### Actions pertinentes à préparer (pas encore appliquées)
 
-1. Pour empêcher le contournement par combinaison OR des policies, ne pas ajouter une policy permissive concurrente en pensant qu'elle restreint les autres. Tester une policy restrictive correctement conçue ou, de préférence pour préserver les droits d'édition des brouillons et la modification du contenu déjà publié, un trigger qui interdit aux non-administrateurs de créer/faire passer un contenu à l'état publié/actif. L'administration doit conserver le chemin de validation explicite.
-2. Corriger le défaut `promotions.is_active` à `false` dans la même évolution que le contrôle de transition, après vérification des formulaires et des parcours d'administration.
-3. Protéger l'unicité du rôle `main_admin` par une contrainte/index unique partiel après contrôle des données existantes, et rendre le bootstrap atomique avec gestion explicite du conflit concurrent.
-4. Restreindre `request_subscription_payment` à `moncash` uniquement dans une migration contrôlée, puis tester que `natcash` échoue et que `moncash` reste accepté uniquement pour un gestionnaire autorisé et un plan payant actif.
-5. Tester les opérations comme `anon`, utilisateur connecté sans rôle, editor, owner, administrateur de contenu et main_admin ; inclure INSERT et UPDATE de brouillon, publication, activation, désactivation et changement d'entreprise.
+1. Conserver la publication directe : les membres autorisés doivent pouvoir publier, activer, modifier et désactiver les contenus de leur entreprise sans validation centrale.
+2. Tester l'isolation interentreprises et le contrôle de rôle sur INSERT, SELECT, UPDATE et DELETE pour les trois tables.
+3. Vérifier que le champ `business_id` ne peut pas être déplacé vers une entreprise dont l'utilisateur n'est pas membre avec un rôle approprié.
+4. Protéger l'unicité du rôle `main_admin` par un index unique partiel après contrôle des données existantes, et rendre le bootstrap atomique avec gestion explicite du conflit concurrent.
+5. Restreindre `request_subscription_payment` à `moncash` uniquement dans une migration contrôlée, puis tester que `natcash` échoue et que `moncash` reste accepté uniquement pour un gestionnaire autorisé et un plan payant actif.
+6. Tester les permissions des rôles `anon`, utilisateur connecté sans appartenance, membre avec lecture seule, editor, owner, admin d'entreprise, administrateur Zack et main_admin. Les tests de publication doivent confirmer le fonctionnement direct attendu, pas le bloquer.
 
-Aucune de ces corrections n'a été exécutée sur la base active. La conception doit être validée dans un environnement local gratuit avant toute migration de production.
-
+Aucune correction n'a été exécutée sur la base active. La conception et les migrations doivent être validées dans un environnement local gratuit avant toute migration de production.
 
 ## 9. Contrôle complémentaire — création et gestion des entreprises
 
@@ -125,7 +125,7 @@ Lecture en mode SELECT des fonctions, policies et triggers le 14 novembre 2026 :
 ### Limites restantes du parcours d'inscription
 
 - Le champ `city` n'est pas un paramètre de `create_business` : le frontend l'enregistre dans une deuxième requête après la création. Une erreur à cette étape peut laisser l'entreprise créée sans ville. Ce point est déjà documenté dans le suivi de stabilisation.
-- Les limites de longueur et validations Zod sont appliquées dans le serveur applicatif, mais la fonction SQL ne reproduit pas toutes ces limites. Un appel RPC direct par un utilisateur authentifié pourrait envoyer des textes plus longs que ceux acceptés par le formulaire. À traiter dans une évolution SQL testée, sans urgence supérieure au contrôle des publications.
+- Les limites de longueur et validations Zod sont appliquées dans le serveur applicatif, mais la fonction SQL ne reproduit pas toutes ces limites. Un appel RPC direct par un utilisateur authentifié pourrait envoyer des textes plus longs que ceux acceptés par le formulaire. À traiter dans une évolution SQL testée, en complément des contrôles d'isolation et de rôles.
 - Aucun test d'inscription avec un vrai compte utilisateur n'a été réalisé dans cette revue ; les constats ci-dessus proviennent de l'inspection statique des définitions et policies.
 
 Conclusion : le flux de création possède plusieurs protections utiles et aucun changement de base n'est justifié à ce stade. Conserver le point de non-atomicité du champ ville comme dette technique, puis prévoir des limites de taille côté SQL pour renforcer la validation au-delà du frontend.
