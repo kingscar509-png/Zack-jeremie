@@ -18,6 +18,10 @@ const businessPage = readFileSync(
   new URL('../src/routes/entreprises.$slug.tsx', import.meta.url),
   'utf8',
 )
+const professionalPage = readFileSync(
+  new URL('../src/routes/pro.tsx', import.meta.url),
+  'utf8',
+)
 
 test('la page abonnements reste strictement en lecture seule', () => {
   assert.match(subscriptionsPage, /createServerFn\(\{\s*method:\s*'GET'/)
@@ -74,4 +78,20 @@ test('la fiche entreprise affiche les produits et services sans activer de comma
   assert.match(businessPage, /<h2>Services<\/h2>/)
   assert.match(businessPage, /catalogUnavailable/)
   assert.doesNotMatch(businessPage, /place_order|\.insert\s*\(/)
+})
+
+test('la gestion du catalogue est limitée aux rôles autorisés et à leur entreprise', () => {
+  assert.match(professionalPage, /\['owner', 'admin', 'editor'\]\.includes\(membership\.role\)/)
+  assert.match(professionalPage, /\.eq\('business_id', businessId\)/)
+  assert.match(professionalPage, /\.from\('products'\)\.insert\(values\)/)
+  assert.match(professionalPage, /\.from\('services'\)\.insert\(values\)/)
+  assert.match(professionalPage, /\.from\('products'\)\.delete\(\)/)
+  assert.match(professionalPage, /\.from\('services'\)\.delete\(\)/)
+})
+
+test('le catalogue permet de masquer un élément sans modération préalable', () => {
+  assert.match(professionalPage, /is_available: isAvailable/)
+  assert.match(professionalPage, /Rendre visible/)
+  assert.match(professionalPage, /sans file de validation/)
+  assert.doesNotMatch(professionalPage, /moderation_queue|approval_required|pending_approval/)
 })
