@@ -1,7 +1,7 @@
 # Zack — plan d'exécution et règles de travail
 
-Date : 12 novembre 2026
-Branche de travail : `preparation/phase-1-frontend-plan`
+Dernière mise à jour : 14 novembre 2026
+Branche de travail : `hardening/phase-1-stabilisation`
 Dépôt : `kingscar509-png/Zack-jeremie`
 
 ## 1. Décision de travail
@@ -13,6 +13,7 @@ La branche de préparation est le lieu de travail. La branche `main` reste intac
 ## 2. Décisions produit non négociables
 
 - Zack est une plateforme nationale pour toute Haïti, pas une plateforme limitée à Jérémie.
+- Le lancement retenu est un grand lancement public national ; tous les modules réellement disponibles sont ouverts à tous, et les modules incomplets sont clairement signalés.
 - Interface en français au lancement, mobile-first et responsive.
 - Identité visuelle : bleu foncé `#0A1A4F`, bleu lumineux `#3B82F6`, jaune `#FFC107`, blanc `#FFFFFF`; Poppins; texte foncé sur fond jaune.
 - Thèmes clair, sombre et automatique.
@@ -30,7 +31,7 @@ La branche de préparation est le lieu de travail. La branche `main` reste intac
 - Accueil national, catégories et recherche.
 - Fiches d'entreprises détaillées.
 - Produits et services.
-- Publications, promotions et événements.
+- Publications, promotions et événements, publiés directement par les membres autorisés sans approbation préalable Zack.
 - Avis et favoris selon les droits confirmés.
 - Coordonnées et moyens de contact.
 
@@ -53,7 +54,7 @@ La branche de préparation est le lieu de travail. La branche `main` reste intac
 ### Administration
 - Tableau de bord fondé sur des données réelles.
 - Vérification des entreprises.
-- Modération des avis, publications et signalements.
+- Gestion des signalements et traitement réactif des abus ; aucune modération préalable des publications, promotions ou événements.
 - Gestion des catégories, utilisateurs et administrateurs.
 - Statistiques calculées à partir de sources fiables.
 - Paramètres généraux et journal d'audit.
@@ -134,3 +135,10 @@ Pour chaque proposition :
 ## 8. Critère de fin
 
 Zack ne sera considéré prêt pour une première publication que lorsque les parcours annoncés fonctionnent réellement, que les droits sont vérifiés côté backend, que les écrans ne montrent aucune donnée inventée, que les erreurs sont gérées, que les tests critiques passent et que le propriétaire a validé la recette.
+
+
+## 9. Publication et lancement — décisions actualisées
+
+- Les entreprises publient directement leurs posts, promotions et événements par les rôles autorisés. Aucune approbation centrale, file de modération ou trigger bloquant ne doit être ajouté.
+- La sécurité repose sur RLS, l'appartenance au même `business_id`, les rôles et la protection du statut de vérification.
+- Le lancement est national et public en Haïti. Les fonctionnalités prêtes sont accessibles à tous ; les fonctionnalités inachevées restent signalées comme indisponibles ou en préparation, sans simulation de données ou de fonctionnement.
