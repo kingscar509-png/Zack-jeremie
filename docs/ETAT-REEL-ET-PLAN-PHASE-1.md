@@ -1,3 +1,5 @@
+> ⚠️ **Document historique — état arrêté au 12 novembre 2026.** Certains inventaires et recommandations de ce document ont été dépassés par les audits en lecture seule du 14 novembre. Pour le schéma Supabase actuel, consulter `docs/ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md`. Pour les décisions produit actuelles, consulter `docs/PLAN-PREPARATION-LANCEMENT-ZACK.md` et `docs/CONSTATS-SECURITE-2026-11-14.md`. Les décisions de publication directe priment sur toute ancienne mention de modération préalable.
+
 # Zack — état réel et plan de préparation du frontend
 
 Date de préparation : 12 novembre 2026
