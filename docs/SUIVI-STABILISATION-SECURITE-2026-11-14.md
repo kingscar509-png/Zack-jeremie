@@ -298,3 +298,15 @@ La réussite CI ne valide pas le fonctionnement avec de vrais comptes ni les per
 - [ ] Vérifier le rendu mobile et la navigation depuis `/pro`.
 
 La page reste strictement en lecture seule. Les paiements demeurent fermés.
+
+
+## 12. Recherche nationale — filtres de ville et de catégorie
+
+- La page `/recherche` propose maintenant trois critères : texte libre, ville/commune et catégorie.
+- La fonction serveur applique les filtres à la requête Supabase : recherche plein texte sur `search_document`, puis filtres `ilike` sur `city` et `category`.
+- Les trois valeurs sont validées côté serveur et limitées à 100 caractères ; les champs du formulaire appliquent la même limite.
+- Les filtres sont combinables et peuvent être effacés en un clic.
+- Deux tests statiques supplémentaires couvrent la présence des filtres et leurs limites.
+- HEAD : `1dd9468bda8e2824a14ea43d0886c2a03c728fd6`.
+- CI push `43628797847` : en cours au dernier contrôle. Ne pas annoncer le succès avant la conclusion finale.
+- Cette amélioration n'ajoute aucune donnée fictive et n'écrit rien dans Supabase. Les tests avec des données réelles et le contrôle de la pertinence des résultats restent à faire.
