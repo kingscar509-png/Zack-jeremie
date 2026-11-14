@@ -317,3 +317,18 @@ La page reste strictement en lecture seule. Les paiements demeurent fermés.
 - Les six tests automatisés étaient tous réussis ; l'étape TypeScript a correctement bloqué le build.
 - Correction appliquée en renommant le paramètre validé en `filters`, sans changer la logique métier.
 - Le nouveau CI doit confirmer la correction avant de considérer la recherche prête.
+
+## 13. Catalogue professionnel produits et services — 14 novembre 2026
+
+- Vérification en lecture seule du schéma : les tables `products` et `services` existent déjà ; leurs champs disponibles ont été vérifiés avant de construire l'interface.
+- Les règles RLS existantes autorisent la lecture publique des offres rattachées aux entreprises vérifiées et réservent l'écriture aux membres `owner`, `admin` et `editor` de la même entreprise.
+- La fiche publique `/entreprises/$slug` affiche les produits et services disponibles ; si l'une des requêtes du catalogue échoue, un état d'indisponibilité est affiché plutôt que de simuler des résultats.
+- L'espace `/pro` permet d'ajouter, modifier, masquer/rendre visible et supprimer les produits et services de chaque entreprise gérée.
+- Les opérations du navigateur filtrent aussi par `business_id` ; les policies RLS de la base restent le contrôle d'autorisation effectif.
+- Les offres sont publiées directement lorsqu'elles sont marquées disponibles, sans modération préalable, conformément à la décision produit.
+- Les prix sont saisis en HTG ; le prix peut rester vide pour indiquer « prix sur demande ». Les services peuvent aussi préciser une durée.
+- Aucun nouveau schéma, aucune migration, aucun changement de policy et aucune écriture dans Supabase de production.
+- Garde-fous ajoutés pour vérifier les rôles, le filtrage par entreprise, les opérations CRUD et l'absence de file de modération.
+- CI sur HEAD `45a36bebc518de0f3f4a49a8c35974ea126da1f6` : push `43630261836` et pull request `43630266763` tous deux terminés avec succès (tests de garde-fous, TypeScript et build).
+- Les tests de navigation réelle, l'isolation avec plusieurs comptes réels et le rendu sur mobile restent à effectuer. Le catalogue en production n'a pas été rempli ni testé avec de vrais comptes.
+- La PR #2 reste en brouillon et n'est pas fusionnée ; `main` reste intacte.
