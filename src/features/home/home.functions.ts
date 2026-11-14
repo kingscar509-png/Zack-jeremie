@@ -55,7 +55,7 @@ const businessSearchInput = z.object({
 
 export const searchBusinesses = createServerFn({ method: 'GET' })
   .validator(businessSearchInput)
-  .handler(async ({ data }) => {
+  .handler(async ({ data: filters }) => {
     try {
       const supabase = createSupabaseServerClient()
       let request = supabase
@@ -67,17 +67,17 @@ export const searchBusinesses = createServerFn({ method: 'GET' })
         .order('created_at', { ascending: false })
         .limit(40)
 
-      if (data.query) {
-        request = request.textSearch('search_document', data.query, {
+      if (filters.query) {
+        request = request.textSearch('search_document', filters.query, {
           type: 'websearch',
           config: 'simple',
         })
       }
-      if (data.city) {
-        request = request.ilike('city', `%${data.city}%`)
+      if (filters.city) {
+        request = request.ilike('city', `%${filters.city}%`)
       }
-      if (data.category) {
-        request = request.ilike('category', `%${data.category}%`)
+      if (filters.category) {
+        request = request.ilike('category', `%${filters.category}%`)
       }
 
       const { data, error } = await request
