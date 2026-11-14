@@ -295,7 +295,7 @@ function CatalogPanel({
       return
     }
 
-    let error = null
+    let error: { message: string } | null = null
     if (kind === 'products') {
       const values = {
         business_id: businessId,
