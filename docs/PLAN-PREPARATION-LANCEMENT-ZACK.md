@@ -1,7 +1,7 @@
 # ZACK — Plan central de préparation technique et de lancement
 
-**Date du relevé :** 13 novembre 2026  
-**Branche :** `preparation/phase-1-frontend-plan`  
+**Dernière mise à jour :** 14 novembre 2026  
+**Branche de travail :** `hardening/phase-1-stabilisation`  
 **Statut :** préparation, audit en lecture seule et décisions documentées — **aucune modification de Supabase, aucune migration exécutée, aucun déploiement**.  
 **Portée produit :** plateforme nationale pour les entreprises et clients de toute Haïti.  
 **Référence fonctionnelle principale :** `docs/MODELE-DONNEES-MULTI-VENDEURS-PERMISSIONS.md`.
@@ -36,9 +36,9 @@ Les futurs scripts SQL doivent d'abord être préparés, relus et testés sur un
 ### 3.1 Produit et portée
 - Zack couvre toute Haïti, et non uniquement Jérémie.
 - Tous les secteurs d'activité sont concernés.
-- La modération des publications est centralisée.
+- Les entreprises publient directement leurs publications, promotions et événements par l'intermédiaire des membres autorisés.
 - L'accueil et la communication sont mixtes.
-- La publication entreprise est limitée et soumise aux règles de modération.
+- La publication entreprise est directe pour les rôles autorisés ; aucune approbation préalable Zack n'est exigée. Les règles RLS protègent l'appartenance, les rôles et l'isolation entre entreprises.
 - Le panier est conservé localement au lancement.
 - Un compte Zack est nécessaire pour passer commande.
 - Un visiteur sans compte peut initier un premier contact avec une entreprise par un formulaire dédié ; il ne peut pas consulter une conversation privée.
@@ -209,25 +209,34 @@ L'advisor confirme que la protection des mots de passe divulgués est désactiv�
 ### 6.3 Liens externes
 Le frontend doit normaliser et valider les URLs de sites web et réseaux sociaux. Seuls les protocoles `https:` et éventuellement `http:` doivent être acceptés. Les protocoles tels que `javascript:`, `data:` et autres schémas non nécessaires doivent être rejetés. Cette validation doit être appliquée à l'affichage et, si possible, à l'enregistrement serveur.
 
-### 6.4 Modération centralisée : incohérence à corriger
-Les politiques RLS observées permettent actuellement aux membres de type owner/admin/editor d'insérer, modifier et supprimer plusieurs contenus d'entreprise, notamment produits, services, publications et promotions.
+### 6.4 Publication directe et contrôle d'accès
 
-Pour les publications, les membres peuvent écrire dans les lignes tandis que la visibilité publique dépend de champs comme `is_published`. L'audit des politiques et déclencheurs doit vérifier qu'un membre ne peut pas publier directement un contenu sans validation centrale. Une logique de modération ne doit pas reposer uniquement sur le fait que l'interface cache un bouton.
+Décision produit confirmée le 14 novembre 2026 : les entreprises peuvent publier directement leurs publications, promotions et événements. Aucun circuit d'approbation préalable Zack, file d'attente de modération, trigger bloquant ou validation administrative avant publication ne doit être ajouté.
 
-À préparer :
-- distinguer brouillon, soumis, approuvé, rejeté et archivé ;
-- imposer l'approbation centrale côté serveur ;
-- empêcher un membre d'entreprise de modifier lui-même les champs de validation ;
-- auditer les politiques des publications, promotions et événements ;
-- décider séparément si les produits et services exigent une validation centrale ou seulement une modération réactive.
+Le contrôle de sécurité porte sur :
+- l'appartenance de l'utilisateur à l'entreprise concernée ;
+- les rôles autorisés (owner, admin, editor selon la policy de chaque table) ;
+- la vérification du même `business_id` dans INSERT, UPDATE et DELETE ;
+- la revalidation du `business_id` final dans les clauses UPDATE `WITH CHECK` ;
+- la protection du statut de vérification de l'entreprise, qui ne doit pas être modifiable par un manager ordinaire ;
+- l'isolation entre entreprises et la révocation effective d'un membership.
 
-### 6.5 Médias et modération
-Le bucket actuel est public. Pour éviter qu'un média de brouillon soit exposé avant validation, étudier :
-- un espace privé de dépôt/quarantaine ;
-- le déplacement contrôlé vers le bucket public après approbation ;
-- ou une stratégie équivalente avec URLs signées et publication explicite.
+Les contenus peuvent être publiés directement dès leur création ou leur activation par un membre autorisé. La visibilité publique continue de dépendre des champs de publication et des règles d'accès déjà prévues. La modération éventuelle est réactive (signalements, retrait après examen, lutte anti-abus) et ne doit pas retarder la publication normale.
 
-Aucune option n'a encore été appliquée.
+Les tests obligatoires doivent vérifier owner/admin/editor, accès croisé entre entreprises, changement de `business_id`, révocation d'un membre et statut de vérification. Les constats SQL statiques ne remplacent pas les tests avec des sessions réelles.
+
+### 6.5 Médias publics et signalements
+
+Le bucket média actuel est public : toute personne disposant de l'URL peut récupérer un fichier public. Les formulaires et politiques doivent donc respecter le choix « photos uniquement », et les uploads doivent être limités aux membres de l'entreprise propriétaire du dossier.
+
+Ne pas introduire de quarantaine ou de validation centrale obligatoire avant publication. Prévoir plutôt :
+- contrôle du type réel, de la taille et du propriétaire du fichier côté serveur ;
+- limites anti-spam et détection des abus ;
+- possibilité de signaler un média ou un contenu ;
+- procédure administrative de retrait après examen lorsqu'un contenu viole les règles ;
+- journalisation des retraits et des restaurations.
+
+Un stockage privé de brouillons ne serait pertinent que si un futur parcours de brouillon privé est décidé ; il ne doit pas devenir un prérequis à la publication directe.
 
 ### 6.6 Anti-spam et limites
 Des limites côté serveur sont à préparer pour :
@@ -352,7 +361,7 @@ Après réception des propositions :
 ### Phase 1 — Sécurité de la base existante
 - corriger l'exposition directe de `log_admin_content_action` après tests ;
 - activer la protection des mots de passe compromis ;
-- vérifier la modération centralisée ;
+- vérifier les signalements, le traitement réactif des abus et la protection RLS des contenus ;
 - valider les URLs ;
 - décider du traitement des médias de brouillon ;
 - préparer les limites anti-spam ;
@@ -405,7 +414,7 @@ Après réception des propositions :
 - tests sur Android et connexions lentes ;
 - tests de charge et pagination ;
 - sauvegardes, surveillance, domaine, conditions d'utilisation et politique de confidentialité ;
-- ouverture progressive aux entreprises.
+- grand lancement public national en Haïti ; tous les modules réellement disponibles sont accessibles à tous, les modules non prêts sont clairement signalés comme indisponibles ou en préparation.
 
 ## 11. Matrice de tests obligatoire
 
@@ -592,7 +601,7 @@ Le schéma autorise encore les types `image` et `video` dans `posts.media_type` 
 
 La documentation Supabase confirme qu'un bucket public permet à toute personne disposant de l'URL de récupérer les fichiers, sans que les politiques RLS de lecture ne protègent ces téléchargements. Les politiques continuent de contrôler les autres opérations comme l'upload et la suppression.
 
-Pour une modération centralisée, ne pas déposer directement les médias non approuvés dans un emplacement public. Prévoir un bucket privé de brouillon/quarantaine ou un mécanisme équivalent, puis une publication contrôlée après approbation.
+Le bucket étant public, les médias publiés sont accessibles à toute personne disposant de leur URL. La sécurité doit contrôler l'upload et l'appartenance au dossier, tandis que les signalements et retraits sont traités après publication. Ne pas imposer de quarantaine ou d'approbation préalable qui contredirait la publication directe décidée.
 
 Références :
 - https://supabase.com/docs/guides/storage/buckets/fundamentals
@@ -619,7 +628,7 @@ Une matrice séparée a été ajoutée pour documenter les accès actuellement o
 
 `docs/RLS-MATRICE-ACCES-ET-ECARTS.md`.
 
-Elle détaille notamment le risque de publication directe par les membres, l'accès aux statistiques pour tous les membres, les permissions du stockage, les limites anti-spam et les rôles qui devront être testés.
+Elle détaille les droits de publication directe des membres autorisés, l'accès aux statistiques, les permissions du stockage, les limites anti-spam et les rôles qui devront être testés.
 
 ## 19. Accès payant offert manuellement par l'administration Zack
 
@@ -670,7 +679,7 @@ Cette décision est ajoutée à la spécification. Aucune table, politique RLS, 
 | Backend et fonctions serveur | 15 % | Tables existantes partiellement utiles ; modules et Edge Functions essentiels manquants |
 | Paiements et abonnements | 15 % | Choix MonCash pour abonnements documenté ; intégration et vérification réelles non développées |
 | Tests, charge et fiabilité | 5 % | Plan de tests défini ; campagne de tests complète non réalisée |
-| Préparation opérationnelle du lancement | 10 % | Hébergement, politiques, support, surveillance et ouverture progressive à finaliser |
+| Préparation opérationnelle du lancement | 10 % | Hébergement, politiques, support, surveillance et préparation du grand lancement public national à finaliser |
 
 ### Ce qui a réellement avancé dans cette session
 
@@ -688,3 +697,11 @@ Cette décision est ajoutée à la spécification. Aucune table, politique RLS, 
 5. Établir le plan de correction de sécurité et de tests avant de connecter le frontend à Supabase.
 
 **Règle de mesure :** une fonctionnalité seulement écrite dans un document compte comme spécifiée, pas comme développée, testée ou disponible pour les utilisateurs.
+
+## 21. Mise à jour des décisions produit et du lancement — 14 novembre 2026
+
+- Le lancement retenu est un grand lancement public national en Haïti, et non un déploiement géographique progressif.
+- Tous les modules réellement disponibles sont ouverts à tous dès le lancement ; aucune segmentation artificielle d'accès par zone ou groupe n'est prévue.
+- Un module incomplet doit être clairement marqué « en préparation » ou « indisponible ». Il ne doit pas afficher de données simulées ni donner l'impression qu'une action fonctionne si elle n'est pas réellement connectée.
+- La publication directe par les membres autorisés est la règle. Les mécanismes de sécurité portent sur RLS, les rôles, l'appartenance et l'isolation ; les signalements et retraits éventuels sont réactifs, pas une approbation avant publication.
+- Les sections historiques qui indiquaient une modération centralisée ou un lancement progressif sont remplacées par ces décisions actualisées.
