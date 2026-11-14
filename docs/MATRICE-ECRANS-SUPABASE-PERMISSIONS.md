@@ -179,3 +179,16 @@ Les tables `subscription_plans`, `business_subscriptions`, `payments`, `payment_
 - Les contrôles de sécurité reposent sur l'appartenance à l'entreprise, les rôles, RLS et l'isolation interentreprises.
 - Les tables d'abonnement et de paiement existent déjà ; le travail restant porte sur les RPC, snapshots, interfaces et tests, pas sur la création initiale de ces cinq tables.
 - Lancement : grand lancement public national en Haïti. Tous les modules réellement disponibles sont accessibles à tous ; les modules incomplets sont clairement marqués indisponibles ou en préparation.
+
+
+## 11. Écran abonnement — ajout du 14 novembre 2026
+
+Route ajoutée : `/abonnements`.
+
+- Accès : utilisateur connecté, membership owner/admin pour au moins une entreprise.
+- Données : plans actifs, abonnements et paiements via les politiques RLS existantes ; état de configuration du destinataire MonCash.
+- Actions : lecture seule. Aucun bouton de demande de paiement ou de revue administrative n'est exposé.
+- Paiement : explicitement signalé comme non ouvert. Le compte destinataire n'est pas affiché sur cette page.
+- À tester : propriétaire, administrateur, éditeur, utilisateur non membre, entreprises multiples, données vides, indisponibilité Supabase, accès direct à la route et isolation interentreprises.
+
+Le build TypeScript/Vite sur le HEAD `ac8c979` a réussi dans le run CI `43627085508`. Cela ne remplace pas les tests navigateur ou les tests RLS avec de vrais comptes.
