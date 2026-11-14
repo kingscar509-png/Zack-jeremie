@@ -135,3 +135,26 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .results-heading { align-items: flex-start; flex-direction: column; }
 }
+
+
+/* Gestion du catalogue professionnel */
+.workspace-business { display: grid; gap: 14px; }
+.catalog-manager { min-width: 0; padding: 18px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.catalog-manager-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.catalog-manager-heading h3 { margin: 0 0 5px; font-size: 16px; }
+.catalog-manager-heading p { margin: 0; }
+.catalog-tabs, .workspace-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.catalog-tabs .button, .workspace-actions .button { font-size: 12px; }
+.catalog-form { max-width: 720px; margin: 0 0 22px; padding: 16px; border: 1px solid var(--border); border-radius: 13px; }
+.catalog-form h4, .catalog-items h4 { margin: 0 0 13px; font-size: 14px; }
+.catalog-availability { display: flex; align-items: center; gap: 9px; }
+.catalog-availability input { width: auto; }
+.catalog-items { display: grid; gap: 12px; }
+.catalog-items .workspace-list { margin-top: 0; }
+@media (max-width: 600px) {
+  .catalog-manager-heading { flex-direction: column; }
+  .catalog-tabs { width: 100%; }
+  .catalog-tabs .button { flex: 1; }
+  .catalog-manager { padding: 13px; }
+  .catalog-form { padding: 12px; }
+}
