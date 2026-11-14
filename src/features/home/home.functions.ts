@@ -157,6 +157,12 @@ export const getBusinessBySlug = createServerFn({ method: 'GET' })
       }
     } catch {
       console.error('Zack business detail is unavailable.')
-      return { business: null, unavailable: true }
+      return {
+        business: null,
+        products: [],
+        services: [],
+        catalogUnavailable: false,
+        unavailable: true,
+      }
     }
   })
