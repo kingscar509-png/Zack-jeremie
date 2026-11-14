@@ -96,3 +96,25 @@ Ces paramètres n'ont pas été modifiés.
 - Aucune configuration Auth, réseau ou SSL modifiée.
 - Aucune migration appliquée à la base active.
 - Les corrections sont des travaux à préparer, relire et tester dans une base de développement avant proposition de fusion.
+
+
+## 8. Vérification complémentaire des policies et du bootstrap
+
+Une lecture directe de `pg_policies`, des valeurs par défaut et des définitions de fonctions confirme les points suivants :
+
+- Les policies d'insertion des membres sur `posts`, `promotions` et `business_events` vérifient uniquement l'appartenance et le rôle (`owner`, `admin`, `editor`) ; elles ne vérifient pas la valeur de `is_published` ou `is_active`.
+- Les policies d'administration du contenu sont permissives et coexistent avec les policies des membres. Les policies permissives se combinent par OR : ajouter simplement une deuxième policy permissive ne bloquerait donc pas le contournement.
+- La valeur par défaut de `promotions.is_active` est bien `true`, contrairement à `posts.is_published` et `business_events.is_published`, qui valent `false` par défaut.
+- `request_subscription_payment` vérifie encore explicitement `p_provider` dans `('moncash','natcash')`.
+- La fonction `claim_main_admin()` vérifie l'absence d'un rôle `main_admin`, puis insère le rôle ; elle ne prend pas de verrou transactionnel dédié à ce bootstrap.
+- Au moment de la vérification complémentaire, un seul enregistrement `main_admin` existe. La table a une clé primaire unique sur `user_id`, mais aucun index unique dédié à la valeur `role = 'main_admin'`.
+
+### Approche de correction à tester (pas encore appliquée)
+
+1. Pour empêcher le contournement par combinaison OR des policies, ne pas ajouter une policy permissive concurrente en pensant qu'elle restreint les autres. Tester une policy restrictive correctement conçue ou, de préférence pour préserver les droits d'édition des brouillons et la modification du contenu déjà publié, un trigger qui interdit aux non-administrateurs de créer/faire passer un contenu à l'état publié/actif. L'administration doit conserver le chemin de validation explicite.
+2. Corriger le défaut `promotions.is_active` à `false` dans la même évolution que le contrôle de transition, après vérification des formulaires et des parcours d'administration.
+3. Protéger l'unicité du rôle `main_admin` par une contrainte/index unique partiel après contrôle des données existantes, et rendre le bootstrap atomique avec gestion explicite du conflit concurrent.
+4. Restreindre `request_subscription_payment` à `moncash` uniquement dans une migration contrôlée, puis tester que `natcash` échoue et que `moncash` reste accepté uniquement pour un gestionnaire autorisé et un plan payant actif.
+5. Tester les opérations comme `anon`, utilisateur connecté sans rôle, editor, owner, administrateur de contenu et main_admin ; inclure INSERT et UPDATE de brouillon, publication, activation, désactivation et changement d'entreprise.
+
+Aucune de ces corrections n'a été exécutée sur la base active. La conception doit être validée dans un environnement local gratuit avant toute migration de production.
