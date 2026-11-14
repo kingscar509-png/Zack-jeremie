@@ -166,3 +166,40 @@ Ce choix évite de compter sur une nouvelle policy permissive qui serait combin�
 
 **Aucune correction n'a été appliquée.** L'interface frontend de création/modification n'a pas encore été reliée à cette analyse par une revue de tous ses formulaires ; cette vérification reste nécessaire avant de produire la migration. Ne pas appliquer le changement de défaut seul : avec l'état actuel des policies, un client peut toujours envoyer explicitement `is_active = true`.
 
+
+
+## 11. Vérification ciblée — bootstrap administrateur et demande de paiement
+
+### Bootstrap du rôle principal
+
+La définition actuelle de `claim_main_admin()` a été relue :
+
+- Fonction `SECURITY DEFINER`, `search_path` vide, exécutable par `authenticated`, `service_role` et `postgres`.
+- Refuse les appels sans `auth.uid()`.
+- Si un rôle principal existe déjà, renvoie le résultat de `is_main_admin()`.
+- Sinon, vérifie l'identité et l'adresse confirmée du compte autorisé au bootstrap, puis insère `main_admin`.
+- L'insertion utilise `ON CONFLICT (user_id) DO NOTHING`, mais la table n'a pas de contrainte garantissant qu'un seul utilisateur peut porter `role = 'main_admin'`.
+
+Risque confirmé : la vérification « aucun main_admin » et l'insertion ne sont pas sérialisées. Deux sessions concurrentes peuvent franchir le test initial en même temps. Le conflit sur `user_id` ne protège pas contre deux utilisateurs différents.
+
+Correction à préparer, sans l'appliquer à chaud :
+1. vérifier d'abord les données existantes et les éventuels doublons ;
+2. ajouter une unicité PostgreSQL partielle sur les lignes dont `role = 'main_admin'` ;
+3. sérialiser le bootstrap avec un verrou transactionnel/advisory lock stable, puis refaire le contrôle après acquisition du verrou ;
+4. retourner un résultat cohérent si un autre appel a gagné la course ;
+5. tester deux appels simultanés avec le compte autorisé et des comptes non autorisés.
+
+### Demande de paiement d'abonnement
+
+La définition actuelle de `request_subscription_payment(p_business, p_plan, p_provider, p_reference)` confirme :
+
+- Fonction `SECURITY DEFINER`, `search_path` vide, exécutable par `authenticated`, `service_role` et `postgres`.
+- Vérifie `auth.uid()` et `is_business_manager(p_business)`.
+- Exige un plan actif dont le prix est strictement positif.
+- Accepte actuellement les fournisseurs `moncash` et `natcash`.
+- Exige une référence non vide de 4 à 60 caractères.
+- Crée l'abonnement, la ligne de paiement et l'événement `submitted_for_review` dans la même transaction PostgreSQL.
+
+Le contrôle de rôle et l'atomicité des trois insertions sont positifs. L'incohérence fonctionnelle reste le fournisseur NatCash, alors que la décision de lancement est MonCash uniquement. Une future migration devra restreindre la valeur à `moncash`, puis tester le refus de `natcash`, l'accès d'un non-gestionnaire, le plan gratuit/inactif et la répétition d'une même référence. Vérifier séparément les contraintes d'unicité/idempotence avant d'autoriser les demandes réelles.
+
+**Aucune fonction, contrainte, donnée, ACL ou configuration n'a été modifiée.** Ces deux corrections restent à tester dans un environnement de développement avant toute migration vers la base active.
