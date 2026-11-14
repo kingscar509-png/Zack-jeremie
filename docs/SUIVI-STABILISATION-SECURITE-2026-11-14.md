@@ -153,3 +153,8 @@ Aucune donnée de paiement, de compte destinataire ou de plan n'a été ajoutée
 - [ ] Ajouter l'unicité du destinataire actif par fournisseur et les snapshots dans une migration testée.
 - [ ] Ajouter l'audit des changements de plan et de destinataire.
 - [ ] Bloquer l'encaissement réel tant que ces écarts et le parcours frontend ne sont pas résolus.
+
+
+## 15. Nuance vérifiée — bootstrap main_admin
+
+L'index Auth `users_email_partial_key` rend l'e-mail unique sur sa valeur stockée, mais il n'est pas insensible à la casse. La fonction de bootstrap compare l'e-mail en minuscules. Le scénario de double attribution n'est pas démontré pour le parcours Auth normal, et la clé primaire `admin_roles.user_id` protège les appels concurrents du même compte. L'unicité globale de `role = 'main_admin'` n'est toutefois pas garantie par la table. Le rapport a été nuancé : ajouter une contrainte unique partielle reste une défense en profondeur ; ne pas présenter le risque de course comme une vulnérabilité exploitée ou prouvée.
