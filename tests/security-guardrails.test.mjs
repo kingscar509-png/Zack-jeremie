@@ -14,6 +14,10 @@ const homeFunctions = readFileSync(
   new URL('../src/features/home/home.functions.ts', import.meta.url),
   'utf8',
 )
+const businessPage = readFileSync(
+  new URL('../src/routes/entreprises.$slug.tsx', import.meta.url),
+  'utf8',
+)
 
 test('la page abonnements reste strictement en lecture seule', () => {
   assert.match(subscriptionsPage, /createServerFn\(\{\s*method:\s*'GET'/)
@@ -57,4 +61,17 @@ test('les filtres de recherche sont limités et validés côté serveur', () => 
   assert.match(homeFunctions, /city: z\.string\(\)\.trim\(\)\.max\(100\)/)
   assert.match(homeFunctions, /category: z\.string\(\)\.trim\(\)\.max\(100\)/)
   assert.match(searchPage, /maxLength=\{100\}/)
+})
+
+test('le catalogue public est limité aux produits et services disponibles de la bonne entreprise', () => {
+  assert.match(homeFunctions, /\.from\('products'\)[\s\S]*?\.eq\('business_id', data\.id\)[\s\S]*?\.eq\('is_available', true\)/)
+  assert.match(homeFunctions, /\.from\('services'\)[\s\S]*?\.eq\('business_id', data\.id\)[\s\S]*?\.eq\('is_available', true\)/)
+  assert.match(homeFunctions, /\.eq\('status', 'verified'\)/)
+})
+
+test('la fiche entreprise affiche les produits et services sans activer de commande', () => {
+  assert.match(businessPage, /<h2>Produits<\/h2>/)
+  assert.match(businessPage, /<h2>Services<\/h2>/)
+  assert.match(businessPage, /catalogUnavailable/)
+  assert.doesNotMatch(businessPage, /place_order|\.insert\s*\(/)
 })
