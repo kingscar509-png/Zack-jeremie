@@ -132,7 +132,6 @@ function ProfessionalPage() {
                   ? membership.businesses[0]
                   : membership.businesses
                 if (!business) return null
-                const canManage = ['owner', 'admin', 'editor'].includes(membership.role)
                 return (
                   <div className="catalog-business" key={membership.business_id}>
                     <h3>{business.name}</h3>
