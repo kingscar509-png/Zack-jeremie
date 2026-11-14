@@ -383,3 +383,18 @@ La page reste strictement en lecture seule. Les paiements demeurent fermés.
 - [ ] Prochaine étape après disponibilité d'un environnement isolé : exécuter la recette avec des comptes jetables owner/admin/editor/viewer et un compte d'une autre entreprise.
 
 Aucune migration, écriture Supabase, modification Auth/RLS, dépense, fusion ou publication n'a été effectuée. Budget supplémentaire : 0 $. La branche `main` reste intacte.
+
+
+## 17. Durcissement des formulaires Auth — 14 novembre 2026
+
+- [x] Les formulaires connexion, inscription, récupération et réinitialisation gèrent les exceptions réseau avec un message utilisateur.
+- [x] Les quatre formulaires réinitialisent systématiquement l'état occupé dans un bloc `finally`.
+- [x] Le message de connexion reste générique afin de ne pas révéler si une adresse e-mail correspond à un compte.
+- [x] Les validations de longueur et de confirmation du nouveau mot de passe sont effectuées avant l'appel Auth.
+- [x] Quatre garde-fous automatisés supplémentaires couvrent ces comportements.
+- [x] CI push `43636563843` et CI pull request `43636568676` sur le HEAD `86eba3f1b35ff26d618d5a80aee51073ba9aad73` : succès complet.
+- [x] Journal CI : 20/20 tests automatisés, TypeScript et build client/SSR/Nitro réussis.
+- [ ] Tests navigateur et tests Auth avec comptes distincts : non exécutés.
+- [ ] Tests RLS multi-entreprises sur un environnement de test isolé : non exécutés.
+
+Aucune modification de Supabase, migration, dépense, fusion ou activation de paiement.
