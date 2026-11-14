@@ -1,3 +1,5 @@
+> ⚠️ **Document historique — certains constats de schéma sont dépassés.** Le plan du 12 novembre indiquait que plusieurs tables de messagerie, commandes, paiements et abonnements étaient absentes. L'inventaire en lecture seule du 14 novembre confirme désormais 38 tables publiques avec RLS activée et 27 migrations appliquées. Les tests de ce document restent des scénarios à exécuter ; la présence des tables ne signifie pas que les interfaces, les permissions ou les parcours sont validés. Pour l'état de référence, consulter [`ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md`](./ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md).
+
 # Zack — plan de tests et critères de recette
 
 Date : 12 novembre 2026
