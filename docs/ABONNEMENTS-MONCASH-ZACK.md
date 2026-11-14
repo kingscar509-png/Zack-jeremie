@@ -182,3 +182,78 @@ Ces observations décrivent les policies et index actuellement présents. Elles 
 ### Vérification complémentaire du déclenchement de demande
 
 La fonction `request_subscription_payment` ne vérifie pas qu'un destinataire actif existe pour le fournisseur demandé avant de créer `business_subscriptions` et `payments`. Comme la table `payment_recipients` est actuellement vide, le RPC pourrait enregistrer une demande alors qu'aucun numéro de réception n'est configuré. Avant l'ouverture du parcours payant, la fonction devra vérifier côté serveur la présence d'un destinataire MonCash actif et enregistrer ses coordonnées en snapshot dans la même transaction. L'interface seule ne doit pas porter cette garantie.
+
+
+## 11. Relecture détaillée des RPC existantes — 14 novembre 2026
+
+Cette relecture porte sur les définitions SQL actuellement déployées, sans les modifier.
+
+### `request_subscription_payment` — comportement observé
+
+1. Vérifie que l'utilisateur est connecté et gestionnaire de l'entreprise.
+2. Charge un forfait actif dont le prix est supérieur à zéro.
+3. Accepte actuellement `moncash` et `natcash`.
+4. Vérifie que la référence contient entre 4 et 60 caractères après trim.
+5. Crée une ligne `business_subscriptions` puis une ligne `payments`, et inscrit un événement `submitted_for_review`.
+6. Retourne l'identifiant du paiement.
+
+**Écarts confirmés :**
+- Ne vérifie pas l'existence d'un destinataire actif pour le fournisseur demandé.
+- Ne capture que le montant du forfait ; la durée, le nom/code du plan et le destinataire ne sont pas figés dans le paiement.
+- Ne limite pas les demandes en attente par entreprise ; le contrôle d'un seul abonnement actif ne bloque pas plusieurs demandes en attente.
+- La référence est trimée, mais aucune normalisation métier plus poussée n'est appliquée.
+- La création de l'abonnement et du paiement est dans une même transaction PostgreSQL implicite de fonction : une erreur d'insertion annule l'ensemble.
+
+### `admin_review_payment` — comportement observé
+
+1. Exige `main_admin`.
+2. Verrouille la ligne de paiement avec `FOR UPDATE` et n'accepte que le statut `needs_review`.
+3. En cas d'approbation, retrouve le plan via l'abonnement associé, expire l'abonnement actif de l'entreprise, puis active la demande et calcule sa date de fin avec la durée actuelle du plan.
+4. En cas de refus, annule l'abonnement en attente et marque le paiement `failed`.
+5. Ajoute un événement de paiement et une entrée au journal administratif ; tente aussi de notifier le demandeur.
+
+**Points à renforcer avant encaissement :**
+- Calculer la durée depuis le snapshot du paiement, jamais depuis le plan modifiable après la demande.
+- Vérifier que l'abonnement lié au paiement, son entreprise et le forfait snapshot sont cohérents.
+- Définir les règles de renouvellement : la fonction actuelle expire l'abonnement actif avant d'activer le nouveau, ce qui repart de `now()` et ne reporte pas automatiquement le temps restant.
+- Gérer explicitement les erreurs de notification sans rendre ambigu le résultat financier ; le statut et l'audit doivent rester atomiques.
+- Tester les approbations concurrentes pour une même entreprise et préserver la contrainte d'un seul abonnement actif.
+- Ne jamais permettre de rejouer une décision déjà prise : la fonction refuse déjà un paiement qui n'est plus `needs_review`.
+
+### `get_payment_recipients()`
+
+Retourne les destinataires actifs aux utilisateurs authentifiés. Le retour contient fournisseur, libellé et numéro. La fonction ne retourne pas d'identifiant de destinataire ni de clé permettant au frontend de lier une demande à une version précise du compte. Pour le futur parcours, le serveur devra choisir et figer le destinataire ; le client ne doit pas pouvoir imposer un numéro de réception arbitraire.
+
+## 12. Parcours d'interface cible — à construire
+
+### Espace entreprise
+
+- Afficher le forfait actuel et sa date d'expiration.
+- Afficher le catalogue des forfaits actifs récupérés depuis la base.
+- Après sélection d'un forfait payant, demander au serveur le moyen MonCash actif et afficher le libellé, le numéro et le montant.
+- Demander la référence de transaction après le transfert externe.
+- Soumettre la demande par RPC ; afficher un état « en attente de vérification » avec une référence Zack.
+- Afficher l'historique des demandes et leurs décisions.
+- Empêcher les doubles clics côté interface pour l'expérience utilisateur, tout en gardant l'idempotence et les contraintes côté serveur comme vraies protections.
+
+### Administration principale
+
+- Gérer les forfaits et leurs caractéristiques.
+- Gérer les comptes MonCash : ajouter, modifier, activer ou désactiver ; un seul destinataire actif pour MonCash.
+- Consulter les demandes en attente, le forfait et le montant snapshot, la référence de transaction et le destinataire qui avait été affiché.
+- Approuver ou refuser avec une note ; afficher le résultat confirmé par le serveur.
+- Consulter un historique non modifiable des changements de forfaits, de destinataires et des décisions de paiement.
+
+Aucune de ces interfaces n'est déclarée existante dans la branche actuelle. Les écrans doivent être construits après la stabilisation des contrats RPC et du modèle de données, et utiliser les fonctions serveur plutôt que des écritures directes sur les tables sensibles.
+
+## 13. Ordre de réalisation recommandé (sans déploiement)
+
+1. Définir les colonnes snapshot et les règles d'idempotence avec compatibilité des lignes historiques.
+2. Concevoir la migration additive et ses contraintes : MonCash uniquement, un seul destinataire actif, référence unique selon une règle métier explicite, snapshots immuables.
+3. Réviser les RPC de demande et de revue pour consommer les snapshots et vérifier le destinataire côté serveur.
+4. Ajouter des tests SQL automatisés des permissions, doubles demandes, références répétées, changement de prix/durée/numéro après demande, refus, approbation et concurrence.
+5. Construire l'espace entreprise et l'administration principale sur ces contrats.
+6. Tester avec des comptes distincts dans un environnement gratuit de développement.
+7. Faire une revue séparée avant toute migration sur le projet Supabase actif.
+
+Cette séquence est une proposition technique. Elle n'autorise ni migration, ni changement de production, ni activation des paiements réels.
