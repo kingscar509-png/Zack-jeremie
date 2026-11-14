@@ -245,3 +245,19 @@ Aucune modification de Supabase, aucun paiement, aucune fusion et aucun déploie
 - [ ] Implémenter et tester les RPC dans un environnement de développement gratuit, avant toute migration de production.
 
 Aucune fonction SQL n'a été modifiée et aucune requête d'écriture n'a été exécutée.
+
+
+## 22. Page de consultation des abonnements et contrat MonCash V2 — 14 novembre 2026
+
+- [x] Ajouté `src/routes/abonnements.tsx`, route `/abonnements`, en lecture seule.
+- [x] Restreint les données de la page aux entreprises dont l'utilisateur est owner/admin ; les requêtes restent soumises à RLS.
+- [x] Ajouté un lien depuis l'espace professionnel vers la consultation des abonnements.
+- [x] Affiché l'état réel : paiements non ouverts, catalogue Gratuit uniquement, destinataire MonCash non configuré.
+- [x] Aucun formulaire d'encaissement, aucune mutation de paiement, aucune écriture Supabase.
+- [x] Créé `docs/drafts/CONTRAT-TECHNIQUE-MONCASH-V2.md` avec snapshots, transitions, règles de concurrence et 24 scénarios de test.
+- [x] CI run `43627085508` sur le HEAD `ac8c979` : succès complet, installation, TypeScript, build et finalisation.
+- [ ] Tests navigateur et tests avec comptes réels (owner/admin/editor/non-membre).
+- [ ] Implémentation des RPC V2 et tests automatisés sur base locale/gratuite.
+- [ ] Interface de demande de paiement et interface de revue admin, seulement après validation des RPC.
+
+Aucune migration, aucune écriture de production, aucun paiement, aucune branche Supabase payante, aucune fusion et aucun déploiement. `main` reste intacte.
