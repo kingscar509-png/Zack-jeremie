@@ -108,7 +108,12 @@ function ProfessionalPage() {
                           <strong>{business?.name ?? 'Entreprise'}</strong>
                           <p className="muted">Rôle : {membership.role} · Statut : {business?.status ?? 'inconnu'}</p>
                         </div>
-                        {business?.slug ? <a href={`/entreprises/${business.slug}`}>Voir la fiche</a> : null}
+                        <div className="workspace-actions">
+                          {membership.role === 'owner' || membership.role === 'admin'
+                            ? <a href="/abonnements">Gérer les abonnements</a>
+                            : null}
+                          {business?.slug ? <a href={`/entreprises/${business.slug}`}>Voir la fiche</a> : null}
+                        </div>
                       </article>
                     )
                   })}
