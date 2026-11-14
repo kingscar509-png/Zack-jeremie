@@ -112,7 +112,43 @@ export const getBusinessBySlug = createServerFn({ method: 'GET' })
         return { business: null, unavailable: true }
       }
 
-      return { business: data, unavailable: false }
+      if (!data) {
+        return {
+          business: null,
+          products: [],
+          services: [],
+          catalogUnavailable: false,
+          unavailable: false,
+        }
+      }
+
+      const [productsResult, servicesResult] = await Promise.all([
+        supabase
+          .from('products')
+          .select('id, name, description, price, currency, image_url')
+          .eq('business_id', data.id)
+          .eq('is_available', true)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('services')
+          .select('id, name, description, price, currency, image_url, duration')
+          .eq('business_id', data.id)
+          .eq('is_available', true)
+          .order('created_at', { ascending: false }),
+      ])
+
+      const catalogUnavailable = Boolean(productsResult.error || servicesResult.error)
+      if (catalogUnavailable) {
+        console.error('Zack business catalog query failed.')
+      }
+
+      return {
+        business: data,
+        products: productsResult.data ?? [],
+        services: servicesResult.data ?? [],
+        catalogUnavailable,
+        unavailable: false,
+      }
     } catch {
       console.error('Zack business detail is unavailable.')
       return { business: null, unavailable: true }
