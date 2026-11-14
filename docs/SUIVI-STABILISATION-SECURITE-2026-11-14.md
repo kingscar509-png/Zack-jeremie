@@ -158,3 +158,15 @@ Aucune donnée de paiement, de compte destinataire ou de plan n'a été ajoutée
 ## 15. Nuance vérifiée — bootstrap main_admin
 
 L'index Auth `users_email_partial_key` rend l'e-mail unique sur sa valeur stockée, mais il n'est pas insensible à la casse. La fonction de bootstrap compare l'e-mail en minuscules. Le scénario de double attribution n'est pas démontré pour le parcours Auth normal, et la clé primaire `admin_roles.user_id` protège les appels concurrents du même compte. L'unicité globale de `role = 'main_admin'` n'est toutefois pas garantie par la table. Le rapport a été nuancé : ajouter une contrainte unique partielle reste une défense en profondeur ; ne pas présenter le risque de course comme une vulnérabilité exploitée ou prouvée.
+
+
+## 16. Confirmation CI et complément RLS paiements — 14 novembre 2026
+
+- [x] Vérifié que le workflow `Zack frontend checks` du commit `7a487e924c6d83697324d9318353bcec79f650c9` (run `43624550790`) est terminé avec la conclusion `success`.
+- [x] Complété l'audit des policies : forfaits actifs lisibles publiquement ; abonnements et paiements lisibles par le gestionnaire de l'entreprise concernée et `main_admin` ; événements lisibles uniquement par `main_admin` ; destinataires gérés directement uniquement par `main_admin`.
+- [x] Confirmé qu'un index unique partiel `business_subscriptions_one_active` impose déjà au plus un abonnement actif par entreprise.
+- [x] Confirmé qu'aucune policy d'écriture directe n'a été observée sur les tables d'abonnements/paiements ; le parcours repose sur les RPC dédiées.
+- [ ] Ajouter les snapshots et l'unicité du destinataire actif dans une migration additive testée, sans l'appliquer à la base active avant validation et autorisation.
+- [ ] Exécuter les tests RLS avec de vrais comptes et sessions, y compris accès interentreprises et révocation.
+
+Le succès CI ci-dessus concerne le HEAD vérifié à cet instant. Les mises à jour documentaires ajoutées ensuite doivent encore passer leur propre run CI. PR #2 reste draft et non fusionnée ; `main` et la base Supabase de production restent inchangées.
