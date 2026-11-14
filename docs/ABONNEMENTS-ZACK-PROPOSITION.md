@@ -1,15 +1,17 @@
-# Zack — Proposition des niveaux d'abonnement
+# Zack — Proposition des niveaux d'abonnement (document historique)
 
 **Date :** 13 novembre 2026  
 **Branche :** `preparation/phase-1-frontend-plan`  
-**Statut :** proposition de conception — À VALIDER — NON IMPLÉMENTÉE  
+**Statut :** document historique de conception — avantages à confirmer et configurer ; prix et périodicité remplacés par la spécification du 14 novembre 2026  
 **Portée :** entreprises de toute Haïti.
+
+> **Mise à jour du 14 novembre 2026 — référence tarifaire remplacée.** Ce document conserve les propositions fonctionnelles et les matrices d'avantages élaborées précédemment. Il n'est plus la référence pour les prix, la périodicité ou le rattachement des abonnements. La référence actuelle est [ABONNEMENTS-MONCASH-ZACK.md](ABONNEMENTS-MONCASH-ZACK.md) : Gratuit 0 HTG, Pro 750 HTG/mois, Ultra 1 000 HTG/mois ; chaque abonnement est individuel à une entreprise ; facturation mensuelle au lancement. Les mentions historiques « Payant », de facturation annuelle et les prix non confirmés sont à considérer comme propositions obsolètes. Aucun avantage non encore configuré et testé ne doit être présenté comme disponible.
 
 ## 1. Objectif
 
 Définir une offre accessible aux entreprises de toutes tailles, sans empêcher les entreprises gratuites d'être découvertes et contactées. Les abonnements financent des capacités supplémentaires, mais ne doivent pas être confondus avec la vérification administrative ni avec l'achat de publicité.
 
-Aucun prix définitif n'est fixé à ce stade.
+Les prix et la périodicité ne sont plus à définir dans ce document : consulter la spécification actuelle des abonnements et paiements MonCash.
 
 ## 2. Structure confirmée des abonnements
 
