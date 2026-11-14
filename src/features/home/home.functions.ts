@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
 import { createSupabaseServerClient } from '~/lib/supabase/server'
 
 export const getHomeData = createServerFn({ method: 'GET' }).handler(
@@ -46,9 +47,15 @@ export const getHomeData = createServerFn({ method: 'GET' }).handler(
   },
 )
 
+const businessSearchInput = z.object({
+  query: z.string().trim().max(100).optional().default(''),
+  city: z.string().trim().max(100).optional().default(''),
+  category: z.string().trim().max(100).optional().default(''),
+})
+
 export const searchBusinesses = createServerFn({ method: 'GET' })
-  .validator((query: string) => query)
-  .handler(async ({ data: query }) => {
+  .validator(businessSearchInput)
+  .handler(async ({ data }) => {
     try {
       const supabase = createSupabaseServerClient()
       let request = supabase
@@ -60,12 +67,17 @@ export const searchBusinesses = createServerFn({ method: 'GET' })
         .order('created_at', { ascending: false })
         .limit(40)
 
-      const term = query.trim()
-      if (term) {
-        request = request.textSearch('search_document', term, {
+      if (data.query) {
+        request = request.textSearch('search_document', data.query, {
           type: 'websearch',
           config: 'simple',
         })
+      }
+      if (data.city) {
+        request = request.ilike('city', `%${data.city}%`)
+      }
+      if (data.category) {
+        request = request.ilike('category', `%${data.category}%`)
       }
 
       const { data, error } = await request
