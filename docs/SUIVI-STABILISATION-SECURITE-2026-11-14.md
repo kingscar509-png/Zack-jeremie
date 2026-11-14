@@ -274,3 +274,15 @@ Aucune migration, aucune écriture de production, aucun paiement, aucune branche
 - [ ] Audit des policies multiples et index avant toute optimisation.
 
 Aucun droit, policy, index ou paramètre Auth n'a été modifié. Les avertissements Advisors ne sont pas traités comme des vulnérabilités confirmées sans analyse de leur comportement.
+
+
+## 24. Validation CI du HEAD final — 14 novembre 2026
+
+- [x] HEAD final documentaire : `1fd3e78`.
+- [x] Run push `43627253001` : succès complet, installation, TypeScript, build et finalisation.
+- [x] Run pull request `43627256502` : succès complet, installation, TypeScript, build et finalisation.
+- [x] PR #2 toujours ouverte, draft, non fusionnée et déclarée mergeable par GitHub.
+- [ ] Tests navigateur et comptes réels restent à exécuter.
+- [ ] RPC MonCash V2, migration et écrans de paiement restent à implémenter sur environnement de développement gratuit.
+
+La réussite CI ne valide pas le fonctionnement avec de vrais comptes ni les permissions RLS en situation réelle.
