@@ -122,3 +122,21 @@ Dernier commit documentaire de clarification : `77cbac6`. Le CI de ce commit et 
 - [ ] Préparer ensuite la migration MonCash uniquement et l'unicité du rôle principal administrateur, avec environnement de test gratuit.
 
 Le défaut `promotions.is_active = true` est conservé : il correspond au comportement de publication/activation immédiate décidé pour le produit et ne doit pas être changé sans décision contraire.
+
+
+## 13. Revue du schéma d'abonnement et de paiement — 14 novembre 2026
+
+- [x] Vérifié les cinq tables déjà présentes : `subscription_plans`, `business_subscriptions`, `payments`, `payment_events`, `payment_recipients`.
+- [x] Confirmé qu'un seul plan Gratuit actif existe ; Pro et Ultra ne sont pas encore configurés.
+- [x] Confirmé qu'aucun destinataire MonCash, abonnement, paiement ou événement de paiement n'est encore enregistré.
+- [x] Vérifié que la fonction de demande vérifie le rôle de gestionnaire de l'entreprise et le plan payant actif, mais accepte encore NatCash.
+- [x] Vérifié que la fonction de revue exige `main_admin`, verrouille la ligne du paiement et effectue approbation/refus et journalisation dans une transaction.
+- [x] Confirmé l'existence d'un index unique partiel empêchant la réutilisation d'une référence pour les paiements en attente de revue ou réussis.
+- [x] Mis à jour `docs/ABONNEMENTS-MONCASH-ZACK.md` pour refléter le schéma réel et les écarts.
+- [ ] Ajouter snapshots de plan/prix/durée et du compte destinataire avant encaissement réel.
+- [ ] Limiter le fournisseur à MonCash dans la fonction et la contrainte de table.
+- [ ] Créer les plans Pro/Ultra et configurer le destinataire après validation des règles et du parcours.
+- [ ] Construire l'interface de paiement : aucun fichier frontend correspondant n'existe encore dans la branche.
+- [ ] Tester le parcours complet avec comptes de test et faux paiements avant activation.
+
+Aucune donnée de paiement, de compte destinataire ou de plan n'a été ajoutée. Aucune migration n'a été appliquée.
