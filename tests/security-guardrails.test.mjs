@@ -129,3 +129,16 @@ test('les catégories de l’accueil activent le filtre catégorie de l’annuai
   assert.match(homePage, /href=\{\`\/recherche\?category=\$\{encodeURIComponent\(category\.name\)\}\`\}/)
   assert.doesNotMatch(homePage, /href=\{\`\/recherche\?q=\$\{encodeURIComponent\(category\.name\)\}\`\}/)
 })
+
+test('la fiche entreprise conserve une structure stable si le chargement échoue', () => {
+  assert.match(homeFunctions, /business: null,[\s\S]*?products: \[\],[\s\S]*?services: \[\],[\s\S]*?catalogUnavailable: false,[\s\S]*?unavailable: true/)
+})
+
+test('les liens téléphone, WhatsApp et email sont validés avant création', () => {
+  assert.match(businessPage, /function safePhone\(/)
+  assert.match(businessPage, /\^\\\+\?\\d\{6,15\}\$/)
+  assert.match(businessPage, /function safeEmail\(/)
+  assert.match(businessPage, /const phone = safePhone\(business\.phone\)/)
+  assert.match(businessPage, /const whatsapp = safePhone\(business\.whatsapp\)/)
+  assert.match(businessPage, /const email = safeEmail\(business\.email\)/)
+})
