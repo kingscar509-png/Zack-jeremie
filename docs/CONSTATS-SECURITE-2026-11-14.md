@@ -4,29 +4,20 @@ Date : 14 novembre 2026
 Projet Supabase : `hwuwqalazmrmdxseawnm`  
 Méthode : lecture des advisors, du catalogue PostgreSQL et des policies ; aucune écriture exécutée.
 
-## 1. Priorité critique — publication de contenu par les membres d'entreprise
+## 1. Fonctionnement voulu — publication directe par les membres d'entreprise
 
-Les tables `posts`, `promotions` et `business_events` possèdent des policies permissives qui autorisent les membres ayant les rôles `owner`, `admin` ou `editor` à insérer et mettre à jour leurs lignes.
+**Décision produit confirmée par le propriétaire du projet : les entreprises publient et gèrent directement leurs posts, promotions et événements. Aucun contrôle préalable ni approbation centrale Zack ne doit être ajouté.**
 
 Constats vérifiés :
-- `posts.is_published` a pour valeur par défaut `false`, mais la policy d'insertion ne limite pas cette colonne ; un membre autorisé peut donc tenter d'insérer une publication avec `is_published = true`.
-- `business_events.is_published` a aussi `false` par défaut, mais la policy d'insertion permet au membre d'envoyer explicitement `true`.
-- **`promotions.is_active` a pour valeur par défaut `true`**. La policy d'insertion permet à un membre autorisé de créer une promotion déjà active.
-- Les policies UPDATE ne séparent pas les champs éditoriaux des champs de publication/activation. Un éditeur autorisé à modifier le contenu peut également demander de modifier l'état de publication.
-- Les policies de lecture publique exposent précisément les lignes publiées/actives appartenant à une entreprise vérifiée.
+- Les policies INSERT et UPDATE autorisent les membres ayant les rôles `owner`, `admin` ou `editor` à gérer leurs contenus.
+- `posts.is_published` et `business_events.is_published` valent `false` par défaut ; les membres autorisés peuvent publier directement en fournissant `true`.
+- `promotions.is_active` vaut actuellement `true` par défaut : une nouvelle promotion peut donc être active immédiatement si le formulaire omet ce champ.
+- Les policies de lecture publique filtrent les posts publiés, promotions actives et événements publiés, et exigent une entreprise vérifiée.
 
-Conséquence : la modération centrale peut être contournée par un membre d'entreprise autorisé à gérer ses contenus. Il s'agit d'un risque de publication non approuvée, pas d'une preuve que des contenus malveillants ont déjà été publiés.
+**Interprétation corrigée :** la publication directe par les membres autorisés est conforme à la décision produit. Ce n'est pas un défaut de sécurité et aucune migration ne doit ajouter une file d'attente, une approbation Zack ou un blocage des transitions de publication.
 
-### Correction à préparer
+La sécurité à maintenir porte sur l'isolation des données et les permissions : un membre ne doit pouvoir créer, modifier ou supprimer que les contenus de son entreprise et uniquement selon son rôle. Il faut tester l'accès croisé entre deux entreprises, la révocation d'un membre et les tentatives d'accès d'un utilisateur sans appartenance. La valeur par défaut `promotions.is_active = true` est cohérente avec une activation immédiate ; elle ne doit pas être changée sans décision produit explicite.
 
-Préparer une migration additive qui :
-1. interdit aux membres ordinaires de créer des lignes déjà publiées/actives ;
-2. interdit aux membres ordinaires de faire passer une ligne brouillon à publiée/active ;
-3. conserve les droits de création et de modification des brouillons pour les rôles autorisés ;
-4. réserve les changements de publication à une permission centrale explicite, idéalement via RPC serveur contrôlée ;
-5. ajoute des tests RLS positifs et négatifs pour `anon`, membre `editor`, `owner` et administrateur de contenu.
-
-Une policy restrictive peut compléter les policies permissives existantes, mais son expression doit être testée avec le modèle réel de permissions et les flux frontend. Ne pas appliquer cette correction avant d'avoir confirmé les RPC de modération et le comportement des formulaires. Le défaut `is_active = true` des promotions doit être traité en même temps pour éviter de casser l'inscription des brouillons.
 
 ## 2. Priorité élevée — initialisation de l'administrateur principal
 
@@ -140,33 +131,25 @@ Lecture en mode SELECT des fonctions, policies et triggers le 14 novembre 2026 :
 Conclusion : le flux de création possède plusieurs protections utiles et aucun changement de base n'est justifié à ce stade. Conserver le point de non-atomicité du champ ville comme dette technique, puis prévoir des limites de taille côté SQL pour renforcer la validation au-delà du frontend.
 
 
-## 10. Vérification approfondie — contrôle de publication et d'activation
+## 10. Vérification approfondie — publication directe confirmée
 
-Contrôle en lecture seule du catalogue PostgreSQL le 14 novembre 2026 :
+La lecture en mode SELECT du catalogue PostgreSQL confirme :
 
-- Les policies INSERT et UPDATE des trois tables autorisent les rôles d'entreprise `owner`, `admin` et `editor` sans condition sur `is_published` / `is_active`.
-- Les policies `Admins manage content` sur `posts` et `promotions` sont permissives (`ALL`) et appellent `is_zack_admin('content')`. Comme elles coexistent avec les policies permissives des membres, elles n'imposent pas à elles seules une validation centrale.
-- Les policies de lecture publique filtrent bien les posts publiés, les promotions actives et les événements publiés, et exigent une entreprise vérifiée.
-- Les triggers présents sur ces tables sont des triggers de mise à jour de date, de notification ou d'audit de suppression. **Aucun trigger de protection de publication/activation n'a été trouvé** sur `posts`, `promotions` ou `business_events`.
-- La recherche des fonctions publiques dont le nom évoque la publication, la modération, les posts, les promotions ou les événements n'a révélé aucune RPC dédiée de validation de ces contenus. Les notifications SECURITY DEFINER ne constituent pas une fonction de modération.
-- Les valeurs par défaut sont confirmées : `posts.is_published = false`, `business_events.is_published = false`, mais `promotions.is_active = true`.
+- Les policies INSERT et UPDATE des trois tables autorisent les rôles d'entreprise `owner`, `admin` et `editor` sans imposer d'approbation centrale.
+- Les policies d'administration Zack coexistent avec les policies des membres ; elles n'empêchent pas la publication directe des membres.
+- Les policies de lecture publique filtrent les contenus selon leurs états de publication/activation et l'état de vérification de l'entreprise.
+- Aucun trigger de modération préalable ni RPC de validation n'a été trouvé sur `posts`, `promotions` ou `business_events`.
 
-### Décision technique proposée
+Ces comportements sont compatibles avec la décision produit : **publication directe par les membres autorisés, sans modération préalable**. Aucun garde-fou de validation, policy restrictive, trigger de publication ou changement du défaut `promotions.is_active` ne doit être ajouté.
 
-La correction la plus cohérente à préparer est un garde-fou PostgreSQL commun (fonction trigger dédiée, attachée aux trois tables) qui compare l'état ancien et le nouvel état :
+Travail de sécurité restant pertinent :
+1. tester qu'un membre de l'entreprise A ne peut pas lire/modifier/supprimer les contenus privés de l'entreprise B ;
+2. vérifier que les rôles autorisés et les rôles en lecture seule ont exactement les droits attendus ;
+3. tester qu'après révocation d'un membre, ses anciennes permissions ne fonctionnent plus ;
+4. vérifier que la publication directe ne permet pas de modifier le statut de vérification de l'entreprise ;
+5. couvrir ces scénarios dans les tests d'intégration RLS.
 
-1. À l'insertion, refuser `is_published = true` ou `is_active = true` pour un appelant authentifié qui n'est pas administrateur Zack avec la permission `content`.
-2. À la mise à jour, refuser toute transition brouillon/inactif vers publié/actif par un non-administrateur ; permettre aux membres autorisés de continuer à éditer leurs contenus sans changer l'état de publication.
-3. Préserver la capacité des administrateurs de contenu à publier, dépublier et activer/désactiver.
-4. Pour les appels serveur privilégiés, définir explicitement le comportement attendu et le tester : ne pas confondre un rôle JWT `service_role` avec un administrateur humain, ni autoriser une élévation via des paramètres contrôlés par le client.
-5. Changer le défaut de `promotions.is_active` à `false` dans la même migration que le garde-fou, après vérification du formulaire de création et de l'interface d'administration.
-6. Ajouter des tests automatisés d'intégration : INSERT brouillon et INSERT publié, UPDATE de contenu, transition vers publié, dépublication, activation et désactivation ; exécuter ces scénarios avec anon, utilisateur authentifié sans rôle, editor, owner, administrateur contenu et main_admin.
-
-Ce choix évite de compter sur une nouvelle policy permissive qui serait combinée par OR avec les policies actuelles. Une policy restrictive reste techniquement envisageable, mais elle doit être écrite et testée avec soin pour ne pas bloquer les lectures publiques, les éditions normales ou les écritures d'administration.
-
-**Aucune correction n'a été appliquée.** L'interface frontend de création/modification n'a pas encore été reliée à cette analyse par une revue de tous ses formulaires ; cette vérification reste nécessaire avant de produire la migration. Ne pas appliquer le changement de défaut seul : avec l'état actuel des policies, un client peut toujours envoyer explicitement `is_active = true`.
-
-
+**Aucune correction n'a été appliquée.** L'interface actuelle ne contient pas encore les écrans frontend de gestion des posts, promotions et événements ; ils devront respecter ce modèle de publication directe.
 
 ## 11. Vérification ciblée — bootstrap administrateur et demande de paiement
 
@@ -205,22 +188,16 @@ Le contrôle de rôle et l'atomicité des trois insertions sont positifs. L'inco
 **Aucune fonction, contrainte, donnée, ACL ou configuration n'a été modifiée.** Ces deux corrections restent à tester dans un environnement de développement avant toute migration vers la base active.
 
 
-## 12. Raccordement au frontend — périmètre réellement présent dans la branche
+## 12. Raccordement au frontend — périmètre et décision produit
 
-Inspection de l'arbre des fichiers au commit `530c24c03fe3b10c947e28be9243211cfd7133d7` :
+Inspection de l'arbre des fichiers : aucun écran frontend distinct de création/modification des `posts`, `promotions` ou `business_events` n'est présent dans la branche actuelle.
 
-- Le frontend source contient les routes d'accueil, authentification, profil, espace professionnel, recherche, fiche entreprise et notifications.
-- Aucun écran ou module frontend distinct de création/modification des `posts`, `promotions` ou `business_events` n'est présent dans l'arbre de fichiers de cette branche.
-- Aucun formulaire existant de publication ou de promotion n'a donc pu être vérifié pour savoir s'il envoie explicitement `is_published` ou `is_active`, ni pour identifier le parcours d'approbation attendu.
-- L'absence de ces écrans dans la branche ne prouve pas qu'aucun client externe ou ancien frontend ne sollicite les tables/RPC ; la base doit rester protégée côté PostgreSQL indépendamment de l'interface.
+La décision produit est désormais explicite : les entreprises doivent pouvoir publier directement, sans approbation de l'équipe Zack. Les futurs écrans devront donc :
+- permettre aux rôles autorisés de créer et publier immédiatement ;
+- permettre de modifier/désactiver leurs propres contenus selon les permissions métier ;
+- présenter clairement les états publié/actif ;
+- ne pas introduire de statut « en attente de validation Zack ».
 
-### Conséquence pour la suite
+La sécurité doit être testée au niveau de l'appartenance à l'entreprise et des rôles, pas par un mécanisme de modération préalable.
 
-Le garde-fou PostgreSQL reste prioritaire, mais il faut éviter de concevoir une migration en supposant un formulaire qui n'existe pas dans le code actuel. Avant la migration :
-1. décider du parcours produit : publication immédiate par l'entreprise ou soumission en attente de validation Zack ;
-2. définir explicitement le rôle de l'entreprise autorisé à soumettre (owner/admin/editor) et celui qui approuve (administrateur Zack avec permission content) ;
-3. construire les écrans brouillon/soumission/modération avec états explicites ;
-4. ajouter les tests d'intégration SQL/RLS décrits à la section 10 ;
-5. appliquer le garde-fou et le défaut `promotions.is_active = false` uniquement dans une migration testée, jamais comme changement isolé.
-
-**État : analyse terminée, correction non appliquée.** Aucun changement de production, de branche `main`, ni dépense n'a été effectué.
+**État : modèle produit confirmé ; aucun changement de production ni migration appliquée.**
