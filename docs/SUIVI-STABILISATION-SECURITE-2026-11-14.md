@@ -85,3 +85,15 @@ Branche de production protégée : `main` (aucune modification)
 - En cas d'erreur pendant la création d'entreprise, le message demande de vérifier la liste des entreprises avant de renvoyer la demande, car le résultat serveur peut être incertain.
 - Le RPC `create_business` a été relu en lecture seule : il insère l'entreprise et son propriétaire dans une seule transaction PostgreSQL, mais ne prend pas la ville en argument. Le code frontend enregistre donc la ville par une mise à jour séparée après le RPC. Ce parcours n'est pas atomique pour la ville ; une migration contrôlée serait nécessaire pour intégrer la ville au RPC. Aucun changement SQL n'a été appliqué.
 - Le run CI `43622633127` est en cours pour le commit des correctifs de gestion réseau. Aucun succès n'est revendiqué avant sa conclusion.
+
+
+## 10. Revue publication — état du 14 novembre 2026
+
+- [x] Policies INSERT/UPDATE, defaults, fonctions de modération et triggers des tables `posts`, `promotions`, `business_events` inspectés en lecture seule.
+- [x] Confirmé qu'aucune RPC dédiée de modération/publication ni trigger de protection de transition n'existe actuellement sur ces tables.
+- [x] Confirmé que les écrans frontend de gestion de posts/promotions/événements ne sont pas présents dans l'arbre source actuel ; le parcours de soumission/approbation reste donc à définir avant migration.
+- [x] Ajouté les constats et la décision de conception à préparer dans `docs/CONSTATS-SECURITE-2026-11-14.md` (section 12).
+- [ ] Concevoir et tester le parcours de modération complet avant d'écrire une migration.
+- [ ] Ne pas modifier la base de production : les valeurs par défaut, policies et triggers restent inchangés.
+
+Dernier commit documentaire : `a16ef9f20fe0d2fdf256b7f95aabae08d29ef2b4`. Le CI du commit précédent `530c24c` est réussi ; le nouveau commit documentaire doit encore être vérifié séparément.
