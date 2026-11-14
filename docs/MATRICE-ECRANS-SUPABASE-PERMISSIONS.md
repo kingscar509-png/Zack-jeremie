@@ -1,7 +1,7 @@
 # Zack — matrice des écrans, données Supabase et permissions
 
-Date : 12 novembre 2026  
-Branche : `preparation/phase-1-frontend-plan`  
+Dernière mise à jour : 14 novembre 2026  
+Branche de travail : `hardening/phase-1-stabilisation`  
 Statut : document de conception — aucune migration ni modification Supabase n'est exécutée ici.
 
 ## 1. Règles de lecture et limites
@@ -45,15 +45,15 @@ Cette matrice s'appuie sur l'audit statique du frontend GitHub et sur l'inventai
 | 4 | Fiche entreprise — `/entreprises/:slug` | `businesses`, `business_hours`, `business_media`, `categories`, `business_rating_summary`, `reviews`, `business_favorites` | Consulter identité, coordonnées, horaires, médias, avis ; ajouter/retirer favori | Public pour fiche publiée ; client connecté pour son favori | Données principales existantes. Confirmer slug, statut de visibilité, liens catégorie et règles de lecture des avis. |
 | 5 | Détail produit — `/produits/:id` | `products`, `product_images`, `product_categories`, `businesses` | Consulter produit, images et entreprise ; contacter ou ajouter au panier lorsque disponible | Public si produit publié ; actions personnelles après connexion | Catalogue existant. Vérifier la relation produit-entreprise et corriger le risque signalé de rattachement d'un produit à une autre entreprise. |
 | 6 | Détail service — `/services/:id` | `services`, `businesses` | Consulter description, conditions et coordonnées de l'entreprise | Public si service publié | Tables identifiées. Confirmer les champs, la disponibilité et les règles de publication. |
-| 7 | Créer une publication — `/pro/publications/nouvelle` | `posts`, `businesses`, `business_members`, `business_media` / Storage | Rédiger, joindre média, enregistrer brouillon ou publier | Propriétaire ou membre autorisé pour cette entreprise | `posts` et médias identifiés. Définir rôles autorisés, modération, limites de fichiers et statut brouillon/public. |
-| 8 | Promotions et événements — `/pro/contenus` | `promotions`, `business_events`, `businesses` | Créer, modifier, désactiver promotions et événements | Propriétaire ou membre autorisé | Tables identifiées. Confirmer dates, fuseau horaire, expiration, publication et règles de visibilité. |
+| 7 | Créer une publication — `/pro/publications/nouvelle` | `posts`, `businesses`, `business_members`, `business_media` / Storage | Rédiger, joindre média, enregistrer un brouillon ou publier directement | Propriétaire ou membre autorisé pour cette entreprise | `posts` et médias identifiés. Publication directe par les rôles autorisés ; aucune approbation préalable. Vérifier les limites de fichiers, les rôles et la visibilité publique. |
+| 8 | Promotions et événements — `/pro/contenus` | `promotions`, `business_events`, `businesses` | Créer, modifier, désactiver promotions et événements | Propriétaire ou membre autorisé | Tables identifiées. Confirmer dates, fuseau horaire, expiration et règles de visibilité ; publication directe sans approbation préalable. |
 | 9 | Messagerie — `/messages` | Aucune table de messagerie identifiée | Lister conversations, envoyer et recevoir messages, pièces jointes, états de lecture | Participants uniquement ; équipe selon règles explicites | **À construire en base** : conversations, participants, messages, pièces jointes et éventuellement états de lecture. RLS stricte indispensable. |
 | 10 | Profil personnel — `/profil` | `profiles`, `business_favorites`, `reviews`, `notifications`, `notification_preferences` | Modifier profil, gérer favoris, consulter ses avis et préférences | Utilisateur connecté, uniquement ses données | Tables identifiées. Le profil est signalé privé ; prévoir une projection publique limitée si un nom d'auteur doit être affiché sur un avis. |
 | 11 | Espace professionnel — `/pro` | `businesses`, `business_members`, `business_hours`, `business_media`, `products`, `services`, `posts`, `promotions`, `business_events` | Modifier fiche, horaires, catalogue et contenus ; gérer accès équipe selon permissions | Propriétaire/membre autorisé pour l'entreprise sélectionnée | Plusieurs tables existent. Clarifier le modèle de sélection d'entreprise et les permissions par action. |
 | 12 | Notifications — `/notifications` | `notifications`, `notification_preferences`, `push_subscriptions` | Lire, marquer comme lue, configurer préférences, gérer abonnement push | Utilisateur connecté, uniquement ses notifications et abonnements | Tables identifiées. Confirmer le modèle d'appartenance, les événements générateurs et la suppression des tokens push. |
 | 13 | Panier / commande — `/panier`, `/commandes/nouvelle` | Aucune table de commande identifiée ; catalogue `products`, `businesses` | Préparer une demande, préciser quantité et coordonnées, envoyer une commande | Client connecté ; entreprise destinataire selon accès défini | **À construire en base** : commandes, lignes, états, adresses/contact et historique. Au lancement, commande sans paiement en ligne. |
-| 14 | Paiement — `/paiement` | Aucune table de paiement/abonnement identifiée | Payer un abonnement Zack via MonCash ; consulter résultat | Utilisateur autorisé à acheter l'abonnement ; validation côté serveur | **À construire en base et serveur** : tentatives, références fournisseur, montants, devise, statuts, idempotence et journal. Ne pas activer le paiement de commandes au lancement. |
-| 15 | Historique des transactions — `/transactions` | Aucune table de transaction identifiée | Consulter reçus et statuts de ses paiements | Utilisateur concerné ; admin selon permission | **À construire en base**. Ne montrer que les transactions confirmées par vérification serveur. |
+| 14 | Paiement — `/paiement` | Tables `subscription_plans`, `business_subscriptions`, `payments`, `payment_events` et `payment_recipients` présentes | Payer un abonnement Zack via MonCash ; consulter résultat | Utilisateur autorisé à acheter l'abonnement ; validation côté serveur | Tables déjà présentes ; parcours frontend absent, plans Pro/Ultra et destinataire non configurés. RPC à corriger pour MonCash uniquement, snapshots, demande unique en attente, idempotence et audit avant encaissement. |
+| 15 | Historique des transactions — `/transactions` | Table `payments` existante ; historique des transactions à construire dans l'interface | Consulter reçus et statuts de ses paiements | Utilisateur concerné ; admin selon permission | La table `payments` et les événements existent ; construire la consultation frontend et ne montrer comme payées que les transactions confirmées par vérification serveur. |
 | 16 | Suivi de commande — `/commandes/:id` | Aucune table de commande identifiée | Voir statut, détails et échanges liés à la commande | Client propriétaire et entreprise destinataire ; admin selon permission | **À construire en base** : transitions de statut contrôlées, horodatage et historique. Pas de faux suivi si l'entreprise n'a pas mis à jour le statut. |
 | 17 | Administration — `/admin` | `admin_roles`, `admin_audit_log`, `site_settings`, `businesses`, `business_stats_events`, fonctions admin existantes | Vérifier entreprises, gérer paramètres et administrateurs, consulter statistiques et journal | Administrateur avec permission explicite par action | Tables et fonctions signalées existantes. Vérifier signatures, droits d'exécution, RLS et journalisation avant branchement. Ne jamais faire confiance à un email codé dans le frontend. |
 
@@ -72,9 +72,9 @@ Cette matrice s'appuie sur l'audit statique du frontend GitHub et sur l'inventai
 | `product_images` | Images produits | Vérifier l'appartenance de l'image au produit et à l'entreprise. |
 | `product_categories` | Classement des produits | Vérifier intégrité des relations. |
 | `services` | Catalogue services | Vérifier publication et appartenance à l'entreprise. |
-| `posts` | Publications | Vérifier auteur, entreprise, statut et modération. |
-| `promotions` | Promotions | Vérifier dates et conditions. |
-| `business_events` | Événements d'entreprise | Vérifier dates, visibilité et expiration. |
+| `posts` | Publications | Publication directe par les rôles autorisés ; vérifier auteur, entreprise, statut et isolation RLS. |
+| `promotions` | Promotions | Vérifier dates et conditions ; publication directe par les rôles autorisés. |
+| `business_events` | Événements d'entreprise | Vérifier dates, visibilité et expiration ; publication directe par les rôles autorisés. |
 | `reviews` | Avis clients | Vérifier auteur, modération, modification et suppression. Un bug de trigger est signalé. |
 | `business_favorites` | Favoris d'entreprises | Vérifier unicité et accès limité au propriétaire du favori. |
 | `reports` | Signalements | Vérifier confidentialité et accès admin. |
@@ -116,6 +116,7 @@ Les fonctionnalités suivantes ne figurent pas dans l'inventaire communiqué. El
 - Règle d'accès : client propriétaire, entreprise destinataire et administrateur autorisé.
 
 ### Paiements et abonnements Zack
+Les tables `subscription_plans`, `business_subscriptions`, `payments`, `payment_events` et `payment_recipients` existent déjà. Les écrans frontend, les snapshots immuables et le contrat RPC corrigé restent à construire.
 - Abonnement, offre, période, statut et historique.
 - Tentative de paiement et référence MonCash.
 - Montant/devise attendus, statut fournisseur, dates et identifiant d'idempotence.
@@ -170,3 +171,11 @@ Les fonctionnalités suivantes ne figurent pas dans l'inventaire communiqué. El
 - Confirmation des statuts d'entreprise, publication, avis et rôles réellement utilisés.
 
 **Aucune table, fonction, politique, donnée ou configuration Supabase n'a été modifiée lors de la rédaction de ce document.**
+
+
+## 10. Décisions produit actualisées — 14 novembre 2026
+
+- Les posts, promotions et événements sont publiés directement par les rôles autorisés ; aucune approbation centrale préalable ne doit être ajoutée.
+- Les contrôles de sécurité reposent sur l'appartenance à l'entreprise, les rôles, RLS et l'isolation interentreprises.
+- Les tables d'abonnement et de paiement existent déjà ; le travail restant porte sur les RPC, snapshots, interfaces et tests, pas sur la création initiale de ces cinq tables.
+- Lancement : grand lancement public national en Haïti. Tous les modules réellement disponibles sont accessibles à tous ; les modules incomplets sont clairement marqués indisponibles ou en préparation.
