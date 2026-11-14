@@ -12,7 +12,7 @@ export const getCurrentAccount = createServerFn({ method: 'GET' }).handler(
       } = await supabase.auth.getUser()
 
       if (authError || !user) {
-        return { user: || undefined, profile: || undefined, businesses: [] }
+        return { user: null, profile: null, businesses: [] }
       }
 
       const [profileResult, membershipResult] = await Promise.all([
