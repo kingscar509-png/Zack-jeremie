@@ -6,6 +6,10 @@ const subscriptionsPage = readFileSync(
   new URL('../src/routes/abonnements.tsx', import.meta.url),
   'utf8',
 )
+const homePage = readFileSync(
+  new URL('../src/routes/index.tsx', import.meta.url),
+  'utf8',
+)
 const searchPage = readFileSync(
   new URL('../src/routes/recherche.tsx', import.meta.url),
   'utf8',
@@ -119,4 +123,9 @@ test('le gestionnaire conserve le retour de mutation après le rechargement du c
   assert.match(catalogManager, /setMessage\(result\.message\)[\s\S]*?await refresh\(\)/)
   assert.match(catalogManager, /setKind\('product'\)[\s\S]*?disabled=\{busy\}/)
   assert.match(catalogManager, /setKind\('service'\)[\s\S]*?disabled=\{busy\}/)
+})
+
+test('les catégories de l’accueil activent le filtre catégorie de l’annuaire', () => {
+  assert.match(homePage, /href=\{\`\/recherche\?category=\$\{encodeURIComponent\(category\.name\)\}\`\}/)
+  assert.doesNotMatch(homePage, /href=\{\`\/recherche\?q=\$\{encodeURIComponent\(category\.name\)\}\`\}/)
 })
