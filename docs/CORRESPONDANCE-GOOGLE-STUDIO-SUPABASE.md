@@ -1,3 +1,5 @@
+> ⚠️ **Document historique — inventaire Supabase dépassé.** Cette analyse du 12 novembre 2026 décrit l'état antérieur aux migrations M8 à M13. Au 14 novembre 2026, l'inventaire en lecture seule confirme 38 tables publiques avec RLS activée, dont `conversations`, `messages`, `orders`, `payments` et `business_subscriptions`. Les parcours correspondants ne sont pas pour autant prêts côté frontend ni validés en sécurité. Pour l'état actuel, consulter [`ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md`](./ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md). Ne pas utiliser les affirmations « aucune table » de ce document comme état de la base.
+
 # Zack — Correspondance du prototype Google Studio avec Supabase
 
 Date : 12 novembre 2026  
