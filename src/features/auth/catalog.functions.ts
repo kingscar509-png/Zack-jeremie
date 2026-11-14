@@ -61,6 +61,7 @@ const catalogMutation = z.object({
   currency: z.enum(['HTG', 'USD']).optional().default('HTG'),
   imageUrl: z.string().trim().max(500).url().or(z.literal('')).optional().default(''),
   duration: z.string().trim().max(100).optional().default(''),
+  isAvailable: z.boolean().optional().default(true),
 })
 
 export const saveCatalogItem = createServerFn({ method: 'POST' })
@@ -96,7 +97,7 @@ export const saveCatalogItem = createServerFn({ method: 'POST' })
       price: data.price ?? null,
       currency: data.currency ?? 'HTG',
       image_url: data.imageUrl || null,
-      is_available: true,
+      is_available: data.isAvailable,
       updated_at: new Date().toISOString(),
     }
 
