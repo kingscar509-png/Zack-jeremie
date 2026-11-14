@@ -27,15 +27,20 @@ function ProfilePage() {
     }
 
     setBusy(true)
-    const { error } = await supabase.from('profiles').upsert({
-      id: account.user.id,
-      full_name: fullName.trim() || null,
-      phone: phone.trim() || null,
-    })
-    setBusy(false)
-    setMessage(error
-      ? 'Le profil n’a pas pu être enregistré. Vérifiez vos droits ou réessayez.'
-      : 'Votre profil a été mis à jour.')
+    try {
+      const { error } = await supabase.from('profiles').upsert({
+        id: account.user.id,
+        full_name: fullName.trim() || null,
+        phone: phone.trim() || null,
+      })
+      setMessage(error
+        ? 'Le profil n’a pas pu être enregistré. Vérifiez vos droits ou réessayez.'
+        : 'Votre profil a été mis à jour.')
+    } catch {
+      setMessage('Une erreur temporaire a empêché l’enregistrement. Réessayez dans quelques instants.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
