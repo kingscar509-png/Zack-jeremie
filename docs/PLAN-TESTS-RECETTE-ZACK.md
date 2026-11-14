@@ -141,8 +141,8 @@ Ces scénarios doivent d'abord être testés sur un environnement de développem
 - Audit statique de l'ancien frontend : effectué.
 - Inventaire Supabase en lecture seule : effectué.
 - Types TypeScript Supabase : générés depuis le schéma actuel et enregistrés dans le dépôt.
-- Routes frontend initiales : écrites.
-- Build TypeScript/Vite : non exécuté.
+- Routes frontend initiales : écrites ; page de consultation des abonnements `/abonnements` ajoutée en lecture seule pour owner/admin.
+- Build TypeScript/Vite : réussi sur le HEAD `ac8c979` (run CI `43627085508`, installation, TypeScript, build et finalisation terminés).
 - Tests navigateur : non exécutés.
 - Tests de sécurité avec comptes réels de test : non exécutés.
 - Déploiement : non effectué.
@@ -155,3 +155,15 @@ Ne jamais marquer une étape comme réussie sans résultat de test observé.
 - Run `43625298753` sur le commit `4a71e16` : succès confirmé, installation, TypeScript, build de production et finalisation terminés.
 - Les commits documentaires postérieurs déclenchent de nouveaux runs ; ne pas annoncer leur succès tant que leur conclusion finale n'est pas observée.
 - Les tests navigateur, les tests RLS avec comptes réels et la recette complète restent non exécutés.
+
+
+## 12. Mise à jour — consultation des abonnements
+
+Le 14 novembre 2026, une page `/abonnements` a été ajoutée à la branche de stabilisation :
+- authentification vérifiée côté serveur ;
+- liste limitée aux entreprises dont l'utilisateur est owner/admin ;
+- lecture des plans actifs, abonnements et paiements selon les RLS existantes ;
+- lecture de la disponibilité d'un destinataire MonCash ;
+- aucune création de demande, aucun encaissement et aucun changement d'état.
+
+Tests à faire avec des comptes réels : owner, admin, editor, utilisateur sans entreprise, entreprise multiple, session expirée, et accès interentreprises. Le parcours de paiement reste désactivé tant que les RPC MonCash ne sont pas corrigés et testés.
