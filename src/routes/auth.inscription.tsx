@@ -31,12 +31,20 @@ function SignUpPage() {
     }
 
     setBusy(true)
-    const { error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: { data: { full_name: name.trim() } },
-    })
-    setBusy(false)
+    let error: { message: string } | null = null
+    try {
+      const result = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { data: { full_name: name.trim() } },
+      })
+      error = result.error
+    } catch {
+      setMessage('Le service d’inscription est momentanément indisponible. Réessayez.')
+      return
+    } finally {
+      setBusy(false)
+    }
 
     if (error) {
       setMessage('La création du compte a échoué. Vérifiez les informations ou réessayez plus tard.')
