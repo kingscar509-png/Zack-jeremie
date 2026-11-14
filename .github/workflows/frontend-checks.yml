@@ -4,17 +4,24 @@ on:
   push:
     branches:
       - preparation/phase-1-frontend-plan
+      - hardening/phase-1-stabilisation
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: zack-frontend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     name: TypeScript and production build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
