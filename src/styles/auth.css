@@ -34,6 +34,19 @@
 .workspace-item { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 15px; border: 1px solid var(--border); border-radius: 12px; }
 .workspace-item p { margin: 5px 0 0; }
 .business-form { max-width: 720px; margin-top: 20px; }
+
+.catalog-business { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+.catalog-business h3 { margin: 0 0 4px; font-size: 16px; }
+.catalog-manager { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.catalog-panel { min-width: 0; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--page); }
+.catalog-panel h4 { margin: 0 0 12px; font-size: 15px; }
+.catalog-form { padding-top: 14px; border-top: 1px solid var(--border); }
+.catalog-form h5 { margin: 0 0 5px; font-size: 13px; }
+.workspace-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.workspace-actions .button { font-size: 11px; padding: 9px 12px; }
+.catalog-availability { display: flex; align-items: center; gap: 9px; }
+.catalog-availability input { width: auto; }
+
 .form-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-columns > div { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
 @media (max-width: 560px) {
