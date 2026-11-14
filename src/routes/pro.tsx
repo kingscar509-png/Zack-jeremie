@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { getCurrentAccount, createBusiness } from '~/features/auth/auth.functions'
 import { SiteHeader } from '~/components/layout/SiteHeader'
 import { getSupabaseBrowserClient } from '~/lib/supabase/client'
+import { CatalogManager } from '~/components/business/CatalogManager'
 import type { Database } from '~/types/database.types'
 
 export const Route = createFileRoute('/pro')({
@@ -104,18 +105,21 @@ function ProfessionalPage() {
                       ? membership.businesses[0]
                       : membership.businesses
                     return (
-                      <article className="workspace-item" key={membership.business_id}>
-                        <div>
-                          <strong>{business?.name ?? 'Entreprise'}</strong>
-                          <p className="muted">Rôle : {membership.role} · Statut : {business?.status ?? 'inconnu'}</p>
-                        </div>
-                        <div className="workspace-actions">
-                          {membership.role === 'owner' || membership.role === 'admin'
-                            ? <a href="/abonnements">Gérer les abonnements</a>
-                            : null}
-                          {business?.slug ? <a href={`/entreprises/${business.slug}`}>Voir la fiche</a> : null}
-                        </div>
-                      </article>
+                      <div className="workspace-business" key={membership.business_id}>
+                        <article className="workspace-item">
+                          <div>
+                            <strong>{business?.name ?? 'Entreprise'}</strong>
+                            <p className="muted">Rôle : {membership.role} · Statut : {business?.status ?? 'inconnu'}</p>
+                          </div>
+                          <div className="workspace-actions">
+                            {membership.role === 'owner' || membership.role === 'admin'
+                              ? <a href="/abonnements">Gérer les abonnements</a>
+                              : null}
+                            {business?.slug ? <a href={`/entreprises/${business.slug}`}>Voir la fiche</a> : null}
+                          </div>
+                        </article>
+                        <CatalogManager businessId={membership.business_id} role={membership.role} />
+                      </div>
                     )
                   })}
                 </div>
