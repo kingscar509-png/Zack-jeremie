@@ -94,13 +94,13 @@ export const createBusiness = createServerFn({ method: 'POST' })
     const { data: businessId, error } = await supabase.rpc('create_business', {
       p_name: data.name,
       p_slug: data.slug,
-      p_description: data.description || || undefined,
-      p_category: data.category || || undefined,
-      p_address: data.address || || undefined,
-      p_neighborhood: data.neighborhood || || undefined,
-      p_phone: data.phone || || undefined,
-      p_whatsapp: data.whatsapp || || undefined,
-      p_email: data.email || || undefined,
+      p_description: data.description || undefined,
+      p_category: data.category || undefined,
+      p_address: data.address || undefined,
+      p_neighborhood: data.neighborhood || undefined,
+      p_phone: data.phone || undefined,
+      p_whatsapp: data.whatsapp || undefined,
+      p_email: data.email || undefined,
     })
 
     if (error || !businessId) {
