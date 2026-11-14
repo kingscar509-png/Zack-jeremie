@@ -31,7 +31,7 @@ Aucune facturation annuelle n'est retenue au lancement.
 - Les permissions sont vérifiées à partir de l'appartenance et du rôle de l'utilisateur sur l'entreprise concernée.
 - Les abonnements d'une entreprise ne donnent aucun droit sur les données d'une autre entreprise.
 
-Le modèle doit donc rattacher `subscriptions.business_id` à `businesses.id`. Le compte qui initie la demande et l'administrateur qui vérifie le paiement sont enregistrés séparément pour l'audit.
+Le modèle doit donc rattacher `business_subscriptions.business_id` à `businesses.id`. Le compte qui initie la demande et l'administrateur qui vérifie le paiement sont enregistrés séparément pour l'audit.
 
 ## 3. Comptes de réception MonCash
 
@@ -71,14 +71,14 @@ Les noms ci-dessous sont des noms de travail. Ils doivent être comparés au sch
 ### `subscription_plans`
 Catalogue des forfaits configurables : code, nom, description, montant, devise, périodicité, avantages/fonctionnalités, quotas, ordre d'affichage et statut actif.
 
-### `subscriptions`
-Historique des périodes d'abonnement rattachées à une entreprise : `business_id`, forfait, statut, dates de début et de fin, créateur, horodatages et instantané des conditions tarifaires acceptées.
+### `business_subscriptions` (table déjà présente)
+Historique des périodes d'abonnement rattachées à une entreprise : `business_id`, `plan_id`, statut, dates de début et de fin, créateur et horodatage. Le schéma actuel ne contient pas encore d'instantané des conditions tarifaires acceptées.
 
-### `moncash_receiving_accounts`
-Comptes destinataires : libellé, numéro de réception, état actif/inactif, dates de création et de modification, auteur des changements. Accès de gestion réservé à l'administrateur principal.
+### `payment_recipients` (table déjà présente)
+Comptes destinataires : fournisseur, libellé, numéro de réception et état actif/inactif. Le schéma actuel ne contient pas d'auteur de modification, de date de mise à jour ni de lien d'historique entre un paiement et le compte destinataire utilisé. RLS réserve la gestion à `main_admin`.
 
-### `subscription_payments`
-Historique des demandes et vérifications : abonnement, entreprise, référence MonCash, montant, devise, statut, compte destinataire utilisé (instantané du libellé et du numéro), auteur de la demande, vérificateur, dates de soumission et de vérification, motif de refus et chemin du justificatif éventuel.
+### `payments` (table déjà présente)
+Historique des demandes et vérifications : abonnement, entreprise, fournisseur, référence, montant, devise, statut, auteur de la demande, vérificateur, dates de soumission et de vérification, motif de refus. Le schéma actuel ne contient pas encore de snapshot du compte destinataire, de snapshot du forfait/prix ni de chemin de justificatif.
 
 ## 6. Règles d'intégrité et de sécurité à prévoir
 
@@ -86,7 +86,7 @@ Historique des demandes et vérifications : abonnement, entreprise, référence 
 - Index sur les clés étrangères et les colonnes de recherche par entreprise, statut et date.
 - Contraintes positives sur les montants et périodes valides.
 - Référence de transaction protégée contre les doublons.
-- Snapshots du forfait, du montant, de la devise, de la périodicité et du compte destinataire conservés pour chaque demande ; les changements ultérieurs de configuration ne réécrivent pas l'historique.
+- À ajouter avant l'encaissement réel : snapshots du forfait, du montant, de la devise, de la périodicité et du compte destinataire conservés pour chaque demande ; le schéma actuel ne les stocke pas encore.
 - Les propriétaires et membres autorisés ne consultent que les abonnements des entreprises sur lesquelles ils disposent des droits requis.
 - La soumission d'une demande par le client ne peut pas modifier les statuts de vérification ou d'activation.
 - La vérification et l'activation sont des opérations serveur contrôlées, atomiques et journalisées.
@@ -113,4 +113,35 @@ Le forfait Gratuit reste disponible à 0 HTG. Une entreprise peut rester gratuit
 5. Préparer une migration additive, la relire, puis la tester dans un environnement de développement avant toute application à la base principale.
 6. Tester les scénarios propriétaire multi-entreprises, plusieurs forfaits, paiement en doublon, refus, renouvellement, expiration, changement de compte MonCash et accès d'un administrateur non autorisé.
 
-**État au 14 novembre 2026 :** les quatre tables dédiées aux abonnements et paiements ne figurent pas dans l'inventaire actuel des 24 tables publiques. Aucune migration d'abonnement, aucun compte MonCash ni aucun paiement n'a été créé ou activé. Cette spécification ne constitue pas une autorisation de déployer ou de migrer.
+**État vérifié au 14 novembre 2026 :** le schéma contient déjà `subscription_plans`, `business_subscriptions`, `payments`, `payment_events` et `payment_recipients`. Une seule ligne de forfait existe : `gratuit` à 0 HTG, actif. Aucun destinataire de paiement, abonnement, paiement ni événement de paiement n'est enregistré. Les colonnes de snapshot prévues ne sont pas encore présentes. La fonction de demande accepte encore NatCash et MonCash, alors que le lancement est MonCash uniquement. La fonction de validation est réservée à `main_admin`. Cette spécification ne constitue pas une autorisation de déployer ou de migrer.
+
+
+## 9. État technique réel vérifié le 14 novembre 2026
+
+Cette section remplace les anciens constats indiquant que les tables de paiement n'existaient pas.
+
+| Table | Présence | Contenu constaté |
+|---|---|---|
+| `subscription_plans` | Présente | 1 forfait : Gratuit, 0 HTG, actif, durée 30 jours |
+| `business_subscriptions` | Présente | 0 ligne ; rattachement entreprise/forfait, statut et dates |
+| `payments` | Présente | 0 ligne ; référence, fournisseur, montant, statut, demandeur et vérificateur |
+| `payment_events` | Présente | 0 ligne ; journal d'événements lié aux paiements |
+| `payment_recipients` | Présente | 0 ligne ; fournisseur, libellé, numéro, actif/inactif |
+
+### Fonctions et permissions vérifiées
+
+- `request_subscription_payment` est une fonction `SECURITY DEFINER` qui vérifie que l'appelant est gestionnaire de l'entreprise et que le forfait actif a un prix supérieur à zéro. Elle accepte encore `moncash` et `natcash`.
+- `admin_review_payment` est une fonction `SECURITY DEFINER` qui exige `is_main_admin()`, verrouille la ligne de paiement avec `FOR UPDATE`, puis approuve ou refuse la demande et met à jour l'abonnement, l'événement et le journal d'audit dans la même transaction.
+- `get_payment_recipients` retourne les destinataires actifs aux utilisateurs authentifiés. La gestion directe de `payment_recipients` et du catalogue des forfaits est réservée au rôle `main_admin` par RLS.
+- Les fonctions utilisent un `search_path` vide. Leurs droits EXECUTE sont limités aux rôles `authenticated`, `service_role` et `postgres` (selon la fonction), sans accès `anon`.
+
+### Écarts à résoudre avant paiement réel
+
+1. Restreindre le fournisseur à MonCash dans la fonction et la contrainte de la table `payments`.
+2. Ajouter un snapshot du compte destinataire utilisé par chaque paiement ; aujourd'hui, un changement du compte actif ne peut pas être relié de façon fiable à une demande passée.
+3. Ajouter des snapshots du forfait, du prix, de la devise et de la durée acceptés au moment de la demande.
+4. Confirmer les règles d'unicité et de gestion d'erreur des références dupliquées. Un index unique partiel existe déjà sur `(provider, proof_reference)` pour les paiements `needs_review` et `succeeded`, ce qui bloque déjà les doublons dans ces états.
+5. Vérifier la configuration du destinataire MonCash et les instructions avant d'activer les demandes payantes.
+6. Ne pas présenter Pro ou Ultra comme achetables tant que les lignes correspondantes, les snapshots et le parcours de paiement ne sont pas prêts.
+
+Aucune migration ni écriture de données n'a été exécutée pendant cet audit.
