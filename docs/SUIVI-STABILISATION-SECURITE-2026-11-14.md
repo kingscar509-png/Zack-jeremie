@@ -38,7 +38,7 @@ Branche de production protégée : `main` (aucune modification)
 - [x] Régénérer `src/types/database.types.ts` depuis le schéma Supabase réel (14 novembre 2026) ; le workflow GitHub Actions `43621569386` a réussi sur le commit de génération `5edb9a9` (installation, build et typecheck).
 
 ### P0 — Sécurité et autorisations
-- [ ] Examiner les policies de `posts`, `promotions` et `business_events` pour empêcher la publication non autorisée.
+- [x] Confirmer la publication directe par les rôles d'entreprise autorisés, sans approbation centrale ; les tests restants portent sur l'isolation entre entreprises et les limites de rôles.
 - [ ] Revoir `claim_main_admin` et prévenir toute double attribution concurrente du rôle principal.
 - [ ] Revoir chaque RPC SECURITY DEFINER et ses ACL ; préserver les helpers réellement nécessaires à RLS.
 - [ ] Tester les rôles anon, client, owner, manager, editor, administrateur et main_admin.
@@ -87,13 +87,24 @@ Branche de production protégée : `main` (aucune modification)
 - Le run CI `43622633127` est en cours pour le commit des correctifs de gestion réseau. Aucun succès n'est revendiqué avant sa conclusion.
 
 
-## 10. Revue publication — état du 14 novembre 2026
+## 10. Revue publication directe — état du 14 novembre 2026
 
-- [x] Policies INSERT/UPDATE, defaults, fonctions de modération et triggers des tables `posts`, `promotions`, `business_events` inspectés en lecture seule.
-- [x] Confirmé qu'aucune RPC dédiée de modération/publication ni trigger de protection de transition n'existe actuellement sur ces tables.
-- [x] Confirmé que les écrans frontend de gestion de posts/promotions/événements ne sont pas présents dans l'arbre source actuel ; le parcours de soumission/approbation reste donc à définir avant migration.
-- [x] Ajouté les constats et la décision de conception à préparer dans `docs/CONSTATS-SECURITE-2026-11-14.md` (section 12).
-- [ ] Concevoir et tester le parcours de modération complet avant d'écrire une migration.
-- [ ] Ne pas modifier la base de production : les valeurs par défaut, policies et triggers restent inchangés.
+- [x] Policies INSERT/UPDATE, defaults et triggers des tables `posts`, `promotions`, `business_events` inspectés en lecture seule.
+- [x] Décision du propriétaire du projet confirmée : publication directe par les rôles autorisés des entreprises, sans approbation Zack.
+- [x] Documentation corrigée : aucune file de modération, policy restrictive ou trigger bloquant la publication ne doit être ajouté.
+- [ ] Tester l'isolation interentreprises, les rôles editor/owner/admin, la révocation d'un membre et la protection du statut de vérification.
+- [x] Aucun changement de production effectué.
 
-Dernier commit documentaire : `a16ef9f20fe0d2fdf256b7f95aabae08d29ef2b4`. Le CI du commit précédent `530c24c` est réussi ; le nouveau commit documentaire doit encore être vérifié séparément.
+Dernier commit documentaire de clarification : `77cbac6`. Le CI de ce commit et des commits documentaires suivants reste à vérifier.
+
+
+## 11. Vérification des contraintes paiements et rôles admin — 14 novembre 2026
+
+- [x] Confirmé que `admin_roles` a une clé primaire sur `user_id`, mais aucune contrainte unique sur le rôle `main_admin`.
+- [x] Confirmé que `payments.provider` autorise encore `moncash` et `natcash`.
+- [x] Confirmé l'existence d'un index unique partiel `payments_proof_uq` sur `(provider, proof_reference)`, mais uniquement lorsque le statut est `needs_review` ou `succeeded`.
+- [x] Confirmé l'index unique sur `(provider, provider_transaction_id)` lorsque l'identifiant de transaction existe.
+- [ ] Vérifier le statut par défaut des paiements et le comportement en cas de demandes simultanées/répétées avant de définir l'idempotence.
+- [ ] Préparer une migration contrôlée pour MonCash uniquement, après test de compatibilité des données existantes.
+- [ ] Concevoir la protection contre deux revendications concurrentes de `main_admin`.
+- [ ] Examiner le caractère public de `business_counts(uuid)` et confirmer que les compteurs followers/favorites d'entreprises vérifiées sont destinés à être publics.
