@@ -181,3 +181,47 @@ Dernière vérification du code de la page sur le HEAD `b32c576` : les champs `r
 - Résultat : 20/20 tests automatisés, vérification TypeScript et builds client, SSR et Nitro réussis.
 - Les tests navigateur, appareils mobiles et RLS avec comptes réels restent non exécutés. Aucun test sur la base Supabase de production n'est autorisé.
 - Aucun déploiement, paiement réel, changement de base, dépense ou fusion n'a été effectué.
+
+
+## 14. Plan de recette adapté aux moyens disponibles — 14 novembre 2026
+
+### Comptes disponibles
+
+La recette doit tenir compte de trois comptes seulement :
+- **Compte A — administrateur Zack** : réservé aux vérifications du rôle d'administration ; ne pas l'utiliser comme compte client ordinaire.
+- **Compte B — entreprise de test A** : compte propriétaire de l'entreprise A.
+- **Compte C — entreprise de test B** : compte propriétaire de l'entreprise B.
+
+Avec B et C, on peut vérifier l'isolation entre deux entreprises : B ne doit pas pouvoir lire ou modifier les données privées de C, et inversement. Le compte A sert uniquement aux fonctions réservées à l'administration.
+
+Les rôles editor et admin d'entreprise ne doivent pas être simulés en changeant manuellement des données en production. Ils seront testés dans un environnement de développement isolé, en attribuant les rôles nécessaires à B ou C dans les données de test. Un même compte peut avoir des rôles différents dans deux entreprises distinctes si le schéma et l'interface le permettent.
+
+### Ordre des tests avec ces trois comptes
+
+1. Connexion et déconnexion de B et C.
+2. Création ou attribution d'une entreprise de test A à B et d'une entreprise de test B à C, uniquement dans l'environnement isolé.
+3. Vérifier que B ne voit pas les données privées de C et que C ne voit pas celles de B.
+4. Vérifier les accès owner et, dans l'environnement isolé, editor/admin d'entreprise.
+5. Vérifier que le compte A accède aux fonctions d'administration prévues, sans utiliser ses privilèges pour contourner les tests B/C.
+6. Révoquer l'adhésion d'un membre dans l'environnement isolé et vérifier que son accès disparaît.
+7. Refaire les vérifications sur ordinateur et sur téléphone.
+
+### Pas encore d'adresse publique Zack
+
+L'absence de domaine public n'empêche pas les tests locaux du frontend. Le dépôt prévoit :
+- `npm install`
+- configuration locale de `.env.local` à partir de `.env.example`
+- `npm run dev` pour ouvrir l'application sur l'adresse locale fournie par Vite ;
+- `npm run build` puis `npm run preview` pour vérifier le build de production localement.
+
+Ne jamais coller les clés Supabase dans un dépôt GitHub, une capture d'écran ou une conversation. Utiliser uniquement la clé publishable côté navigateur ; ne jamais exposer une clé service_role.
+
+### Limite de sécurité impérative
+
+À ce jour, aucun environnement Supabase de test isolé n'a été confirmé. Tant qu'il n'existe pas :
+- ne pas créer de fausses entreprises ou adhésions dans Supabase production pour la recette ;
+- ne pas exécuter de tests d'écriture ou de révocation sur les comptes réels ;
+- poursuivre les tests automatisés, la revue statique et le build ;
+- reporter les tests multi-comptes qui nécessitent des données modifiables à un environnement isolé.
+
+Le domaine public, l'hébergement et le déploiement sont des étapes distinctes de la stabilisation du code. Aucun achat de domaine ni hébergement payant n'est requis pour continuer la recette locale.
