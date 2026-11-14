@@ -35,7 +35,7 @@ Branche de production protégée : `main` (aucune modification)
 - [ ] Ajouter un lockfile reproductible et faire passer le workflow à `npm ci`.
 - [ ] Vérifier le build sur le HEAD de la branche de durcissement.
 - [ ] Examiner les alertes de dépendances et mettre à jour seulement après tests.
-- [x] Régénérer `src/types/database.types.ts` depuis le schéma Supabase réel (14 novembre 2026) ; le build/typecheck du commit généré reste en attente de CI.
+- [x] Régénérer `src/types/database.types.ts` depuis le schéma Supabase réel (14 novembre 2026) ; le workflow GitHub Actions `43621569386` a réussi sur le commit de génération `5edb9a9` (installation, build et typecheck).
 
 ### P0 — Sécurité et autorisations
 - [ ] Examiner les policies de `posts`, `promotions` et `business_events` pour empêcher la publication non autorisée.
