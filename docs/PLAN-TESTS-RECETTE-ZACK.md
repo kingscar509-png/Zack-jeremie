@@ -2,9 +2,9 @@
 
 # Zack — plan de tests et critères de recette
 
-Date : 12 novembre 2026
-Branche : `preparation/phase-1-frontend-plan`
-Statut : scénarios à exécuter après configuration locale ; le CI GitHub valide l'installation, le TypeScript et le build sur les commits contrôlés, mais les tests navigateur et les tests avec vrais comptes restent à exécuter.
+Date : 14 novembre 2026
+Branche de travail : `hardening/phase-1-stabilisation`
+Statut : le CI GitHub valide l'installation, le TypeScript et le build sur le HEAD `b32c576` ; les tests navigateur et les tests avec vrais comptes restent à exécuter.
 
 ## 1. Préparation
 
@@ -142,7 +142,7 @@ Ces scénarios doivent d'abord être testés sur un environnement de développem
 - Inventaire Supabase en lecture seule : effectué.
 - Types TypeScript Supabase : générés depuis le schéma actuel et enregistrés dans le dépôt.
 - Routes frontend initiales : écrites ; page de consultation des abonnements `/abonnements` ajoutée en lecture seule pour owner/admin.
-- Build TypeScript/Vite : réussi sur le HEAD `ac8c979` (run CI `43627085508`, installation, TypeScript, build et finalisation terminés).
+- Build TypeScript/Vite : réussi sur le HEAD `b32c576` (runs CI push `43627903143` et pull request `43627909871`, installation, TypeScript, build et finalisation terminés).
 - Tests navigateur : non exécutés.
 - Tests de sécurité avec comptes réels de test : non exécutés.
 - Déploiement : non effectué.
@@ -152,8 +152,9 @@ Ne jamais marquer une étape comme réussie sans résultat de test observé.
 
 ## 11. Mise à jour du statut CI — 14 novembre 2026
 
-- Run `43625298753` sur le commit `4a71e16` : succès confirmé, installation, TypeScript, build de production et finalisation terminés.
-- Les commits documentaires postérieurs déclenchent de nouveaux runs ; ne pas annoncer leur succès tant que leur conclusion finale n'est pas observée.
+- HEAD contrôlé : `b32c5768259429d5869590e1fff66cb95a4faf58`.
+- Run push `43627903143` : succès confirmé, installation, TypeScript, build de production et finalisation terminés.
+- Run pull request `43627909871` : succès confirmé, installation, TypeScript, build de production et finalisation terminés.
 - Les tests navigateur, les tests RLS avec comptes réels et la recette complète restent non exécutés.
 
 
@@ -163,7 +164,9 @@ Le 14 novembre 2026, une page `/abonnements` a été ajoutée à la branche de s
 - authentification vérifiée côté serveur ;
 - liste limitée aux entreprises dont l'utilisateur est owner/admin ;
 - lecture des plans actifs, abonnements et paiements selon les RLS existantes ;
-- lecture de la disponibilité d'un destinataire MonCash ;
+- aucune récupération des numéros de réception MonCash ni des notes internes de revue ;
 - aucune création de demande, aucun encaissement et aucun changement d'état.
 
 Tests à faire avec des comptes réels : owner, admin, editor, utilisateur sans entreprise, entreprise multiple, session expirée, et accès interentreprises. Le parcours de paiement reste désactivé tant que les RPC MonCash ne sont pas corrigés et testés.
+
+Dernière vérification du code de la page sur le HEAD `b32c576` : les champs `review_note` et la RPC `get_payment_recipients` ne sont plus sollicités par cette page. La consultation est en lecture seule ; cela ne remplace pas les tests de sécurité avec plusieurs comptes.
