@@ -332,3 +332,81 @@ Ne pas introduire un statut `scheduled` sans migration et sans mécanisme d'acti
 - approbation d'un changement : expirer l'ancien abonnement et activer la ligne pending à la date de validation.
 
 Cette distinction doit être testée en concurrence et avec des demandes répétées. La fonction actuelle crée une nouvelle ligne pending dans tous les cas ; elle doit donc être refactorisée avant d'appliquer la règle de renouvellement proposée.
+
+
+## 15. Contrat cible précis des trois RPC MonCash — relecture du SQL réel
+
+Les trois fonctions ont été relues avec `pg_get_functiondef` en lecture seule le 14 novembre 2026. Les points ci-dessous décrivent le contrat à implémenter ; aucune fonction déployée n'a été remplacée.
+
+### 15.1 `request_subscription_payment`
+
+Comportement actuel confirmé :
+- vérifie `auth.uid()` et `is_business_manager(p_business)` ;
+- charge un plan actif payant ;
+- accepte MonCash et NatCash ;
+- crée toujours une nouvelle ligne `business_subscriptions` en `pending_payment` ;
+- crée le paiement à partir du prix courant, sans destinataire ni snapshot ;
+- ne vérifie pas de demande en attente existante.
+
+Contrat cible :
+1. Vérifier la session et le rôle de gestionnaire sur l'entreprise.
+2. Verrouiller la ligne de l'entreprise pour sérialiser les demandes concurrentes.
+3. Refuser tout fournisseur autre que `moncash`.
+4. Charger le plan actif et figer ses conditions (prix HTG, durée, nom/code, fonctionnalités et quotas).
+5. Charger l'unique destinataire MonCash actif côté serveur ; refuser si absent ou ambigu.
+6. Vérifier qu'aucune demande ouverte n'existe déjà pour cette entreprise.
+7. Normaliser la référence et empêcher sa réutilisation.
+8. Si l'entreprise possède déjà un abonnement actif au même plan, rattacher le paiement à cette ligne active ; ne pas créer de nouvelle ligne pending.
+9. Si aucune période active n'existe ou si le forfait change, créer une nouvelle ligne `pending_payment` et rattacher le paiement à cette ligne.
+10. Insérer le paiement, les snapshots et l'événement `submitted_for_review` dans la même transaction.
+
+La protection « une demande ouverte par entreprise » doit être garantie par un index unique partiel en base, en plus du verrou transactionnel. Inclure les statuts encore considérés ouverts après vérification des éventuelles données historiques (`initiated`, `pending`, `needs_review`). Le schéma actuel ne contient aucun paiement, mais les contraintes doivent être compatibles avec les futurs états.
+
+### 15.2 `admin_review_payment`
+
+Comportement actuel confirmé :
+- exige `is_main_admin()` ;
+- verrouille le paiement avec `FOR UPDATE` ;
+- exige `needs_review` ;
+- charge le plan courant via `business_subscriptions` ;
+- expire l'abonnement actif avant d'activer la ligne liée ;
+- calcule les dates avec `now()` et la durée courante du plan ;
+- en cas de refus, annule systématiquement la ligne d'abonnement liée.
+
+Contrat cible :
+- verrouiller le paiement, puis l'entreprise concernée, toujours dans un ordre de verrouillage constant ;
+- vérifier la cohérence entre paiement, entreprise, plan snapshot et abonnement référencé ;
+- utiliser exclusivement les snapshots de la demande, jamais le catalogue modifiable ;
+- **refus d'un renouvellement du même forfait** : passer le paiement à `failed`, journaliser le motif et laisser intacte la ligne d'abonnement déjà active ;
+- **refus d'une première souscription ou d'un changement de forfait** : annuler uniquement la ligne `pending_payment` liée ;
+- **approbation d'un renouvellement du même forfait** : prolonger `ends_at` de la ligne active de la durée snapshot, sans expirer cette ligne ;
+- **approbation d'une première souscription ou d'un changement de forfait** : expirer l'ancien abonnement actif, puis activer la ligne pending avec début à l'heure de validation et fin calculée depuis la durée snapshot ;
+- mettre à jour le paiement, les événements et le journal d'audit dans la même transaction ;
+- ne jamais rejouer une décision finale.
+
+Pour éviter qu'un renouvellement refusé annule l'abonnement actif, le RPC doit distinguer explicitement une référence vers une ligne `active` d'une référence vers une ligne `pending_payment`. Le simple fait de vérifier que `subscription_id` existe est insuffisant.
+
+Les notifications ne doivent pas rendre le résultat financier ambigu. Si `_order_notify` échoue, définir et tester si la notification est enregistrée comme échec séparé ou si la transaction entière est annulée ; ne jamais afficher un paiement réussi si la transaction PostgreSQL a été annulée.
+
+### 15.3 `get_payment_recipients`
+
+Comportement actuel : retourne fournisseur, libellé et numéro des destinataires actifs à tout utilisateur authentifié, sans identifiant de destinataire.
+
+Contrat cible :
+- MonCash uniquement au lancement ;
+- au plus un destinataire actif par fournisseur, garanti par index unique partiel ;
+- le frontend affiche le numéro et le libellé retournés, mais ne choisit pas librement le destinataire ;
+- le RPC de demande sélectionne lui-même le destinataire et conserve son identifiant, son libellé et son numéro en snapshot ;
+- ne jamais retourner ni stocker PIN, OTP ou secret marchand.
+
+### 15.4 Contraintes et tests à inclure dans le dossier de migration
+
+- CHECK fournisseur MonCash uniquement sur `payments` et `payment_recipients`.
+- Index unique partiel sur un seul destinataire actif par fournisseur.
+- Index unique partiel sur les paiements ouverts par entreprise.
+- Unicité de référence de transaction non nulle sur tous les paiements conservés, y compris refusés/annulés, après validation de la règle et compatibilité historique.
+- Snapshots immuables sur paiement et abonnement.
+- Tests de refus de renouvellement avec abonnement actif, approbation de renouvellement, changement de forfait, deux demandes simultanées, deux revues concurrentes, référence répétée et changement du prix/destinataire après demande.
+- Vérifier l'atomicité de la notification et l'absence de double abonnement actif.
+
+Ne pas créer un fichier dans `supabase/migrations` tant que l'environnement de développement gratuit, le dossier de migrations et une procédure de rollback fiables ne sont pas établis. Ne pas appliquer de SQL à la production.
