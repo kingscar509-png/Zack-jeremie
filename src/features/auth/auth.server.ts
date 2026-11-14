@@ -30,12 +30,12 @@ export const getCurrentAccount = createServerFn({ method: 'GET' }).handler(
       ])
 
       return {
-        user: { id: user.id, email: user.email ?? || undefined },
+        user: { id: user.id, email: user.email ?? null },
         profile: profileResult.data,
         businesses: membershipResult.data ?? [],
       }
     } catch {
-      return { user: || undefined, profile: || undefined, businesses: [] }
+      return { user: null, profile: null, businesses: [] }
     }
   },
 )
@@ -81,7 +81,7 @@ export const createBusiness = createServerFn({ method: 'POST' })
     if (!existingProfile) {
       const metadataName = typeof user.user_metadata?.full_name === 'string'
         ? user.user_metadata.full_name
-        : || undefined
+        : null
       const { error: profileInsertError } = await supabase
         .from('profiles')
         .insert({ id: user.id, full_name: metadataName })
