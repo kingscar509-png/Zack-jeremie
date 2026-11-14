@@ -44,13 +44,18 @@ function ProfilePage() {
       <main className="content-page">
         <span className="eyebrow eyebrow-dark">MON COMPTE</span>
         <h1>Mon profil</h1>
-        {!account.user ? (
+        {account.unavailable && !account.user ? (
+          <section className="detail-panel">
+            <p role="alert">Le service de compte est momentanément indisponible. Réessayez dans quelques instants.</p>
+          </section>
+        ) : !account.user ? (
           <section className="detail-panel">
             <p>Connectez-vous pour consulter et modifier votre profil.</p>
             <a className="button button-primary" href="/auth/connexion">Se connecter</a>
           </section>
         ) : (
           <section className="detail-panel">
+            {account.unavailable ? <p className="form-message" role="status">Certaines données du compte n’ont pas pu être chargées. Vos informations de connexion restent reconnues ; réessayez pour actualiser les données.</p> : null}
             <p className="muted">Adresse e-mail : {account.user.email ?? 'Non renseignée'}</p>
             <form className="auth-form business-form" onSubmit={submit}>
               <label htmlFor="profile-name">Nom complet</label>
