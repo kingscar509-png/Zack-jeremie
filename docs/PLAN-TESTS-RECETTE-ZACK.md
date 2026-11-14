@@ -4,7 +4,7 @@
 
 Date : 12 novembre 2026
 Branche : `preparation/phase-1-frontend-plan`
-Statut : scénarios à exécuter après installation des dépendances et configuration locale ; aucun test navigateur ni build n'a été exécuté depuis GitHub.
+Statut : scénarios à exécuter après configuration locale ; le CI GitHub valide l'installation, le TypeScript et le build sur les commits contrôlés, mais les tests navigateur et les tests avec vrais comptes restent à exécuter.
 
 ## 1. Préparation
 
@@ -96,13 +96,47 @@ Statut : scénarios à exécuter après installation des dépendances et configu
 - Thèmes clair, sombre et automatique respectent les préférences système.
 - Les images ont un texte alternatif approprié ou un alt vide lorsqu'elles sont décoratives.
 
-## 8. Modules non implémentés car absents du schéma vérifié
+## 8. Paiements et abonnements — tables présentes, parcours incomplet
 
-L'inventaire actuel ne contient pas de tables dédiées aux conversations/messages, commandes/paniers, transactions/paiements ou abonnements Zack. Ces fonctionnalités ne doivent pas être simulées dans l'interface avec de fausses données.
+L'inventaire du 14 novembre 2026 confirme que les tables suivantes existent déjà et ont RLS activée :
+- `subscription_plans` ;
+- `business_subscriptions` ;
+- `payments` ;
+- `payment_events` ;
+- `payment_recipients`.
 
-Elles restent planifiées, mais nécessitent d'abord un modèle de données approuvé, des règles RLS, des transitions d'état et des tests serveur. Les paiements de commandes restent différés. MonCash est réservé à l'encaissement des abonnements Zack après validation de son flux marchand.
+Le schéma ne signifie pas que le parcours est prêt :
+- seul le forfait Gratuit est actuellement configuré ;
+- aucun plan Pro/Ultra ni destinataire MonCash n'est enregistré ;
+- aucun abonnement, paiement ou événement de paiement n'est actuellement enregistré ;
+- les RPC acceptent encore NatCash, ne figent pas tous les snapshots et ne garantissent pas une seule demande en attente par entreprise ;
+- aucun écran de paiement ou d'administration des paiements n'est présent dans la branche frontend.
 
-## 9. État de validation à date
+Scénarios obligatoires avant activation des paiements :
+- un utilisateur ne peut demander un forfait que pour une entreprise qu'il gère ;
+- le serveur relit le prix, la durée, les avantages et le destinataire actif, sans faire confiance au navigateur ;
+- les snapshots restent identiques si le plan ou le destinataire change après la demande ;
+- une seule demande en attente existe par entreprise, même avec deux appels simultanés ;
+- une référence MonCash déjà utilisée est refusée ;
+- une demande refusée peut être remplacée selon la règle métier sans permettre de rejouer la même transaction ;
+- seul `main_admin` peut approuver ou refuser ;
+- le même forfait renouvelé prolonge la date de fin existante ;
+- un changement de forfait applique les nouvelles conditions à l'approbation, sans prorata au lancement, avec avertissement préalable ;
+- deux approbations concurrentes ne peuvent pas créer deux abonnements actifs ;
+- une notification en échec ne doit pas rendre ambigu le résultat du paiement ;
+- l'historique et les événements permettent de reconstituer chaque décision.
+
+Ces scénarios doivent d'abord être testés sur un environnement de développement gratuit. Aucun paiement réel ne doit être accepté tant que les écarts RPC, les snapshots, les interfaces et la recette ne sont pas terminés.
+
+## 9. Publication directe des contenus
+
+- Un owner/admin/editor autorisé peut publier directement les contenus de son entreprise selon les policies de la table concernée.
+- Aucun approbation Zack préalable ni file de modération ne doit bloquer la publication.
+- Les tests doivent couvrir l'isolation interentreprises, les rôles, le changement de `business_id`, la révocation d'un membre et la protection du statut de vérification.
+- Les signalements et retraits sont réactifs ; ils ne doivent pas être confondus avec une validation obligatoire avant publication.
+
+
+## 10. État de validation à date
 
 - Audit statique de l'ancien frontend : effectué.
 - Inventaire Supabase en lecture seule : effectué.
@@ -114,3 +148,10 @@ Elles restent planifiées, mais nécessitent d'abord un modèle de données appr
 - Déploiement : non effectué.
 
 Ne jamais marquer une étape comme réussie sans résultat de test observé.
+
+
+## 11. Mise à jour du statut CI — 14 novembre 2026
+
+- Run `43625298753` sur le commit `4a71e16` : succès confirmé, installation, TypeScript, build de production et finalisation terminés.
+- Les commits documentaires postérieurs déclenchent de nouveaux runs ; ne pas annoncer leur succès tant que leur conclusion finale n'est pas observée.
+- Les tests navigateur, les tests RLS avec comptes réels et la recette complète restent non exécutés.
