@@ -228,3 +228,24 @@ Cette exposition peut être cohérente avec des compteurs publics visibles sur l
 Les contraintes confirment que `admin_roles.user_id` est la clé primaire et que le champ `role` accepte `main_admin` ou `admin`. Aucune contrainte unique ne garantit un seul `main_admin`. Le risque de course concurrente identifié en section 11 reste donc à corriger dans une migration contrôlée : unicité partielle sur `role = 'main_admin'` et verrouillage transactionnel dans la fonction de bootstrap.
 
 Aucune écriture SQL, migration ou modification de configuration n'a été exécutée.
+
+
+## 14. Snapshot Supabase Advisors — 14 novembre 2026
+
+Contrôle relancé après l'ajout de la page de consultation (aucun changement de schéma). Les Advisors sont des avertissements à examiner, pas une autorisation de modifier automatiquement la base.
+
+### Sécurité
+- 1 avertissement `anon_security_definer_function_executable` : `business_counts(uuid)`. Le code a été relu : il ne renvoie que les nombres de favoris et d'abonnés d'une entreprise vérifiée, sans identifiants ni liste d'utilisateurs. Cet accès public peut être intentionnel pour les compteurs publics ; ne pas le révoquer sans décision produit.
+- 23 avertissements `authenticated_security_definer_function_executable`. Ils doivent être revus individuellement. Plusieurs fonctions d'administration contrôlent déjà `is_main_admin()` ou les permissions métier ; ne pas révoquer globalement `EXECUTE` ni supprimer `SECURITY DEFINER` sans analyser chaque contrat.
+- 1 avertissement : protection contre les mots de passe compromis désactivée. Recommandation de l'activer dans Auth ; aucun paramètre de production n'a été modifié.
+
+### Performance
+- 12 clés étrangères sans index couvrant.
+- 28 index signalés comme inutilisés ; leur suppression n'est pas recommandée sans historique de charge suffisant.
+- 47 avertissements de policies permissives multiples. Les combinaisons « contenu public + accès membre + accès admin » peuvent être intentionnelles ; examiner les politiques par table et mesurer avant toute simplification.
+
+### Santé
+- Aucun avertissement de santé retourné lors de ce contrôle.
+
+### Décision
+Prioriser la protection des mots de passe compromis et l'audit ciblé des fonctions exposées, mais effectuer ces changements uniquement après validation et tests. Ne pas traiter les avertissements de performance comme des vulnérabilités confirmées. Aucun changement de base, de droits, de policy ou de configuration Auth n'a été appliqué.
