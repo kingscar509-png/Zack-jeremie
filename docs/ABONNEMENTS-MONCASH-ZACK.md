@@ -164,3 +164,16 @@ Avant d'accepter de l'argent, il faut donc ajouter :
 5. des tests qui modifient le prix/la durée/le destinataire après la soumission et vérifient que la demande déjà créée conserve ses conditions d'origine.
 
 Ces points sont bloquants avant encaissement réel, pas avant de poursuivre le développement de l'interface. Aucune modification SQL n'a été appliquée.
+
+
+## 10. Complément de vérification RLS et contraintes — 14 novembre 2026
+
+- `subscription_plans` : les forfaits actifs sont lisibles par `anon` et `authenticated` ; la gestion complète est réservée à `main_admin`.
+- `business_subscriptions` : lecture réservée au gestionnaire de l'entreprise concernée ou à `main_admin`. Aucune policy d'écriture directe n'a été observée ; la création et l'activation passent par les fonctions serveur.
+- `payments` : lecture réservée au gestionnaire de l'entreprise concernée ou à `main_admin`. Aucune policy d'écriture directe n'a été observée ; la demande et la revue passent par les RPC dédiées.
+- `payment_events` : lecture réservée à `main_admin` ; les événements sont ajoutés par les fonctions serveur.
+- `payment_recipients` : gestion directe réservée à `main_admin` par RLS ; l'affichage des destinataires actifs passe par `get_payment_recipients()` pour les utilisateurs authentifiés.
+- `business_subscriptions_one_active` garantit déjà au plus un abonnement actif par entreprise. Il faudra conserver ce garde-fou et tester le renouvellement lorsqu'une entreprise a une période active.
+- Les index de référence de paiement protègent déjà les références répétées dans les états `needs_review` et `succeeded` ; la règle métier pour une référence après refus/annulation doit rester explicitement définie.
+
+Ces observations décrivent les policies et index actuellement présents. Elles ne remplacent pas des tests d'accès réels avec des sessions de chaque rôle. Aucun SQL d'écriture n'a été exécuté.
