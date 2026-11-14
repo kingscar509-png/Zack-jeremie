@@ -310,3 +310,10 @@ La page reste strictement en lecture seule. Les paiements demeurent fermés.
 - HEAD : `1dd9468bda8e2824a14ea43d0886c2a03c728fd6`.
 - CI push `43628797847` : en cours au dernier contrôle. Ne pas annoncer le succès avant la conclusion finale.
 - Cette amélioration n'ajoute aucune donnée fictive et n'écrit rien dans Supabase. Les tests avec des données réelles et le contrôle de la pertinence des résultats restent à faire.
+
+### Correctif TypeScript sur les filtres — HEAD `f4f1d61`
+
+- Le premier build après l'ajout des filtres a détecté un conflit de nom entre le paramètre serveur `data` et la variable `data` renvoyée par Supabase.
+- Les six tests automatisés étaient tous réussis ; l'étape TypeScript a correctement bloqué le build.
+- Correction appliquée en renommant le paramètre validé en `filters`, sans changer la logique métier.
+- Le nouveau CI doit confirmer la correction avant de considérer la recherche prête.
