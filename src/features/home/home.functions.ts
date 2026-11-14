@@ -109,7 +109,13 @@ export const getBusinessBySlug = createServerFn({ method: 'GET' })
 
       if (error) {
         console.error('Zack business detail query failed.')
-        return { business: null, unavailable: true }
+        return {
+          business: null,
+          products: [],
+          services: [],
+          catalogUnavailable: false,
+          unavailable: true,
+        }
       }
 
       if (!data) {
