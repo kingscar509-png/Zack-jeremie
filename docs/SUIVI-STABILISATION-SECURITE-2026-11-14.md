@@ -369,3 +369,17 @@ La page reste strictement en lecture seule. Les paiements demeurent fermés.
 - Vérification du schéma en lecture seule : la suppression d'un produit peut supprimer en cascade ses lignes liées dans `product_images`; la recette interdit donc les suppressions sur la production.
 - HEAD documentaire : `e652fb8`; CI de ce commit à confirmer.
 - Aucun compte réel n'a été créé, aucun test navigateur n'a été prétendu, aucun paiement n'a été activé.
+
+
+## 16. Validation finale des vérifications automatisées — 14 novembre 2026
+
+- [x] HEAD documentaire vérifié : `906517cf6086fec75acb4cfb2ce3aba45e9a2852`.
+- [x] CI push `43633402715` : succès complet ; tests de garde-fous, TypeScript et build de production terminés.
+- [x] CI pull request `43633407376` : succès complet ; tests de garde-fous, TypeScript et build de production terminés.
+- [x] PR #2 reste ouverte, en brouillon et non fusionnée ; base `preparation/phase-1-frontend-plan`.
+- [x] La description de PR a été actualisée avec ces résultats et l'état de la recette.
+- [ ] Recette manuelle catalogue, navigateur/mobile et tests RLS avec plusieurs comptes réels : NON EXÉCUTÉS, faute d'environnement Supabase de test séparé.
+- [ ] Aucun test réel ne doit être lancé sur la base de production. Aucun compte ni donnée de test ne doit y être créé.
+- [ ] Prochaine étape après disponibilité d'un environnement isolé : exécuter la recette avec des comptes jetables owner/admin/editor/viewer et un compte d'une autre entreprise.
+
+Aucune migration, écriture Supabase, modification Auth/RLS, dépense, fusion ou publication n'a été effectuée. Budget supplémentaire : 0 $. La branche `main` reste intacte.
