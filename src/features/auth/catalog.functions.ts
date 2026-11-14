@@ -103,24 +103,24 @@ export const saveCatalogItem = createServerFn({ method: 'POST' })
 
     if (data.kind === 'product') {
       const result = data.action === 'create'
-        ? await supabase.from('products').insert({ business_id: data.businessId, ...common })
+        ? await supabase.from('products').insert({ business_id: data.businessId, ...common }).select('id')
         : data.action === 'update'
-          ? await supabase.from('products').update(common).eq('id', data.itemId!).eq('business_id', data.businessId)
-          : await supabase.from('products').delete().eq('id', data.itemId!).eq('business_id', data.businessId)
-      if (result.error) {
-        console.error('Zack product catalog mutation failed.')
-        return { success: false, message: 'Impossible d’enregistrer ce produit. Vérifiez les informations puis réessayez.' }
+          ? await supabase.from('products').update(common).eq('id', data.itemId!).eq('business_id', data.businessId).select('id')
+          : await supabase.from('products').delete().eq('id', data.itemId!).eq('business_id', data.businessId).select('id')
+      if (result.error || !result.data?.length) {
+        console.error('Zack product catalog mutation failed or matched no item.')
+        return { success: false, message: 'Impossible de confirmer cette modification du produit. Vérifiez vos droits et réessayez.' }
       }
     } else {
       const serviceData = { ...common, duration: data.duration ?? '' }
       const result = data.action === 'create'
-        ? await supabase.from('services').insert({ business_id: data.businessId, ...serviceData })
+        ? await supabase.from('services').insert({ business_id: data.businessId, ...serviceData }).select('id')
         : data.action === 'update'
-          ? await supabase.from('services').update(serviceData).eq('id', data.itemId!).eq('business_id', data.businessId)
-          : await supabase.from('services').delete().eq('id', data.itemId!).eq('business_id', data.businessId)
-      if (result.error) {
-        console.error('Zack service catalog mutation failed.')
-        return { success: false, message: 'Impossible d’enregistrer ce service. Vérifiez les informations puis réessayez.' }
+          ? await supabase.from('services').update(serviceData).eq('id', data.itemId!).eq('business_id', data.businessId).select('id')
+          : await supabase.from('services').delete().eq('id', data.itemId!).eq('business_id', data.businessId).select('id')
+      if (result.error || !result.data?.length) {
+        console.error('Zack service catalog mutation failed or matched no item.')
+        return { success: false, message: 'Impossible de confirmer cette modification du service. Vérifiez vos droits et réessayez.' }
       }
     }
 
