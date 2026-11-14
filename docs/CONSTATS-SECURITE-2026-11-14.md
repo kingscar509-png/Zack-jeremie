@@ -203,3 +203,24 @@ La définition actuelle de `request_subscription_payment(p_business, p_plan, p_p
 Le contrôle de rôle et l'atomicité des trois insertions sont positifs. L'incohérence fonctionnelle reste le fournisseur NatCash, alors que la décision de lancement est MonCash uniquement. Une future migration devra restreindre la valeur à `moncash`, puis tester le refus de `natcash`, l'accès d'un non-gestionnaire, le plan gratuit/inactif et la répétition d'une même référence. Vérifier séparément les contraintes d'unicité/idempotence avant d'autoriser les demandes réelles.
 
 **Aucune fonction, contrainte, donnée, ACL ou configuration n'a été modifiée.** Ces deux corrections restent à tester dans un environnement de développement avant toute migration vers la base active.
+
+
+## 12. Raccordement au frontend — périmètre réellement présent dans la branche
+
+Inspection de l'arbre des fichiers au commit `530c24c03fe3b10c947e28be9243211cfd7133d7` :
+
+- Le frontend source contient les routes d'accueil, authentification, profil, espace professionnel, recherche, fiche entreprise et notifications.
+- Aucun écran ou module frontend distinct de création/modification des `posts`, `promotions` ou `business_events` n'est présent dans l'arbre de fichiers de cette branche.
+- Aucun formulaire existant de publication ou de promotion n'a donc pu être vérifié pour savoir s'il envoie explicitement `is_published` ou `is_active`, ni pour identifier le parcours d'approbation attendu.
+- L'absence de ces écrans dans la branche ne prouve pas qu'aucun client externe ou ancien frontend ne sollicite les tables/RPC ; la base doit rester protégée côté PostgreSQL indépendamment de l'interface.
+
+### Conséquence pour la suite
+
+Le garde-fou PostgreSQL reste prioritaire, mais il faut éviter de concevoir une migration en supposant un formulaire qui n'existe pas dans le code actuel. Avant la migration :
+1. décider du parcours produit : publication immédiate par l'entreprise ou soumission en attente de validation Zack ;
+2. définir explicitement le rôle de l'entreprise autorisé à soumettre (owner/admin/editor) et celui qui approuve (administrateur Zack avec permission content) ;
+3. construire les écrans brouillon/soumission/modération avec états explicites ;
+4. ajouter les tests d'intégration SQL/RLS décrits à la section 10 ;
+5. appliquer le garde-fou et le défaut `promotions.is_active = false` uniquement dans une migration testée, jamais comme changement isolé.
+
+**État : analyse terminée, correction non appliquée.** Aucun changement de production, de branche `main`, ni dépense n'a été effectué.
