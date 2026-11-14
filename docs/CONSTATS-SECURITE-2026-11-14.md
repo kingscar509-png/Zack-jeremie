@@ -138,3 +138,31 @@ Lecture en mode SELECT des fonctions, policies et triggers le 14 novembre 2026 :
 - Aucun test d'inscription avec un vrai compte utilisateur n'a été réalisé dans cette revue ; les constats ci-dessus proviennent de l'inspection statique des définitions et policies.
 
 Conclusion : le flux de création possède plusieurs protections utiles et aucun changement de base n'est justifié à ce stade. Conserver le point de non-atomicité du champ ville comme dette technique, puis prévoir des limites de taille côté SQL pour renforcer la validation au-delà du frontend.
+
+
+## 10. Vérification approfondie — contrôle de publication et d'activation
+
+Contrôle en lecture seule du catalogue PostgreSQL le 14 novembre 2026 :
+
+- Les policies INSERT et UPDATE des trois tables autorisent les rôles d'entreprise `owner`, `admin` et `editor` sans condition sur `is_published` / `is_active`.
+- Les policies `Admins manage content` sur `posts` et `promotions` sont permissives (`ALL`) et appellent `is_zack_admin('content')`. Comme elles coexistent avec les policies permissives des membres, elles n'imposent pas à elles seules une validation centrale.
+- Les policies de lecture publique filtrent bien les posts publiés, les promotions actives et les événements publiés, et exigent une entreprise vérifiée.
+- Les triggers présents sur ces tables sont des triggers de mise à jour de date, de notification ou d'audit de suppression. **Aucun trigger de protection de publication/activation n'a été trouvé** sur `posts`, `promotions` ou `business_events`.
+- La recherche des fonctions publiques dont le nom évoque la publication, la modération, les posts, les promotions ou les événements n'a révélé aucune RPC dédiée de validation de ces contenus. Les notifications SECURITY DEFINER ne constituent pas une fonction de modération.
+- Les valeurs par défaut sont confirmées : `posts.is_published = false`, `business_events.is_published = false`, mais `promotions.is_active = true`.
+
+### Décision technique proposée
+
+La correction la plus cohérente à préparer est un garde-fou PostgreSQL commun (fonction trigger dédiée, attachée aux trois tables) qui compare l'état ancien et le nouvel état :
+
+1. À l'insertion, refuser `is_published = true` ou `is_active = true` pour un appelant authentifié qui n'est pas administrateur Zack avec la permission `content`.
+2. À la mise à jour, refuser toute transition brouillon/inactif vers publié/actif par un non-administrateur ; permettre aux membres autorisés de continuer à éditer leurs contenus sans changer l'état de publication.
+3. Préserver la capacité des administrateurs de contenu à publier, dépublier et activer/désactiver.
+4. Pour les appels serveur privilégiés, définir explicitement le comportement attendu et le tester : ne pas confondre un rôle JWT `service_role` avec un administrateur humain, ni autoriser une élévation via des paramètres contrôlés par le client.
+5. Changer le défaut de `promotions.is_active` à `false` dans la même migration que le garde-fou, après vérification du formulaire de création et de l'interface d'administration.
+6. Ajouter des tests automatisés d'intégration : INSERT brouillon et INSERT publié, UPDATE de contenu, transition vers publié, dépublication, activation et désactivation ; exécuter ces scénarios avec anon, utilisateur authentifié sans rôle, editor, owner, administrateur contenu et main_admin.
+
+Ce choix évite de compter sur une nouvelle policy permissive qui serait combinée par OR avec les policies actuelles. Une policy restrictive reste techniquement envisageable, mais elle doit être écrite et testée avec soin pour ne pas bloquer les lectures publiques, les éditions normales ou les écritures d'administration.
+
+**Aucune correction n'a été appliquée.** L'interface frontend de création/modification n'a pas encore été reliée à cette analyse par une revue de tous ses formulaires ; cette vérification reste nécessaire avant de produire la migration. Ne pas appliquer le changement de défaut seul : avec l'état actuel des policies, un client peut toujours envoyer explicitement `is_active = true`.
+
