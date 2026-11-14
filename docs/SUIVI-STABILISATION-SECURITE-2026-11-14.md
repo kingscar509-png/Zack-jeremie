@@ -220,3 +220,16 @@ PR #2 reste ouverte, en brouillon, non fusionnée, et conserve sa base `preparat
 - [ ] Inspecter les requêtes d'accès aux abonnements et les règles d'expiration avant de modifier leur modèle.
 
 Le fichier `src/routes/pro.tsx` ne contient actuellement que l'inscription et la liste des entreprises ; aucun parcours de paiement ou d'abonnement n'y est encore implémenté. Aucun statut nouveau ni aucune modification de base n'a été appliqué.
+
+
+## 20. Harmonisation des décisions produit et CI — 14 novembre 2026
+
+- [x] Corrigé le plan central de lancement : grand lancement public national, modules prêts ouverts à tous et modules incomplets signalés sans simulation.
+- [x] Supprimé les anciennes recommandations d'approbation centrale et de quarantaine obligatoire des publications et médias ordinaires.
+- [x] Corrigé le plan de tests : les cinq tables d'abonnement/paiement sont présentes ; ce sont les interfaces, snapshots et RPC sûrs qui restent à terminer.
+- [x] Harmonisé la matrice RLS : publication directe confirmée, sécurité concentrée sur les rôles, l'appartenance, les clauses UPDATE et l'isolation.
+- [x] Harmonisé la matrice des écrans et le plan d'exécution avec les décisions nationales et la publication directe.
+- [x] Vérifié deux runs CI sur le HEAD `88e0f31` : `43626233567` (push) et `43626239110` (pull request), tous deux terminés avec succès.
+- [ ] Le prochain chantier technique est la refonte des RPC MonCash et les écrans de paiement, après tests de contrat sur environnement de développement gratuit.
+
+Aucune modification de Supabase, aucun paiement, aucune fusion et aucun déploiement n'ont été réalisés. PR #2 reste draft et ouverte ; `main` reste intacte.
