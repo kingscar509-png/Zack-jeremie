@@ -35,14 +35,14 @@ export function CatalogManager({ businessId, role }: Props) {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
 
-  async function refresh() {
+  async function refresh(clearMessage = false) {
     setLoading(true)
     try {
       const result = await getBusinessCatalog({ data: { businessId } })
       if (result.success) {
         setProducts(result.products as CatalogItem[])
         setServices(result.services as CatalogItem[])
-        setMessage('')
+        if (clearMessage) setMessage('')
       } else {
         setMessage(result.message)
       }
@@ -54,7 +54,7 @@ export function CatalogManager({ businessId, role }: Props) {
   }
 
   useEffect(() => {
-    void refresh()
+    void refresh(true)
   }, [businessId])
 
   const items = kind === 'product' ? products : services
@@ -171,8 +171,8 @@ export function CatalogManager({ businessId, role }: Props) {
           <p className="muted">Ajoutez et gérez les produits et services visibles sur votre fiche publique.</p>
         </div>
         <div className="catalog-tabs" role="group" aria-label="Type de catalogue">
-          <button type="button" className={kind === 'product' ? 'button button-primary' : 'button button-outline'} onClick={() => { setKind('product'); resetForm() }}>Produits</button>
-          <button type="button" className={kind === 'service' ? 'button button-primary' : 'button button-outline'} onClick={() => { setKind('service'); resetForm() }}>Services</button>
+          <button type="button" className={kind === 'product' ? 'button button-primary' : 'button button-outline'} onClick={() => { setKind('product'); resetForm() }} disabled={busy}>Produits</button>
+          <button type="button" className={kind === 'service' ? 'button button-primary' : 'button button-outline'} onClick={() => { setKind('service'); resetForm() }} disabled={busy}>Services</button>
         </div>
       </div>
 
