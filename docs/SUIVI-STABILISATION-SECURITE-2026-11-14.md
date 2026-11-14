@@ -347,3 +347,15 @@ La page reste strictement en lecture seule. Les paiements demeurent fermés.
 - Aucune migration, écriture, modification de policy ou modification de paramètre Supabase n'a été effectuée.
 - Les tests navigateur, l'essai mobile et les vérifications avec plusieurs comptes réels restent à faire. Le catalogue n'est pas encore validé en conditions réelles.
 - PR #2 toujours ouverte en brouillon, non fusionnée ; `main` intacte.
+
+## 15. Confirmation des mutations du catalogue — 14 novembre 2026
+
+- Les opérations d'insertion, de mise à jour et de suppression demandent maintenant à Supabase de retourner l'identifiant de la ligne affectée.
+- Le serveur ne confirme plus une modification lorsque la requête n'a retourné aucune ligne, par exemple si l'élément n'existe pas ou ne correspond pas à l'entreprise autorisée.
+- Les requêtes continuent de filtrer par `business_id` et, pour la modification/suppression, par identifiant d'élément ; les contrôles de session, rôle et RLS restent en place.
+- Le gestionnaire ne change pas le fonctionnement de publication directe et ne crée aucune commande ou paiement.
+- Un test statique supplémentaire vérifie que les mutations confirment l'existence d'une ligne affectée.
+- HEAD code : `561dcf1`, puis nettoyage UI : `b2f10f8`.
+- CI du HEAD précédent `a8571c7` : push et pull request réussis ; CI du correctif de confirmation et du HEAD final en cours au dernier contrôle.
+- Aucune modification de la base Supabase de production, des policies, des migrations ou des paramètres Auth.
+- Les tests avec des comptes réels et le parcours navigateur/mobile restent à faire.
