@@ -59,7 +59,7 @@ const catalogMutation = z.object({
   description: z.string().trim().max(2000).optional().default(''),
   price: z.number().finite().nonnegative().max(100000000).nullable().optional(),
   currency: z.enum(['HTG', 'USD']).optional().default('HTG'),
-  imageUrl: z.string().trim().max(500).url().or(z.literal('')).optional().default(''),
+  imageUrl: z.string().trim().max(500).url().or(z.literal('')).refine((value) => value === '' || value.startsWith('https://'), 'L’image doit utiliser HTTPS.').optional().default(''),
   duration: z.string().trim().max(100).optional().default(''),
   isAvailable: z.boolean().optional().default(true),
 })
