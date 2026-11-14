@@ -359,3 +359,13 @@ La page reste strictement en lecture seule. Les paiements demeurent fermés.
 - CI du HEAD précédent `a8571c7` : push et pull request réussis ; CI du correctif de confirmation et du HEAD final en cours au dernier contrôle.
 - Aucune modification de la base Supabase de production, des policies, des migrations ou des paramètres Auth.
 - Les tests avec des comptes réels et le parcours navigateur/mobile restent à faire.
+
+### CI et préparation de la recette manuelle — 14 novembre 2026
+
+- HEAD code `b089998` : CI push `43631456114` et PR `43631460998` réussis.
+- Le journal CI confirme 11 tests automatisés réussis (11/11), puis `vite build` et `tsc --noEmit` sans erreur.
+- Ajout de `docs/RECETTE-MANUELLE-CATALOGUE.md` : scénarios pour owner, admin, editor, viewer, propriétaire d'une autre entreprise et invité ; produits, services, isolation, validation des champs, mobile et erreurs réseau.
+- La recette est explicitement marquée NON EXÉCUTÉE. Elle nécessite un projet Supabase de test isolé et des comptes jetables. Aucune donnée de production n'a été utilisée pour les essais.
+- Vérification du schéma en lecture seule : la suppression d'un produit peut supprimer en cascade ses lignes liées dans `product_images`; la recette interdit donc les suppressions sur la production.
+- HEAD documentaire : `e652fb8`; CI de ce commit à confirmer.
+- Aucun compte réel n'a été créé, aucun test navigateur n'a été prétendu, aucun paiement n'a été activé.
