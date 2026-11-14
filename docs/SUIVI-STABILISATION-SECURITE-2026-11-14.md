@@ -187,3 +187,24 @@ Le succès CI ci-dessus concerne le HEAD vérifié à cet instant. Les mises à 
 - [ ] Aucun SQL d'écriture, migration ou changement de production effectué.
 
 Le document de référence est `docs/ABONNEMENTS-MONCASH-ZACK.md`. La conception est documentaire uniquement ; aucun paiement réel ne doit être accepté à ce stade.
+
+
+## 18. Modèle de snapshots et renouvellement — 14 novembre 2026
+
+- [x] Vérifié le schéma réel des cinq tables : aucun champ snapshot de forfait ou de destinataire n'existe encore.
+- [x] Confirmé que les prix et durées doivent être figés au moment de la demande et que les droits d'un abonnement actif ne doivent pas dépendre rétroactivement du catalogue modifiable.
+- [x] Documenté une règle cible : une seule demande `needs_review` par entreprise, création sérialisée, référence MonCash non réutilisable et vérification du destinataire côté serveur.
+- [x] Documenté la règle de renouvellement recommandée : première période à la validation ; renouvellement du même forfait en prolongeant la période active ; changement de forfait immédiat sans prorata au lancement, avec avertissement préalable.
+- [x] Préservé l'index unique existant garantissant au plus un abonnement actif par entreprise.
+- [ ] Vérifier les lectures frontend des statuts/dates d'abonnement et les contraintes CHECK avant de figer le schéma.
+- [ ] Écrire et exécuter les tests SQL sur un environnement de développement gratuit.
+- [ ] Préparer une migration additive et un rollback, puis demander une autorisation distincte avant toute action sur la base de production.
+- [ ] Construire le parcours frontend entreprise et administration seulement après stabilisation du contrat RPC.
+
+### CI et état de la PR
+
+- [x] Run GitHub Actions `43625298753` sur le HEAD documentaire `4a71e16` : terminé avec succès ; installation, TypeScript, build de production et finalisation du job sont réussis.
+- [x] Run `43625257655` sur `1743d3d` : conclusion finale `cancelled` ; il n'est pas compté comme un succès.
+- [ ] Vérifier le CI des nouveaux commits documentaires de cette section.
+
+PR #2 reste ouverte, en brouillon, non fusionnée, et conserve sa base `preparation/phase-1-frontend-plan`. La branche `main` et la base Supabase de production restent inchangées. Budget supplémentaire : 0 $.
