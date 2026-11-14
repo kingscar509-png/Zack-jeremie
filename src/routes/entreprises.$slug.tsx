@@ -12,6 +12,17 @@ function safeHttpUrl(value: string | null) {
   }
 }
 
+function safePhone(value: string | null) {
+  if (!value) return null
+  const normalized = value.replace(/[^0-9+]/g, '')
+  return /^\+?\d{6,15}$/.test(normalized) ? normalized : null
+}
+
+function safeEmail(value: string | null) {
+  if (!value || value.length > 254) return null
+  return /^[^\s@/?#]+@[^\s@/?#]+\.[^\s@/?#]+$/.test(value) ? value : null
+}
+
 export const Route = createFileRoute('/entreprises/$slug')({
   loader: ({ params }) => getBusinessBySlug({ data: params.slug }),
   component: BusinessPage,
@@ -29,6 +40,9 @@ function BusinessPage() {
   }
 
   const website = safeHttpUrl(business.website)
+  const phone = safePhone(business.phone)
+  const whatsapp = safePhone(business.whatsapp)
+  const email = safeEmail(business.email)
   const coverUrl = safeHttpUrl(business.cover_url)
   const logoUrl = safeHttpUrl(business.logo_url)
   const address = [business.street, business.neighborhood, business.city, business.address]
@@ -111,9 +125,9 @@ function BusinessPage() {
         <section className="detail-panel">
           <h2>Coordonnées</h2>
           {address ? <p>{address}</p> : null}
-          {business.phone ? <p>Téléphone : <a href={`tel:${business.phone}`}>{business.phone}</a></p> : null}
-          {business.whatsapp ? <p>WhatsApp : <a href={`https://wa.me/${business.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer">{business.whatsapp}</a></p> : null}
-          {business.email ? <p>Email : <a href={`mailto:${business.email}`}>{business.email}</a></p> : null}
+          {business.phone ? <p>Téléphone : {phone ? <a href={`tel:${phone}`}>{business.phone}</a> : business.phone}</p> : null}
+          {business.whatsapp ? <p>WhatsApp : {whatsapp ? <a href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer">{business.whatsapp}</a> : business.whatsapp}</p> : null}
+          {business.email ? <p>Email : {email ? <a href={`mailto:${email}`}>{business.email}</a> : business.email}</p> : null}
           {website ? <p>Site web : <a href={website} target="_blank" rel="noreferrer">{website}</a></p> : null}
           {!address && !business.phone && !business.whatsapp && !business.email && !website
             ? <p className="muted">Aucune coordonnée publique renseignée.</p>
