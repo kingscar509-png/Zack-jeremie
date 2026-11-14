@@ -11,8 +11,13 @@ export const getCurrentAccount = createServerFn({ method: 'GET' }).handler(
         error: authError,
       } = await supabase.auth.getUser()
 
-      if (authError || !user) {
-        return { user: null, profile: null, businesses: [] }
+      if (authError) {
+        console.error('Zack account authentication lookup failed.')
+        return { user: null, profile: null, businesses: [], unavailable: true }
+      }
+
+      if (!user) {
+        return { user: null, profile: null, businesses: [], unavailable: false }
       }
 
       const [profileResult, membershipResult] = await Promise.all([
@@ -29,13 +34,19 @@ export const getCurrentAccount = createServerFn({ method: 'GET' }).handler(
           .eq('user_id', user.id),
       ])
 
+      if (profileResult.error || membershipResult.error) {
+        console.error('Zack account data query failed.')
+      }
+
       return {
         user: { id: user.id, email: user.email ?? null },
-        profile: profileResult.data,
-        businesses: membershipResult.data ?? [],
+        profile: profileResult.error ? null : profileResult.data,
+        businesses: membershipResult.error ? [] : membershipResult.data ?? [],
+        unavailable: Boolean(profileResult.error || membershipResult.error),
       }
     } catch {
-      return { user: null, profile: null, businesses: [] }
+      console.error('Zack account data is unavailable.')
+      return { user: null, profile: null, businesses: [], unavailable: true }
     }
   },
 )
