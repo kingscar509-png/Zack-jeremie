@@ -53,7 +53,7 @@ function HomePage() {
               {categories.map((category) => (
                 <a
                   className="category-tile"
-                  href={`/recherche?q=${encodeURIComponent(category.name)}`}
+                  href={`/recherche?category=${encodeURIComponent(category.name)}`}
                   key={category.id}
                 >
                   <span aria-hidden="true">{category.icon || '◆'}</span>
