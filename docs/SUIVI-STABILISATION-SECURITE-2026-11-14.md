@@ -333,3 +333,17 @@ La page reste strictement en lecture seule. Les paiements demeurent fermés.
 - Les tests de navigation réelle, l'isolation avec plusieurs comptes réels et le rendu sur mobile restent à effectuer. Le catalogue en production n'a pas été rempli ni testé avec de vrais comptes.
 - La PR #2 reste en brouillon et n'est pas fusionnée ; `main` reste intacte.
 - CI du commit documentaire `968515da30416598a1928d28959b340a6c108914` : run `43630381405` terminé avec succès, y compris tests de garde-fous, TypeScript, build et finalisation.
+
+
+## 14. Durcissement du gestionnaire de catalogue — HEAD `b630b78`
+
+- La gestion du catalogue est désormais isolée dans un composant dédié et utilise des fonctions serveur pour charger et modifier les éléments.
+- Chaque opération vérifie la session, l'appartenance au `business_id` concerné et le rôle `owner`, `admin` ou `editor` côté serveur ; les policies RLS restent actives en complément.
+- Les mises à jour et suppressions filtrent simultanément par identifiant de l'élément et identifiant de l'entreprise.
+- Les images externes doivent utiliser HTTPS ; les prix peuvent être exprimés en HTG ou USD.
+- La disponibilité peut être modifiée sans supprimer l'élément ; la publication reste directe, sans file d'approbation.
+- Le premier build a révélé une déclaration en double dans `/pro`, car un ancien gestionnaire local était déjà présent dans le fichier. Le doublon a été supprimé et le composant sécurisé dédié a été conservé.
+- CI pull request `43630982871` sur le HEAD `b630b787337cf28c8a487a90bf4511280fa2bdb6` : succès complet, 11 tests de garde-fous, TypeScript et build de production.
+- Aucune migration, écriture, modification de policy ou modification de paramètre Supabase n'a été effectuée.
+- Les tests navigateur, l'essai mobile et les vérifications avec plusieurs comptes réels restent à faire. Le catalogue n'est pas encore validé en conditions réelles.
+- PR #2 toujours ouverte en brouillon, non fusionnée ; `main` intacte.
