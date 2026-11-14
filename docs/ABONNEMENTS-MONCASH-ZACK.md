@@ -177,3 +177,8 @@ Ces points sont bloquants avant encaissement réel, pas avant de poursuivre le d
 - Les index de référence de paiement protègent déjà les références répétées dans les états `needs_review` et `succeeded` ; la règle métier pour une référence après refus/annulation doit rester explicitement définie.
 
 Ces observations décrivent les policies et index actuellement présents. Elles ne remplacent pas des tests d'accès réels avec des sessions de chaque rôle. Aucun SQL d'écriture n'a été exécuté.
+
+
+### Vérification complémentaire du déclenchement de demande
+
+La fonction `request_subscription_payment` ne vérifie pas qu'un destinataire actif existe pour le fournisseur demandé avant de créer `business_subscriptions` et `payments`. Comme la table `payment_recipients` est actuellement vide, le RPC pourrait enregistrer une demande alors qu'aucun numéro de réception n'est configuré. Avant l'ouverture du parcours payant, la fonction devra vérifier côté serveur la présence d'un destinataire MonCash actif et enregistrer ses coordonnées en snapshot dans la même transaction. L'interface seule ne doit pas porter cette garantie.
