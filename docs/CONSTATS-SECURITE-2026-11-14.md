@@ -118,3 +118,23 @@ Une lecture directe de `pg_policies`, des valeurs par défaut et des définition
 5. Tester les opérations comme `anon`, utilisateur connecté sans rôle, editor, owner, administrateur de contenu et main_admin ; inclure INSERT et UPDATE de brouillon, publication, activation, désactivation et changement d'entreprise.
 
 Aucune de ces corrections n'a été exécutée sur la base active. La conception doit être validée dans un environnement local gratuit avant toute migration de production.
+
+
+## 9. Contrôle complémentaire — création et gestion des entreprises
+
+Lecture en mode SELECT des fonctions, policies et triggers le 14 novembre 2026 :
+
+- `create_business(...)` est une fonction `SECURITY DEFINER`, avec `search_path` vide, exécutable par `authenticated`, `service_role` et `postgres` (pas par `anon`). Elle exige `auth.uid()` non nul, vérifie le nom et le format du slug, crée l'entreprise avec le statut `pending`, puis crée l'appartenance `owner` dans le même appel PostgreSQL. L'insertion entreprise + appartenance est donc atomique.
+- La fonction utilise des noms de tables qualifiés (`public.businesses`, `public.business_members`) et appelle `auth.uid()` explicitement. Aucun défaut évident de `search_path` n'a été observé dans cette fonction.
+- `is_business_manager(uuid)` est aussi `SECURITY DEFINER`, avec `search_path` vide ; elle vérifie l'identité via `auth.uid()` et limite la gestion aux rôles `owner` et `admin`.
+- La policy UPDATE des entreprises exige `is_business_manager(id)`. Le trigger `prevent_business_status_change()` bloque un changement de statut par un rôle JWT `authenticated` si l'appelant n'est pas administrateur Zack. Le statut de vérification ne peut donc pas être modifié par un simple owner/admin via le flux UPDATE normal.
+- Les policies de `profiles` permettent à un utilisateur connecté d'insérer et modifier uniquement son propre profil ; la policy UPDATE conserve `id = auth.uid()` dans USING et WITH CHECK.
+- `business_members` n'expose pas de policy d'insertion ou de modification directe aux membres dans les policies consultées ; l'ajout initial du owner est réalisé dans la fonction contrôlée.
+
+### Limites restantes du parcours d'inscription
+
+- Le champ `city` n'est pas un paramètre de `create_business` : le frontend l'enregistre dans une deuxième requête après la création. Une erreur à cette étape peut laisser l'entreprise créée sans ville. Ce point est déjà documenté dans le suivi de stabilisation.
+- Les limites de longueur et validations Zod sont appliquées dans le serveur applicatif, mais la fonction SQL ne reproduit pas toutes ces limites. Un appel RPC direct par un utilisateur authentifié pourrait envoyer des textes plus longs que ceux acceptés par le formulaire. À traiter dans une évolution SQL testée, sans urgence supérieure au contrôle des publications.
+- Aucun test d'inscription avec un vrai compte utilisateur n'a été réalisé dans cette revue ; les constats ci-dessus proviennent de l'inspection statique des définitions et policies.
+
+Conclusion : le flux de création possède plusieurs protections utiles et aucun changement de base n'est justifié à ce stade. Conserver le point de non-atomicité du champ ville comme dette technique, puis prévoir des limites de taille côté SQL pour renforcer la validation au-delà du frontend.
