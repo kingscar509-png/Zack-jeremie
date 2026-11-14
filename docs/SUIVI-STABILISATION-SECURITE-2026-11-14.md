@@ -108,3 +108,17 @@ Dernier commit documentaire de clarification : `77cbac6`. Le CI de ce commit et 
 - [ ] Préparer une migration contrôlée pour MonCash uniquement, après test de compatibilité des données existantes.
 - [ ] Concevoir la protection contre deux revendications concurrentes de `main_admin`.
 - [ ] Examiner le caractère public de `business_counts(uuid)` et confirmer que les compteurs followers/favorites d'entreprises vérifiées sont destinés à être publics.
+
+
+## 12. Confirmation du modèle de publication et revue RLS
+
+- [x] Décision confirmée : publication et activation directes par les membres autorisés, sans approbation Zack.
+- [x] Rapport corrigé : suppression des recommandations obsolètes de modération préalable.
+- [x] Policies RLS relues pour posts, promotions, événements, entreprises et memberships.
+- [x] Les INSERT/UPDATE/DELETE des contenus sont conditionnés à l'existence d'une appartenance au même `business_id` avec rôle `owner`, `admin` ou `editor` ; les lectures membres se limitent à leurs entreprises.
+- [x] Les clauses UPDATE `WITH CHECK` réévaluent l'appartenance au `business_id` final, ce qui empêche le transfert vers une entreprise étrangère si l'utilisateur n'y a pas de rôle approprié.
+- [x] Le statut de vérification de l'entreprise reste protégé par un trigger qui interdit aux managers ordinaires de le changer.
+- [ ] Tester avec de vrais comptes les rôles, révocations, accès croisés et publication directe. La revue SQL statique n'est pas un substitut aux tests RLS en session authentifiée.
+- [ ] Préparer ensuite la migration MonCash uniquement et l'unicité du rôle principal administrateur, avec environnement de test gratuit.
+
+Le défaut `promotions.is_active = true` est conservé : il correspond au comportement de publication/activation immédiate décidé pour le produit et ne doit pas être changé sans décision contraire.
