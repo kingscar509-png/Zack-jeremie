@@ -112,3 +112,11 @@ test('les images du catalogue doivent utiliser HTTPS et aucune modération préa
   assert.doesNotMatch(catalogFunctions, /moderation_queue|approval_required|pending_approval/)
   assert.doesNotMatch(catalogManager, /moderation_queue|approval_required|pending_approval/)
 })
+
+test('le gestionnaire conserve le retour de mutation après le rechargement du catalogue', () => {
+  assert.match(catalogManager, /async function refresh\(clearMessage = false\)/)
+  assert.match(catalogManager, /if \(clearMessage\) setMessage\(''\)/)
+  assert.match(catalogManager, /setMessage\(result\.message\)[\s\S]*?await refresh\(\)/)
+  assert.match(catalogManager, /setKind\('product'\)[\s\S]*?disabled=\{busy\}/)
+  assert.match(catalogManager, /setKind\('service'\)[\s\S]*?disabled=\{busy\}/)
+})
