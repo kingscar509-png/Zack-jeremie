@@ -38,7 +38,7 @@ npm run build
 npm run preview
 ```
 
-## Fonctionnalités déjà amorcées
+## Fonctionnalités frontend déjà amorcées
 
 - Accueil national et catégories actives.
 - Recherche serveur des entreprises vérifiées.
@@ -50,9 +50,13 @@ npm run preview
 
 Ces fonctionnalités sont écrites mais doivent encore passer par l'installation, le build, les tests navigateur et les tests de permissions avant d'être considérées comme validées.
 
-## Fonctionnalités planifiées, non simulées
+## Backend Supabase : structures présentes, interfaces à construire
 
-La base actuelle ne contient pas encore les tables dédiées aux conversations/messages, commandes, transactions/paiements ou abonnements Zack. Ces modules ne doivent pas afficher de données fictives. Ils seront ajoutés après conception et validation de leurs modèles de données, règles RLS et flux serveur.
+Le schéma Supabase actuel comprend notamment les tables de conversations/messages, commandes/lignes, livreurs/zones de livraison, forfaits/abonnements et paiements. Leur présence en base ne signifie pas que les parcours sont disponibles dans le frontend ni que tous les besoins produit sont couverts.
+
+Les modules de messagerie, commandes multi-vendeurs, abonnements Zack, paiements MonCash et administration doivent être vérifiés, complétés et testés avant d'être annoncés comme opérationnels. Ne jamais afficher de données fictives.
+
+État précis et écarts relevés le 14 novembre : [complément d'audit Supabase après migrations m8 à m13](docs/ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md).
 
 ## Règles de contribution
 
@@ -65,7 +69,7 @@ La base actuelle ne contient pas encore les tables dédiées aux conversations/m
 ## Documents de référence
 
 - [Audit de reprise du 14 novembre 2026](docs/AUDIT-REPRISE-2026-11-14.md)
-
+- [Complément d'audit Supabase après migrations m8 à m13](docs/ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md)
 - [État réel et plan phase 1](docs/ETAT-REEL-ET-PLAN-PHASE-1.md)
 - [Matrice écrans, données et permissions](docs/MATRICE-ECRANS-SUPABASE-PERMISSIONS.md)
 - [Architecture frontend](docs/ARCHITECTURE-FRONTEND-ZACK.md)
