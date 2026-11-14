@@ -5,9 +5,9 @@ import { SiteHeader } from '~/components/layout/SiteHeader'
 import { BusinessCard } from '~/components/business/BusinessCard'
 
 const searchSchema = z.object({
-  q: z.string().max(100).optional().catch(''),
-  city: z.string().max(100).optional().catch(''),
-  category: z.string().max(100).optional().catch(''),
+  q: z.string().trim().max(100).optional().catch(''),
+  city: z.string().trim().max(100).optional().catch(''),
+  category: z.string().trim().max(100).optional().catch(''),
 })
 
 export const Route = createFileRoute('/recherche')({
