@@ -94,6 +94,8 @@ test('la gestion du catalogue vérifie le compte, le rôle et l’entreprise cô
   assert.match(catalogFunctions, /\.eq\('user_id', user\.id\)/)
   assert.match(catalogFunctions, /\['owner', 'admin', 'editor'\]\.includes\(membership\.role\)/)
   assert.match(catalogFunctions, /\.eq\('id', data\.itemId!\)\.eq\('business_id', data\.businessId\)/)
+  assert.match(catalogFunctions, /result\.error \|\| !result\.data\?\.length/)
+  assert.match(catalogFunctions, /\.select\('id'\)/)
 })
 
 test('le gestionnaire permet de créer, modifier, désactiver et supprimer les éléments', () => {
