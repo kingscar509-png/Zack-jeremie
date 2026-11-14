@@ -286,3 +286,15 @@ Aucun droit, policy, index ou paramètre Auth n'a été modifié. Les avertissem
 - [ ] RPC MonCash V2, migration et écrans de paiement restent à implémenter sur environnement de développement gratuit.
 
 La réussite CI ne valide pas le fonctionnement avec de vrais comptes ni les permissions RLS en situation réelle.
+
+
+## 25. Durcissement de la page abonnements — 14 novembre 2026
+
+- [x] Retiré `review_note` de la sélection frontend et de l'affichage : une note de revue peut être interne et ne doit pas être exposée par défaut au gestionnaire.
+- [x] Rendu le texte de disponibilité du catalogue dynamique pour éviter une affirmation obsolète après ajout futur de forfaits.
+- [x] CI précédente du HEAD `944b4af` : run PR `43627332383` réussi (installation, TypeScript, build et finalisation).
+- [ ] CI du correctif `7550d09` à confirmer.
+- [ ] Parcours navigateur à tester avec owner, admin, editor, non-membre, session expirée et erreurs réseau.
+- [ ] Vérifier le rendu mobile et la navigation depuis `/pro`.
+
+La page reste strictement en lecture seule. Les paiements demeurent fermés.
