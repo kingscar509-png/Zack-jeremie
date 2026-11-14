@@ -148,7 +148,7 @@ function SubscriptionPage() {
             <section className="detail-panel">
               <h2>État du paiement en ligne</h2>
               <p role="status">
-                Les paiements d’abonnement ne sont pas encore ouverts. Le catalogue actuel contient uniquement le forfait Gratuit.
+                Les paiements d’abonnement ne sont pas encore ouverts. {data.plans.length > 0 && data.plans.every((plan) => plan.price_htg === 0) ? 'Seul le forfait Gratuit est actuellement disponible.' : 'Les offres affichées sont consultables, mais aucun paiement ne peut encore être envoyé.'}
                 {data.recipientConfigured
                   ? ' Un destinataire MonCash actif est configuré, mais le parcours de paiement reste désactivé jusqu’à la validation technique.'
                   : ' Aucun destinataire MonCash actif n’est configuré.'}
@@ -231,7 +231,6 @@ function SubscriptionPage() {
                           <strong>{business?.name ?? 'Entreprise'} · {formatAmount(payment.amount, payment.currency)}</strong>
                           <p className="muted">Fournisseur : {payment.provider} · Statut : {payment.status} · {formatDate(payment.created_at)}</p>
                           {payment.proof_reference ? <p className="muted">Référence : {payment.proof_reference}</p> : null}
-                          {payment.review_note ? <p className="muted">Note : {payment.review_note}</p> : null}
                         </div>
                       </article>
                     )
