@@ -14,6 +14,10 @@ export function createSupabaseServerClient() {
     throw new Error('La configuration Supabase du serveur est incomplète.')
   }
 
+  // Les réponses qui utilisent une session Supabase ne doivent pas être
+  // mises en cache publiquement : elles peuvent contenir des données privées.
+  setResponseHeader('Cache-Control', 'private, no-store')
+
   return createServerClient<Database>(url, key, {
     cookies: {
       getAll() {
@@ -22,13 +26,10 @@ export function createSupabaseServerClient() {
           value,
         }))
       },
-      setAll(cookies, headers) {
-        cookies.forEach(({ name, value, options }) => {
+      // @supabase/ssr 0.8.x attend un seul argument dans setAll.
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
           setCookie(name, value, options)
-        })
-
-        Object.entries(headers).forEach(([name, value]) => {
-          setResponseHeader(name, value)
         })
       },
     },
