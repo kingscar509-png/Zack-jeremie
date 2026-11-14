@@ -332,3 +332,4 @@ La page reste strictement en lecture seule. Les paiements demeurent fermés.
 - CI sur HEAD `45a36bebc518de0f3f4a49a8c35974ea126da1f6` : push `43630261836` et pull request `43630266763` tous deux terminés avec succès (tests de garde-fous, TypeScript et build).
 - Les tests de navigation réelle, l'isolation avec plusieurs comptes réels et le rendu sur mobile restent à effectuer. Le catalogue en production n'a pas été rempli ni testé avec de vrais comptes.
 - La PR #2 reste en brouillon et n'est pas fusionnée ; `main` reste intacte.
+- CI du commit documentaire `968515da30416598a1928d28959b340a6c108914` : run `43630381405` terminé avec succès, y compris tests de garde-fous, TypeScript, build et finalisation.
