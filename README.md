@@ -64,6 +64,8 @@ La base actuelle ne contient pas encore les tables dédiées aux conversations/m
 
 ## Documents de référence
 
+- [Audit de reprise du 14 novembre 2026](docs/AUDIT-REPRISE-2026-11-14.md)
+
 - [État réel et plan phase 1](docs/ETAT-REEL-ET-PLAN-PHASE-1.md)
 - [Matrice écrans, données et permissions](docs/MATRICE-ECRANS-SUPABASE-PERMISSIONS.md)
 - [Architecture frontend](docs/ARCHITECTURE-FRONTEND-ZACK.md)
