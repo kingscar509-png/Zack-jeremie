@@ -76,7 +76,11 @@ function ProfessionalPage() {
           {account.user ? <button className="button button-outline" type="button" onClick={signOut}>Déconnexion</button> : null}
         </div>
 
-        {!account.user ? (
+        {account.unavailable && !account.user ? (
+          <section className="detail-panel">
+            <p role="alert">Le service de compte est momentanément indisponible. Réessayez dans quelques instants.</p>
+          </section>
+        ) : !account.user ? (
           <section className="detail-panel">
             <h2>Connectez-vous pour continuer</h2>
             <p>Vous devez être connecté pour gérer une entreprise ou en inscrire une nouvelle.</p>
@@ -84,6 +88,7 @@ function ProfessionalPage() {
           </section>
         ) : (
           <>
+            {account.unavailable ? <p className="form-message" role="status">Certaines données du compte n’ont pas pu être chargées. Vos informations de connexion restent reconnues ; réessayez pour actualiser les données.</p> : null}
             <section className="detail-panel">
               <h2>Mes entreprises</h2>
               {account.businesses.length ? (
@@ -104,7 +109,7 @@ function ProfessionalPage() {
                   })}
                 </div>
               ) : (
-                <p className="muted">Vous ne gérez encore aucune entreprise avec ce compte.</p>
+                <p className="muted">{account.unavailable ? 'La liste des entreprises est momentanément indisponible.' : 'Vous ne gérez encore aucune entreprise avec ce compte.'}</p>
               )}
             </section>
 
