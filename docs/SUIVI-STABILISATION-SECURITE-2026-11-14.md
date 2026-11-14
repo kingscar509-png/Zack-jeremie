@@ -170,3 +170,20 @@ L'index Auth `users_email_partial_key` rend l'e-mail unique sur sa valeur stock�
 - [ ] Exécuter les tests RLS avec de vrais comptes et sessions, y compris accès interentreprises et révocation.
 
 Le succès CI ci-dessus concerne le HEAD vérifié à cet instant. Les mises à jour documentaires ajoutées ensuite doivent encore passer leur propre run CI. PR #2 reste draft et non fusionnée ; `main` et la base Supabase de production restent inchangées.
+
+
+## 17. Relecture approfondie des RPC MonCash et conception du parcours — 14 novembre 2026
+
+- [x] Relu la définition réelle de `request_subscription_payment` en lecture seule : gestionnaire requis, plan actif payant, référence 4–60 caractères, création abonnement/paiement/événement dans la même transaction.
+- [x] Confirmé que la fonction accepte encore MonCash et NatCash et ne vérifie pas la présence d'un destinataire actif.
+- [x] Confirmé que le montant est copié, mais pas le code/nom du plan, sa durée ou le destinataire.
+- [x] Confirmé que plusieurs demandes en attente peuvent être créées pour une même entreprise ; l'index existant limite les abonnements actifs, pas les demandes en attente.
+- [x] Relu `admin_review_payment` : verrouille le paiement, exige `main_admin`, refuse le rejeu d'une décision déjà traitée, mais utilise la durée courante du plan et fait commencer la période à `now()`.
+- [x] Documenté les risques à tester : renouvellement et temps restant, approbations concurrentes, cohérence abonnement/paiement/entreprise, notification et résultat financier.
+- [x] Documenté le parcours cible de l'espace entreprise et de l'administration principale, sans prétendre que ces écrans existent déjà.
+- [x] Mis à jour la description de PR #2 avec ces constats et les étapes restantes.
+- [ ] Concevoir les snapshots, règles d'idempotence, transitions de statut et politique de renouvellement avant d'écrire une migration.
+- [ ] Obtenir un résultat CI vérifiable sur le commit documentaire `1743d3d`.
+- [ ] Aucun SQL d'écriture, migration ou changement de production effectué.
+
+Le document de référence est `docs/ABONNEMENTS-MONCASH-ZACK.md`. La conception est documentaire uniquement ; aucun paiement réel ne doit être accepté à ce stade.
