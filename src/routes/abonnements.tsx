@@ -17,10 +17,10 @@ export const getSubscriptionOverview = createServerFn({ method: 'GET' }).handler
       const { data: { user }, error: authError } = await supabase.auth.getUser()
 
       if (authError) {
-        return { user: null, businesses: [], plans: [], subscriptions: [], payments: [], recipientConfigured: false, unavailable: true }
+        return { user: null, businesses: [], plans: [], subscriptions: [], payments: [], unavailable: true }
       }
       if (!user) {
-        return { user: null, businesses: [], plans: [], subscriptions: [], payments: [], recipientConfigured: false, unavailable: false }
+        return { user: null, businesses: [], plans: [], subscriptions: [], payments: [], unavailable: false }
       }
 
       const { data: membershipRows, error: membershipError } = await supabase
@@ -29,7 +29,7 @@ export const getSubscriptionOverview = createServerFn({ method: 'GET' }).handler
         .eq('user_id', user.id)
 
       if (membershipError) {
-        return { user: { id: user.id }, businesses: [], plans: [], subscriptions: [], payments: [], recipientConfigured: false, unavailable: true }
+        return { user: { id: user.id }, businesses: [], plans: [], subscriptions: [], payments: [], unavailable: true }
       }
 
       const businesses: BusinessSummary[] = (membershipRows ?? [])
@@ -47,7 +47,7 @@ export const getSubscriptionOverview = createServerFn({ method: 'GET' }).handler
         })
 
       if (businesses.length === 0) {
-        return { user: { id: user.id }, businesses, plans: [], subscriptions: [], payments: [], recipientConfigured: false, unavailable: false }
+        return { user: { id: user.id }, businesses, plans: [], subscriptions: [], payments: [], unavailable: false }
       }
 
       const businessIds = businesses.map((business) => business.id)
@@ -71,7 +71,7 @@ export const getSubscriptionOverview = createServerFn({ method: 'GET' }).handler
       ])
 
       if (plansResult.error || subscriptionsResult.error || paymentsResult.error) {
-        return { user: { id: user.id }, businesses, plans: [], subscriptions: [], payments: [], recipientConfigured: false, unavailable: true }
+        return { user: { id: user.id }, businesses, plans: [], subscriptions: [], payments: [], unavailable: true }
       }
 
       return {
@@ -83,7 +83,7 @@ export const getSubscriptionOverview = createServerFn({ method: 'GET' }).handler
         unavailable: false,
       }
     } catch {
-      return { user: null, businesses: [], plans: [], subscriptions: [], payments: [], recipientConfigured: false, unavailable: true }
+      return { user: null, businesses: [], plans: [], subscriptions: [], payments: [], unavailable: true }
     }
   },
 )
