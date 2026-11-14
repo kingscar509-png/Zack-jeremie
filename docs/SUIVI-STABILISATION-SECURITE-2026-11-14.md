@@ -208,3 +208,15 @@ Le document de référence est `docs/ABONNEMENTS-MONCASH-ZACK.md`. La conception
 - [ ] Vérifier le CI des nouveaux commits documentaires de cette section.
 
 PR #2 reste ouverte, en brouillon, non fusionnée, et conserve sa base `preparation/phase-1-frontend-plan`. La branche `main` et la base Supabase de production restent inchangées. Budget supplémentaire : 0 $.
+
+
+## 19. Vérification des contraintes CHECK et contrat RPC de renouvellement — 14 novembre 2026
+
+- [x] Vérifié les valeurs réellement autorisées par les contraintes CHECK : abonnements `pending_payment/active/expired/cancelled`, paiements `initiated/pending/needs_review/succeeded/failed/cancelled`.
+- [x] Confirmé que les deux tables de fournisseur acceptent encore MonCash et NatCash.
+- [x] Vérifié les contraintes de durée (1 à 366 jours), montant positif, devise HTG et unicité du code plan.
+- [x] Précisé le contrat RPC : renouvellement du même forfait = paiement rattaché à l'abonnement actif existant et prolongation de sa date de fin ; première souscription/changement de forfait = nouvelle ligne pending, activée après approbation.
+- [ ] Refactoriser les RPC et tester les scénarios concurrents avant migration.
+- [ ] Inspecter les requêtes d'accès aux abonnements et les règles d'expiration avant de modifier leur modèle.
+
+Le fichier `src/routes/pro.tsx` ne contient actuellement que l'inscription et la liste des entreprises ; aucun parcours de paiement ou d'abonnement n'y est encore implémenté. Aucun statut nouveau ni aucune modification de base n'a été appliqué.
