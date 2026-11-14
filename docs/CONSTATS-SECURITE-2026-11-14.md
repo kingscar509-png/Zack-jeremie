@@ -28,7 +28,7 @@ La fonction `claim_main_admin()` :
 - vérifie d'abord qu'aucun rôle `main_admin` n'existe, puis insère le rôle ;
 - utilise `ON CONFLICT (user_id) DO NOTHING`, mais aucun index unique partiel sur le rôle `main_admin` n'a été observé dans les constats précédents.
 
-Risque : deux appels concurrents au premier démarrage peuvent tous deux passer la vérification « aucun main_admin » avant l'insertion. La contrainte sur `user_id` ne garantit pas l'unicité du rôle principal entre plusieurs utilisateurs.
+Nuance importante après vérification des index de `auth.users` : le bootstrap est actuellement limité à une identité e-mail déterminée et l'index `users_email_partial_key` rend l'adresse stockée unique, mais il est sensible à la casse alors que la fonction compare `lower(email)`. Deux identités stockées avec des variantes de casse pourraient donc théoriquement satisfaire le même test normalisé si elles étaient créées hors du parcours Auth habituel. En parallèle, la clé primaire sur `admin_roles.user_id` empêche deux appels du même utilisateur de créer deux lignes. Le scénario de double attribution n'est donc pas démontré en exploitation normale, mais l'invariant « un seul main_admin » n'est pas garanti par la table elle-même.
 
 Correction à préparer : imposer l'unicité du rôle principal au niveau PostgreSQL, rendre le bootstrap atomique et traiter explicitement le conflit concurrent. Vérifier aussi le processus de récupération du rôle principal avant de changer cette fonction.
 
@@ -163,7 +163,7 @@ La définition actuelle de `claim_main_admin()` a été relue :
 - Sinon, vérifie l'identité et l'adresse confirmée du compte autorisé au bootstrap, puis insère `main_admin`.
 - L'insertion utilise `ON CONFLICT (user_id) DO NOTHING`, mais la table n'a pas de contrainte garantissant qu'un seul utilisateur peut porter `role = 'main_admin'`.
 
-Risque confirmé : la vérification « aucun main_admin » et l'insertion ne sont pas sérialisées. Deux sessions concurrentes peuvent franchir le test initial en même temps. Le conflit sur `user_id` ne protège pas contre deux utilisateurs différents.
+Nuance : le chemin normal de bootstrap n'autorise qu'une identité déterminée et la clé primaire sur `user_id` protège les appels concurrents du même compte. Cependant, l'adresse est comparée en minuscules alors que l'unicité Auth observée porte sur la valeur brute ; aucune contrainte ne garantit à elle seule un seul rôle `main_admin`. Il s'agit d'un durcissement de l'invariant et d'une protection contre les cas limites, pas d'une exploitation concurrente démontrée.
 
 Correction à préparer, sans l'appliquer à chaud :
 1. vérifier d'abord les données existantes et les éventuels doublons ;
