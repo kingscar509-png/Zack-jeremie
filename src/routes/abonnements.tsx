@@ -51,7 +51,7 @@ export const getSubscriptionOverview = createServerFn({ method: 'GET' }).handler
       }
 
       const businessIds = businesses.map((business) => business.id)
-      const [plansResult, subscriptionsResult, paymentsResult, recipientsResult] = await Promise.all([
+      const [plansResult, subscriptionsResult, paymentsResult] = await Promise.all([
         supabase
           .from('subscription_plans')
           .select('id, code, name, price_htg, duration_days, max_products, max_images_per_item, features')
@@ -64,14 +64,13 @@ export const getSubscriptionOverview = createServerFn({ method: 'GET' }).handler
           .order('created_at', { ascending: false }),
         supabase
           .from('payments')
-          .select('id, business_id, subscription_id, provider, amount, currency, status, proof_reference, created_at, confirmed_at, review_note')
+          .select('id, business_id, subscription_id, provider, amount, currency, status, proof_reference, created_at, confirmed_at')
           .in('business_id', businessIds)
           .order('created_at', { ascending: false })
           .limit(50),
-        supabase.rpc('get_payment_recipients'),
       ])
 
-      if (plansResult.error || subscriptionsResult.error || paymentsResult.error || recipientsResult.error) {
+      if (plansResult.error || subscriptionsResult.error || paymentsResult.error) {
         return { user: { id: user.id }, businesses, plans: [], subscriptions: [], payments: [], recipientConfigured: false, unavailable: true }
       }
 
@@ -81,7 +80,6 @@ export const getSubscriptionOverview = createServerFn({ method: 'GET' }).handler
         plans: plansResult.data ?? [],
         subscriptions: subscriptionsResult.data ?? [],
         payments: paymentsResult.data ?? [],
-        recipientConfigured: (recipientsResult.data ?? []).some((recipient) => recipient.provider === 'moncash'),
         unavailable: false,
       }
     } catch {
@@ -149,9 +147,7 @@ function SubscriptionPage() {
               <h2>État du paiement en ligne</h2>
               <p role="status">
                 Les paiements d’abonnement ne sont pas encore ouverts. {data.plans.length > 0 && data.plans.every((plan) => plan.price_htg === 0) ? 'Seul le forfait Gratuit est actuellement disponible.' : 'Les offres affichées sont consultables, mais aucun paiement ne peut encore être envoyé.'}
-                {data.recipientConfigured
-                  ? ' Un destinataire MonCash actif est configuré, mais le parcours de paiement reste désactivé jusqu’à la validation technique.'
-                  : ' Aucun destinataire MonCash actif n’est configuré.'}
+                Le destinataire MonCash et le formulaire de paiement ne seront consultés qu’une fois le parcours sécurisé prêt.
               </p>
               <p className="muted">N’envoyez pas d’argent et ne communiquez aucun PIN ou code OTP à Zack. Cette page ne collecte aucune donnée bancaire.</p>
             </section>
