@@ -20,7 +20,7 @@ Branche de production protégée : `main` (aucune modification)
 - Un ancien run CI a réussi sur un commit antérieur ; le HEAD de départ de la branche de préparation n'avait pas de statut CI confirmé.
 - Aucun `package-lock.json` n'a été trouvé dans la branche de départ. Ne pas remplacer `npm install` par `npm ci` avant d'avoir généré, vérifié et versionné le lockfile.
 - Les fichiers `src/features/auth/auth.functions.ts` et `auth.server.ts` ont le même contenu observé. Leur éventuelle fusion nécessite d'abord une recherche d'import complète et des tests.
-- Le gestionnaire de session masque actuellement certaines erreurs de profil/membership en retournant un état déconnecté ; corriger sans casser le contrat des routes.
+- Le chargement du compte distingue maintenant une session absente d'une erreur d'authentification ou de lecture du profil/membership ; les routes Profil et Espace professionnel affichent un état d'indisponibilité explicite.
 - Le projet Supabase observé en lecture seule contient 38 tables publiques avec RLS activée, 27 migrations et aucune Edge Function déployée.
 - Les tables de messagerie, commandes et abonnements existent, mais les interfaces, politiques et parcours ne sont pas tous terminés ni testés.
 - Les plans payants et destinataires MonCash ne sont pas encore configurés ; NatCash est encore accepté par une fonction RPC malgré la décision de lancement MonCash seulement.
@@ -33,7 +33,7 @@ Branche de production protégée : `main` (aucune modification)
 - [x] Créer une branche de durcissement distincte de `main`.
 - [x] Marquer les deux documents d'audit du 12 novembre comme historiques lorsqu'ils contredisent l'inventaire actualisé.
 - [ ] Ajouter un lockfile reproductible et faire passer le workflow à `npm ci`.
-- [ ] Vérifier le build sur le HEAD de la branche de durcissement.
+- [ ] Vérifier le build sur le HEAD de la branche de durcissement (un run est en cours après les derniers changements auth/formulaires).
 - [ ] Examiner les alertes de dépendances et mettre à jour seulement après tests.
 - [x] Régénérer `src/types/database.types.ts` depuis le schéma Supabase réel (14 novembre 2026) ; le workflow GitHub Actions `43621569386` a réussi sur le commit de génération `5edb9a9` (installation, build et typecheck).
 
@@ -46,7 +46,7 @@ Branche de production protégée : `main` (aucune modification)
 - [ ] Vérifier SSL, restrictions réseau, MFA du compte propriétaire, confirmation e-mail et durée des OTP dans les paramètres du projet.
 
 ### P1 — Authentification et entreprises
-- [ ] Clarifier la différence entre absence de session et erreur de chargement du profil/membership.
+- [x] Clarifier la différence entre absence de session et erreur de chargement du profil/membership.
 - [ ] Rendre la création d'entreprise atomique avec la localisation, ou prévoir une reprise fiable.
 - [ ] Vérifier la duplication des modules auth et leurs imports avant toute suppression.
 
@@ -77,3 +77,11 @@ Branche de production protégée : `main` (aucune modification)
 - Aucun changement appliqué à `main`.
 - Aucun SQL d'écriture, migration, changement de paramètre Supabase, déploiement ou paiement réel exécuté.
 - Les tâches non cochées restent à faire ; ce document ne constitue pas une déclaration de conformité ou de sécurité complète.
+
+
+## 9. Suite des corrections frontend — gestion des erreurs réseau
+
+- Les formulaires Profil et Inscription d'entreprise utilisent désormais `try/catch/finally` : le bouton d'envoi est libéré même si la requête échoue et un message utilisateur est affiché.
+- En cas d'erreur pendant la création d'entreprise, le message demande de vérifier la liste des entreprises avant de renvoyer la demande, car le résultat serveur peut être incertain.
+- Le RPC `create_business` a été relu en lecture seule : il insère l'entreprise et son propriétaire dans une seule transaction PostgreSQL, mais ne prend pas la ville en argument. Le code frontend enregistre donc la ville par une mise à jour séparée après le RPC. Ce parcours n'est pas atomique pour la ville ; une migration contrôlée serait nécessaire pour intégrer la ville au RPC. Aucun changement SQL n'a été appliqué.
+- Le run CI `43622633127` est en cours pour le commit des correctifs de gestion réseau. Aucun succès n'est revendiqué avant sa conclusion.
