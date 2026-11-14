@@ -145,3 +145,22 @@ Cette section remplace les anciens constats indiquant que les tables de paiement
 6. Ne pas présenter Pro ou Ultra comme achetables tant que les lignes correspondantes, les snapshots et le parcours de paiement ne sont pas prêts.
 
 Aucune migration ni écriture de données n'a été exécutée pendant cet audit.
+
+
+### Compléments d'audit — destinataire actif et snapshots (14 novembre 2026)
+
+- `payment_recipients` ne possède actuellement qu'une clé primaire ; aucun index unique partiel ne garantit un seul destinataire actif par fournisseur. La table est vide aujourd'hui, mais cette règle doit être imposée en base avant d'ajouter un compte réel.
+- Aucun trigger d'audit ou de mise à jour n'a été trouvé sur `payment_recipients`, `subscription_plans`, `business_subscriptions`, `payments` ou `payment_events`.
+- La fonction `get_payment_recipients()` retourne tous les destinataires actifs à tout utilisateur authentifié. C'est cohérent avec l'affichage du moyen de réception à un payeur connecté, mais l'interface doit afficher un seul compte actif pour MonCash.
+- `request_subscription_payment` capture le montant courant dans `payments.amount`, mais ne capture pas le nom/code du plan, sa durée, ses avantages ni le compte destinataire choisi.
+- `admin_review_payment` calcule la date de fin à partir de la valeur actuelle de `subscription_plans.duration_days` au moment de l'approbation. Si la durée du plan change entre la demande et la validation, l'abonné pourrait recevoir une durée différente de celle qu'il avait choisie.
+- Les cinq tables n'ont aucune ligne de paiement/destinataire/abonnement, et aucun plan Pro ou Ultra n'est configuré à ce jour.
+
+Avant d'accepter de l'argent, il faut donc ajouter :
+1. un index unique partiel garantissant un seul destinataire actif par fournisseur ;
+2. les snapshots du code/nom du forfait, prix, devise, durée et destinataire (libellé + numéro) au moment de la demande ;
+3. une validation côté serveur que le destinataire actif est bien celui utilisé ;
+4. un audit des changements de compte destinataire et de plan ;
+5. des tests qui modifient le prix/la durée/le destinataire après la soumission et vérifient que la demande déjà créée conserve ses conditions d'origine.
+
+Ces points sont bloquants avant encaissement réel, pas avant de poursuivre le développement de l'interface. Aucune modification SQL n'a été appliquée.
