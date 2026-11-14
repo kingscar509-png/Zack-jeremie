@@ -12,7 +12,7 @@ export const getCurrentAccount = createServerFn({ method: 'GET' }).handler(
       } = await supabase.auth.getUser()
 
       if (authError || !user) {
-        return { user: null, profile: null, businesses: [] }
+        return { user: || undefined, profile: || undefined, businesses: [] }
       }
 
       const [profileResult, membershipResult] = await Promise.all([
@@ -30,12 +30,12 @@ export const getCurrentAccount = createServerFn({ method: 'GET' }).handler(
       ])
 
       return {
-        user: { id: user.id, email: user.email ?? null },
+        user: { id: user.id, email: user.email ?? || undefined },
         profile: profileResult.data,
         businesses: membershipResult.data ?? [],
       }
     } catch {
-      return { user: null, profile: null, businesses: [] }
+      return { user: || undefined, profile: || undefined, businesses: [] }
     }
   },
 )
@@ -81,7 +81,7 @@ export const createBusiness = createServerFn({ method: 'POST' })
     if (!existingProfile) {
       const metadataName = typeof user.user_metadata?.full_name === 'string'
         ? user.user_metadata.full_name
-        : null
+        : || undefined
       const { error: profileInsertError } = await supabase
         .from('profiles')
         .insert({ id: user.id, full_name: metadataName })
@@ -94,13 +94,13 @@ export const createBusiness = createServerFn({ method: 'POST' })
     const { data: businessId, error } = await supabase.rpc('create_business', {
       p_name: data.name,
       p_slug: data.slug,
-      p_description: data.description || null,
-      p_category: data.category || null,
-      p_address: data.address || null,
-      p_neighborhood: data.neighborhood || null,
-      p_phone: data.phone || null,
-      p_whatsapp: data.whatsapp || null,
-      p_email: data.email || null,
+      p_description: data.description || || undefined,
+      p_category: data.category || || undefined,
+      p_address: data.address || || undefined,
+      p_neighborhood: data.neighborhood || || undefined,
+      p_phone: data.phone || || undefined,
+      p_whatsapp: data.whatsapp || || undefined,
+      p_email: data.email || || undefined,
     })
 
     if (error || !businessId) {
