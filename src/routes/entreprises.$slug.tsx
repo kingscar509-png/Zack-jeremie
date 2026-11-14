@@ -18,7 +18,7 @@ export const Route = createFileRoute('/entreprises/$slug')({
 })
 
 function BusinessPage() {
-  const { business, unavailable } = Route.useLoaderData()
+  const { business, products, services, catalogUnavailable, unavailable } = Route.useLoaderData()
 
   if (unavailable) {
     return <><SiteHeader /><main className="content-page"><p className="empty-note">Impossible de charger cette fiche pour le moment.</p></main></>
@@ -57,6 +57,57 @@ function BusinessPage() {
         </div>
 
         {business.description ? <section className="detail-panel"><h2>À propos</h2><p>{business.description}</p></section> : null}
+        <section className="detail-panel">
+          <h2>Produits</h2>
+          {catalogUnavailable ? (
+            <p className="muted">Le catalogue est momentanément indisponible.</p>
+          ) : products.length ? (
+            <div className="workspace-list">
+              {products.map((product) => {
+                const imageUrl = safeHttpUrl(product.image_url)
+                return (
+                  <article className="workspace-item" key={product.id}>
+                    <div>
+                      <strong>{product.name}</strong>
+                      {product.description ? <p>{product.description}</p> : null}
+                      {imageUrl ? <img className="business-avatar" src={imageUrl} alt={product.name} /> : null}
+                      {product.price !== null
+                        ? <p className="muted">{product.price.toLocaleString('fr-HT')} {product.currency}</p>
+                        : <p className="muted">Prix sur demande</p>}
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="muted">Aucun produit disponible pour le moment.</p>
+          )}
+        </section>
+
+        <section className="detail-panel">
+          <h2>Services</h2>
+          {catalogUnavailable ? (
+            <p className="muted">Le catalogue est momentanément indisponible.</p>
+          ) : services.length ? (
+            <div className="workspace-list">
+              {services.map((service) => (
+                <article className="workspace-item" key={service.id}>
+                  <div>
+                    <strong>{service.name}</strong>
+                    {service.description ? <p>{service.description}</p> : null}
+                    {service.duration ? <p className="muted">Durée : {service.duration}</p> : null}
+                    {service.price !== null
+                      ? <p className="muted">{service.price.toLocaleString('fr-HT')} {service.currency}</p>
+                      : <p className="muted">Prix sur demande</p>}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">Aucun service disponible pour le moment.</p>
+          )}
+        </section>
+
         <section className="detail-panel">
           <h2>Coordonnées</h2>
           {address ? <p>{address}</p> : null}
