@@ -170,3 +170,14 @@ Le 14 novembre 2026, une page `/abonnements` a été ajoutée à la branche de s
 Tests à faire avec des comptes réels : owner, admin, editor, utilisateur sans entreprise, entreprise multiple, session expirée, et accès interentreprises. Le parcours de paiement reste désactivé tant que les RPC MonCash ne sont pas corrigés et testés.
 
 Dernière vérification du code de la page sur le HEAD `b32c576` : les champs `review_note` et la RPC `get_payment_recipients` ne sont plus sollicités par cette page. La consultation est en lecture seule ; cela ne remplace pas les tests de sécurité avec plusieurs comptes.
+
+
+## 13. Mise à jour de validation — HEAD 86eba3f — 14 novembre 2026
+
+- Les quatre formulaires Auth gèrent maintenant les exceptions réseau et réinitialisent l'état occupé même en cas d'échec.
+- Le message de connexion ne révèle pas si une adresse e-mail existe ; l'inscription et la récupération conservent des messages neutres.
+- Quatre tests automatisés supplémentaires couvrent les protections Auth.
+- CI push `43636563843` et CI pull request `43636568676` : succès complet sur le HEAD `86eba3f1b35ff26d618d5a80aee51073ba9aad73`.
+- Résultat : 20/20 tests automatisés, vérification TypeScript et builds client, SSR et Nitro réussis.
+- Les tests navigateur, appareils mobiles et RLS avec comptes réels restent non exécutés. Aucun test sur la base Supabase de production n'est autorisé.
+- Aucun déploiement, paiement réel, changement de base, dépense ou fusion n'a été effectué.
