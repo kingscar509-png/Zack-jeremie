@@ -1,7 +1,7 @@
 # Zack — spécification des abonnements et paiements MonCash
 
 Date de mise à jour : 14 novembre 2026  
-Branche : `preparation/phase-1-frontend-plan`  
+Branche de travail : `hardening/phase-1-stabilisation`  
 Statut : **décisions produit confirmées ; conception technique à finaliser ; aucune migration appliquée.**
 
 Ce document est la référence actuelle pour les prix, la périodicité, le rattachement des abonnements et le parcours MonCash. Les anciennes propositions tarifaires sont historiques et ne doivent pas prévaloir sur cette spécification.
@@ -257,3 +257,61 @@ Aucune de ces interfaces n'est déclarée existante dans la branche actuelle. Le
 7. Faire une revue séparée avant toute migration sur le projet Supabase actif.
 
 Cette séquence est une proposition technique. Elle n'autorise ni migration, ni changement de production, ni activation des paiements réels.
+
+
+## 14. Modèle de snapshots, demandes répétées et renouvellement — proposition technique du 14 novembre 2026
+
+Cette section est une conception préparatoire fondée sur les colonnes réellement inspectées. Elle ne constitue pas une migration et ne modifie pas la base active.
+
+### 14.1 Snapshots immuables
+
+Au moment de la demande, le serveur doit relire lui-même le forfait actif et le destinataire MonCash actif. Il ne doit jamais faire confiance au prix, à la durée, au nom du compte ou au numéro transmis par le navigateur.
+
+Champs proposés sur `payments` :
+- `plan_code_snapshot` et `plan_name_snapshot` ;
+- `plan_price_htg_snapshot` et `plan_duration_days_snapshot` ;
+- `plan_features_snapshot` (JSONB), `plan_max_products_snapshot` et `plan_max_images_per_item_snapshot` ;
+- `recipient_id_snapshot` (référence informative si conservée), `recipient_label_snapshot` et `recipient_account_snapshot`.
+
+Les champs déjà existants `amount` et `currency` restent les montants financiers de référence ; ils doivent être égaux au prix et à la devise du snapshot au moment de la création. Le compte destinataire et les conditions tarifaires sont des instantanés historiques : ils ne doivent pas être mis à jour si le catalogue ou le compte change.
+
+Pour que les droits d'un abonnement actif ne changent pas silencieusement lorsqu'un administrateur modifie les avantages du catalogue, conserver également sur `business_subscriptions` les snapshots des conditions accordées : code/nom, durée, fonctionnalités et quotas. Le serveur d'autorisation doit lire les droits accordés à l'abonnement, pas recalculer rétroactivement les droits à partir du catalogue courant.
+
+### 14.2 Prévention des demandes multiples et idempotence
+
+- Imposer en base au plus un paiement `needs_review` par entreprise. Une seconde demande pendant qu'une demande est en attente doit retourner une erreur métier claire ou retourner la demande déjà existante si elle correspond exactement à la même opération ; elle ne doit jamais créer un deuxième abonnement pending.
+- Sérialiser les créations concurrentes pour une même entreprise en verrouillant la ligne entreprise (ou par un mécanisme transactionnel équivalent) avant de vérifier la demande en attente et d'insérer les lignes.
+- Conserver une unicité forte de la référence de transaction MonCash non nulle. La règle recommandée est de ne pas réutiliser une référence déjà enregistrée, même après refus, afin d'éviter le rejeu d'une preuve. Vérifier les contraintes et les données historiques avant de remplacer l'index partiel actuel.
+- Si un identifiant de requête client est ajouté, il doit être unique et vérifié côté serveur ; il complète les contrôles métier mais ne remplace ni le verrou entreprise ni l'unicité de référence.
+- La fonction doit vérifier le destinataire MonCash actif avant toute insertion et capturer son identifiant, son libellé et son numéro dans la même transaction.
+- Les statuts autorisés et transitions doivent être définis explicitement : `needs_review → succeeded` ou `needs_review → failed`. Une décision finale ne peut pas être rejouée ou inversée par le client. Toute correction administrative ultérieure doit être une opération distincte, justifiée et auditée.
+
+### 14.3 Règle de renouvellement recommandée pour le lancement
+
+Pour éviter de construire immédiatement une gestion complexe de prorata, de crédits et de périodes planifiées :
+
+1. **Première souscription ou entreprise sans période active :** après approbation du paiement, début à l'heure de validation et fin = début + durée snapshot.
+2. **Renouvellement du même forfait alors qu'il est encore actif :** prolonger la date de fin de la période active de la durée snapshot ; ne pas remettre la date de fin à `now() + durée`. Le paiement approuvé doit rester relié à une trace d'audit de renouvellement.
+3. **Changement vers un autre forfait :** appliquer le nouveau forfait à la date d'approbation, sans prorata ni remboursement du temps restant au lancement. Avant le paiement, l'interface doit avertir clairement que la période restante ne sera pas convertie en crédit.
+4. **Forfait Gratuit :** reste accessible sans paiement. Une attribution exceptionnelle ou un changement administratif doit être audité.
+5. **Expiration :** l'accès payant doit dépendre de l'état et des dates calculés côté serveur ; le frontend ne peut pas prolonger un abonnement.
+
+La règle 2 peut être implémentée en prolongeant la période active existante et en enregistrant l'opération dans `payments`/`payment_events`, sans créer une deuxième ligne active. Cela respecte l'index unique partiel `business_subscriptions_one_active`. Il faudra toutefois vérifier les requêtes frontend qui lisent l'historique des abonnements avant de figer cette approche. Si l'historique exige une ligne distincte par période, il faudra un statut `scheduled` et un mécanisme serveur fiable d'activation à échéance ; aucun tel mécanisme n'est actuellement confirmé, donc ne pas l'introduire implicitement.
+
+### 14.4 Destinataire unique et audit
+
+- Ajouter un index unique partiel garantissant au plus un destinataire actif par fournisseur ; pour le lancement, seul `moncash` est accepté.
+- Toute modification ou désactivation d'un compte destinataire doit produire un événement d'audit sans exposer de secret.
+- Le numéro destinataire affiché au payeur doit être exactement celui du snapshot du paiement.
+- Ne jamais enregistrer PIN, OTP, mot de passe ou secret marchand.
+- Une modification du compte actif ne doit jamais altérer un paiement déjà soumis.
+
+### 14.5 Compatibilité et ordre de réalisation
+
+1. Rechercher toutes les lectures frontend/backend de `business_subscriptions.status`, `starts_at`, `ends_at` et des colonnes de forfait avant de décider la stratégie de renouvellement définitive.
+2. Vérifier les contraintes CHECK et triggers réels des statuts avant d'ajouter des valeurs ou colonnes.
+3. Écrire les tests SQL de concurrence, répétition, référence dupliquée, modification de plan/destinataire après demande, refus, approbation et renouvellement.
+4. Construire une migration additive sur une base de développement gratuite, avec données de test et procédure de rollback.
+5. Relire la migration et ses résultats avant toute demande distincte d'autorisation de production.
+
+Aucune migration, écriture SQL, activation de forfait payant ou configuration de destinataire n'a été effectuée.
