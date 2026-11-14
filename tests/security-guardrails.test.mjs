@@ -144,7 +144,7 @@ test('les liens téléphone, WhatsApp et email sont validés avant création', (
 })
 
 test('les filtres de recherche normalisent les espaces avant affichage et requête', () => {
-  assert.match(searchPage, /q: z\\.string\\(\\)\\.trim\\(\\)\\.max\\(100\\)/)
-  assert.match(searchPage, /city: z\\.string\\(\\)\\.trim\\(\\)\\.max\\(100\\)/)
-  assert.match(searchPage, /category: z\\.string\\(\\)\\.trim\\(\\)\\.max\\(100\\)/)
+  assert.match(searchPage, /q: z\.string\(\)\.trim\(\)\.max\(100\)/)
+  assert.match(searchPage, /city: z\.string\(\)\.trim\(\)\.max\(100\)/)
+  assert.match(searchPage, /category: z\.string\(\)\.trim\(\)\.max\(100\)/)
 })
