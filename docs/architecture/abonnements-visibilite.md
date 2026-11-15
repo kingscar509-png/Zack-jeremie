@@ -23,7 +23,7 @@ Les tarifs actuels remplacent les anciens prix. Toute modification future des ta
 
 - **Produits et services :** limites sur le nombre d'éléments enregistrés pour l'entreprise. Les données existantes ne sont jamais supprimées automatiquement à l'expiration.
 - **Images :** maximum par produit, et non quota global de l'entreprise.
-- **Établissements :** limite totale d'emplacements rattachés à une entreprise, emplacement principal compris. Le modèle actuel ne distingue pas encore proprement l'entreprise de ses établissements secondaires : la limite est enregistrée dans les forfaits mais son application attend le modèle de données dédié.
+- **Établissements :** limite totale d'emplacements rattachés à une entreprise, emplacement principal compris. La fiche `businesses` représente l'emplacement principal; les emplacements secondaires sont stockés dans `business_establishments` et soumis à un contrôle côté base de données.
 - **Comptes de gestion :** nombre total de comptes ayant accès à l'espace de gestion, propriétaire compris. Les clients et les livreurs ne sont pas des collaborateurs facturables; le rôle `courier` ne consomme pas de siège.
 - **Publications :** quota mensuel commun pour les contenus publics ordinaires et promotionnels. Une même campagne ne doit pas consommer deux quotas si elle est représentée dans plusieurs tables. La règle de comptage doit être centralisée avant activation des forfaits payants.
 - **Statistiques :**
@@ -92,7 +92,6 @@ Protections :
 
 ### Encore à construire
 
-- Le modèle dédié des établissements secondaires et l'application réelle du quota 2/5/20.
 - Le compteur mensuel unifié des publications et promotions, en évitant le double comptage d'une même campagne.
 - Les niveaux statistiques réels et leurs écrans/rapports.
 - Le score de visibilité combinant pertinence, commandes, interactions, avis et avantage d'abonnement. `search_businesses()` utilise encore principalement la pertinence textuelle.
@@ -107,13 +106,15 @@ Protections :
 - `20261115141622_verified_reviews_require_completed_order`
 - `20261115141643_subscription_rating_view_and_plan_rpc_security`
 - `20261115141742_subscription_same_plan_renewals_queue`
+- `business_establishments_and_plan_limit` (table, RLS, contrôle du quota 2/5/20 avec emplacement principal compté)
+- `business_establishment_select_policy_consolidation` (politiques de lecture publique/membres)
 
 Les tests transactionnels exécutés ont confirmé les limites Gratuites (2 images, 5 produits, 5 services, 1 compte de gestion) et Pro (6 images, 15 produits, 10 services), le retour effectif au Gratuit après expiration, l'activation d'un forfait programmé à sa date de début, le renouvellement du même forfait après la période déjà payée, l'utilisation des instantanés, le rejet des avis sans commande terminée et la conservation des données de test après rollback.
 
 ## 5. Ordre d'implémentation restant
 
-1. Concevoir le modèle des établissements secondaires.
-2. Construire le compteur unifié des publications/promotions.
+1. Construire le compteur mensuel unifié des publications/promotions et empêcher le double comptage d'une campagne partagée.
+2. Tester les limites d'établissements sur les trois forfaits avec des sessions autorisées.
 3. Tester le renouvellement et les expirations avec des sessions autorisées.
 4. Concevoir et tester le score de visibilité combiné, avec exposition des nouvelles entreprises.
 5. Vérifier les niveaux statistiques réellement disponibles.
