@@ -37,6 +37,14 @@ Les fournisseurs acceptés sont `moncash` et `natcash`. La migration Supabase `2
 - un seul numéro de réception actif par fournisseur ;
 - des contrôles supplémentaires et un verrouillage par entreprise lors de la validation administrative.
 
+## Tarification officielle retenue
+
+- Gratuit : 0 HTG / mois.
+- Pro : 500 HTG / mois (ancien tarif : 750 HTG).
+- Ultra : 750 HTG / mois (ancien tarif : 1 000 HTG).
+
+Ces tarifs remplacent les anciens montants dans toute nouvelle souscription. Les abonnements déjà payés, s'il y en a, conservent leurs conditions jusqu'à expiration.
+
 ## Configuration encore nécessaire
 
 - Ajouter le numéro de réception MonCash et son libellé.
