@@ -105,7 +105,8 @@ Protections :
 - `20261115141529_subscription_plan_matrix_core_limits_and_calendar_renewal`
 - `20261115141554_subscription_quota_trigger_functions_privileges`
 - `20261115141622_verified_reviews_require_completed_order`
-- `202611151416xx_subscription_rating_view_and_plan_rpc_security` (version exacte à confirmer dans l'historique des migrations)
+- `20261115141643_subscription_rating_view_and_plan_rpc_security`
+- `20261115141742_subscription_same_plan_renewals_queue`
 
 Les tests transactionnels exécutés ont confirmé le blocage au-delà des limites Gratuites (2 images, 5 produits, 5 services, 1 compte de gestion), la conservation de la base après rollback, l'utilisation des instantanés et le rejet des avis sans commande terminée.
 
