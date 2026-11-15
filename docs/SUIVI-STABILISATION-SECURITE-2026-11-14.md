@@ -398,3 +398,17 @@ Aucune migration, écriture Supabase, modification Auth/RLS, dépense, fusion ou
 - [ ] Tests RLS multi-entreprises sur un environnement de test isolé : non exécutés.
 
 Aucune modification de Supabase, migration, dépense, fusion ou activation de paiement.
+
+
+## 18. Renforcement du workflow GitHub Actions — 15 novembre 2026
+
+- [x] Mise à jour des actions officielles `actions/checkout` et `actions/setup-node` vers la version 7 ; Node.js du projet reste en version 22.
+- [x] Ajout d'une étape d'audit des dépendances de production : `npm audit --omit=dev --audit-level=high`.
+- [x] Exécution du workflow sur le HEAD `f384f68cc71046c2795c142b35585a49272d808a` : run `43718380069`, conclusion `success`.
+- [x] Journal vérifié : installation réussie ; audit npm des dépendances installées puis audit de production avec **0 vulnérabilité signalée** ; **20/20 tests** réussis ; build de production et TypeScript réussis.
+- [x] Le workflow reste manuel-déclenchable via `workflow_dispatch` et s'exécute automatiquement sur les push et pull requests configurés.
+- [ ] Le dépôt ne contient toujours pas de `package-lock.json`. L'audit est donc réalisé sur la résolution de dépendances du run, pas sur un graphe de versions verrouillé et reproductible. Générer et versionner un lockfile reste une tâche P0 avant de passer à `npm ci`.
+- [ ] Les avertissements non bloquants du bundler concernant certaines directives `use client` des dépendances doivent être évalués séparément ; ils n'ont pas empêché le build.
+- [ ] Les tests statiques ne remplacent pas les essais navigateur, mobiles et RLS avec des comptes réels dans un environnement Supabase isolé.
+
+Aucune modification Supabase, migration, dépense, activation de paiement, fusion ou déploiement. PR #2 reste ouverte en brouillon ; `main` reste intacte.
