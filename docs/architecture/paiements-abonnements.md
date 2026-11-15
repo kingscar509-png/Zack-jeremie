@@ -17,7 +17,24 @@ Dernière mise à jour : 15 novembre 2026
 4. Elle soumet la référence de transaction dans Zack.
 5. L'administrateur vérifie le mouvement sur son compte MonCash/NatCash.
 6. L'administrateur approuve ou refuse la demande.
-7. En cas d'approbation, Zack active le forfait et calcule sa date d'expiration.
+7. En cas d'approbation, Zack active le forfait et calcule sa date d'expiration selon un mois calendaire.
+
+## Tarification et limites officielles
+
+La matrice complète et les règles commerciales sont documentées dans [abonnements-visibilite.md](./abonnements-visibilite.md).
+
+| Limite / avantage | Gratuit | Pro | Ultra |
+|---|---:|---:|---:|
+| Prix mensuel | 0 HTG | 500 HTG | 750 HTG |
+| Durée | — | 1 mois calendaire | 1 mois calendaire |
+| Images par produit | 2 | 6 | 12 |
+| Établissements | 2 | 5 | 20 |
+| Produits | 5 | 15 | 30 |
+| Services | 5 | 10 | 20 |
+| Publications / mois | 3 | 12 | 20 |
+| Comptes de gestion | 1 | 3 | 10 |
+
+Les tarifs remplacent les anciens montants. Les abonnements déjà payés conservent leurs conditions jusqu'à expiration.
 
 ## Backend Supabase
 
@@ -37,19 +54,13 @@ Les fournisseurs acceptés sont `moncash` et `natcash`. La migration Supabase `2
 - un seul numéro de réception actif par fournisseur ;
 - des contrôles supplémentaires et un verrouillage par entreprise lors de la validation administrative.
 
-## Tarification officielle retenue
-
-- Gratuit : 0 HTG / mois.
-- Pro : 500 HTG / mois (ancien tarif : 750 HTG).
-- Ultra : 750 HTG / mois (ancien tarif : 1 000 HTG).
-
-Ces tarifs remplacent les anciens montants dans toute nouvelle souscription. Les abonnements déjà payés, s'il y en a, conservent leurs conditions jusqu'à expiration.
-
-## Configuration encore nécessaire
+## Configuration et intégration encore nécessaires
 
 - Ajouter le numéro de réception MonCash et son libellé.
 - Ajouter le numéro de réception NatCash et son libellé.
-- Créer/configurer les forfaits payants et leurs tarifs/durées.
+- Corriger/étendre les colonnes et les contrôles des forfaits selon la matrice officielle.
+- Adapter la date de fin des abonnements payants à un mois calendaire.
+- Concevoir le modèle des établissements secondaires.
 - Connecter l'interface entreprise et l'interface administrateur aux RPC Supabase.
 - Tester le parcours avec des données de test avant toute activation publique.
 
