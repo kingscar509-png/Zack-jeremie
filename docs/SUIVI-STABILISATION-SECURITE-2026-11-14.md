@@ -412,3 +412,14 @@ Aucune modification de Supabase, migration, dépense, fusion ou activation de pa
 - [ ] Les tests statiques ne remplacent pas les essais navigateur, mobiles et RLS avec des comptes réels dans un environnement Supabase isolé.
 
 Aucune modification Supabase, migration, dépense, activation de paiement, fusion ou déploiement. PR #2 reste ouverte en brouillon ; `main` reste intacte.
+
+## 19. Validation des identifiants de fiches publiques
+
+- La fonction serveur `getBusinessBySlug` valide désormais le slug avant toute requête : chaîne nettoyée, longueur de 2 à 140 caractères et format ASCII minuscule avec tirets simples.
+- Cette règle correspond au format déjà utilisé lors de la création des fiches d’entreprise.
+- Test de garde-fou ajouté : un identifiant de fiche publique doit être borné et respecter le format attendu.
+- CI du commit `6492d780ff854440ddb3dd4c48a51fb48acee415` : réussite.
+- Audit npm : 0 vulnérabilité signalée.
+- Tests automatisés : 21 réussis, 0 échec.
+- Compilation de production et vérification TypeScript : réussies.
+- Aucun changement de frontend, de base Supabase, de paiement, d’hébergement ou de branche principale.
