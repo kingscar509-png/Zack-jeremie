@@ -181,3 +181,8 @@ test('la réinitialisation valide les deux mots de passe avant la requête', () 
   assert.match(source, /password !== confirm/)
   assert.ok(source.indexOf('password !== confirm') < source.indexOf('supabase.auth.updateUser'))
 })
+
+
+test('les identifiants des fiches publiques sont validés et bornés côté serveur', () => {
+  assert.match(homeFunctions, /\.validator\(z\.string\(\)\.trim\(\)\.min\(2\)\.max\(140\)\.regex\(\/\^\[a-z0-9\]\+\(-\[a-z0-9\]\+\)\*\$\/\)\)/)
+})
