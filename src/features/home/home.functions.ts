@@ -94,7 +94,7 @@ export const searchBusinesses = createServerFn({ method: 'GET' })
   })
 
 export const getBusinessBySlug = createServerFn({ method: 'GET' })
-  .validator((slug: string) => slug)
+  .validator(z.string().trim().min(2).max(140).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/))
   .handler(async ({ data: slug }) => {
     try {
       const supabase = createSupabaseServerClient()
