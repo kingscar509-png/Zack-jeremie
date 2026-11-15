@@ -112,7 +112,7 @@ Protections :
 - `unified_monthly_publication_quota_ledger` (registre mensuel commun, contrôles sur `posts` et `promotions`, identifiant de campagne partagé)
 - `business_establishment_select_policy_consolidation` (politiques de lecture publique/membres)
 
-Les tests transactionnels exécutés ont confirmé les limites Gratuites (2 images, 5 produits, 5 services, 1 compte de gestion) et Pro (6 images, 15 produits, 10 services), le retour effectif au Gratuit après expiration, l'activation d'un forfait programmé à sa date de début, le renouvellement du même forfait après la période déjà payée, l'utilisation des instantanés, le rejet des avis sans commande terminée et la conservation des données de test après rollback.
+Les tests transactionnels exécutés ont confirmé les limites Gratuites (2 images, 5 produits, 5 services, 1 compte de gestion) et Pro (6 images, 15 produits, 10 services), les quotas d'établissements (Gratuit 1 secondaire, Pro 4, Ultra 19) et de publications (Gratuit 3, Pro 12, Ultra 20), le blocage de l'élément suivant, le partage d'un seul quota entre un post et une promotion ayant le même `publication_group_id`, le retour effectif au Gratuit après expiration, l'activation d'un forfait programmé à sa date de début, le renouvellement du même forfait après la période déjà payée, l'utilisation des instantanés, le rejet des avis sans commande terminée et la conservation des données de test après rollback. Les vérifications finales confirment qu'aucune donnée de test ne reste en base et que les fonctions trigger de quotas ne sont pas directement exécutables par anon/authenticated.
 
 ## 5. Ordre d'implémentation restant
 
