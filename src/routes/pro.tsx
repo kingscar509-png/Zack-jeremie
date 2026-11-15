@@ -1,8 +1,9 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { getCurrentAccount, createBusiness } from '~/features/auth/auth.functions'
 import { SiteHeader } from '~/components/layout/SiteHeader'
 import { getSupabaseBrowserClient } from '~/lib/supabase/client'
+import { CatalogManager } from '~/components/business/CatalogManager'
 
 export const Route = createFileRoute('/pro')({
   loader: () => getCurrentAccount(),
@@ -36,24 +37,29 @@ function ProfessionalPage() {
     event.preventDefault()
     setMessage('')
     setBusy(true)
-    const result = await createBusiness({
-      data: {
-        name,
-        slug: makeSlug(name),
-        category,
-        description,
-        address,
-        neighborhood,
-        city,
-        phone,
-        whatsapp,
-        email,
-      },
-    })
-    setBusy(false)
-    setMessage(result.message)
-    if (result.success) {
-      window.setTimeout(() => window.location.reload(), 1800)
+    try {
+      const result = await createBusiness({
+        data: {
+          name,
+          slug: makeSlug(name),
+          category,
+          description,
+          address,
+          neighborhood,
+          city,
+          phone,
+          whatsapp,
+          email,
+        },
+      })
+      setMessage(result.message)
+      if (result.success) {
+        window.setTimeout(() => window.location.reload(), 1800)
+      }
+    } catch {
+      setMessage('Une erreur temporaire a empêché l’envoi. Vos données n’ont pas forcément été enregistrées ; vérifiez la liste de vos entreprises avant de réessayer.')
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -76,7 +82,11 @@ function ProfessionalPage() {
           {account.user ? <button className="button button-outline" type="button" onClick={signOut}>Déconnexion</button> : null}
         </div>
 
-        {!account.user ? (
+        {account.unavailable && !account.user ? (
+          <section className="detail-panel">
+            <p role="alert">Le service de compte est momentanément indisponible. Réessayez dans quelques instants.</p>
+          </section>
+        ) : !account.user ? (
           <section className="detail-panel">
             <h2>Connectez-vous pour continuer</h2>
             <p>Vous devez être connecté pour gérer une entreprise ou en inscrire une nouvelle.</p>
@@ -84,6 +94,7 @@ function ProfessionalPage() {
           </section>
         ) : (
           <>
+            {account.unavailable ? <p className="form-message" role="status">Certaines données du compte n’ont pas pu être chargées. Vos informations de connexion restent reconnues ; réessayez pour actualiser les données.</p> : null}
             <section className="detail-panel">
               <h2>Mes entreprises</h2>
               {account.businesses.length ? (
@@ -98,14 +109,37 @@ function ProfessionalPage() {
                           <strong>{business?.name ?? 'Entreprise'}</strong>
                           <p className="muted">Rôle : {membership.role} · Statut : {business?.status ?? 'inconnu'}</p>
                         </div>
-                        {business?.slug ? <a href={`/entreprises/${business.slug}`}>Voir la fiche</a> : null}
+                        <div className="workspace-actions">
+                          {membership.role === 'owner' || membership.role === 'admin'
+                            ? <a href="/abonnements">Gérer les abonnements</a>
+                            : null}
+                          {business?.slug ? <a href={`/entreprises/${business.slug}`}>Voir la fiche</a> : null}
+                        </div>
                       </article>
                     )
                   })}
                 </div>
               ) : (
-                <p className="muted">Vous ne gérez encore aucune entreprise avec ce compte.</p>
+                <p className="muted">{account.unavailable ? 'La liste des entreprises est momentanément indisponible.' : 'Vous ne gérez encore aucune entreprise avec ce compte.'}</p>
               )}
+            </section>
+
+            <section className="detail-panel">
+              <h2>Catalogue de mes entreprises</h2>
+              <p className="muted">Ajoutez et gérez les produits et services visibles sur vos fiches publiques. Les changements sont publiés directement, sans file de validation.</p>
+              {account.businesses.map((membership) => {
+                const business = Array.isArray(membership.businesses)
+                  ? membership.businesses[0]
+                  : membership.businesses
+                if (!business) return null
+                return (
+                  <div className="catalog-business" key={membership.business_id}>
+                    <h3>{business.name}</h3>
+                    <p className="muted">Rôle : {membership.role}</p>
+                    <CatalogManager businessId={membership.business_id} role={membership.role} />
+                  </div>
+                )
+              })}
             </section>
 
             <section className="detail-panel">
@@ -142,3 +176,4 @@ function ProfessionalPage() {
     </div>
   )
 }
+

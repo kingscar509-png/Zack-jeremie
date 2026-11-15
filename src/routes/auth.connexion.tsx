@@ -23,11 +23,19 @@ function SignInPage() {
     }
 
     setBusy(true)
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    })
-    setBusy(false)
+    let error: { message: string } | null = null
+    try {
+      const result = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+      error = result.error
+    } catch {
+      setMessage('Le service de connexion est momentanément indisponible. Réessayez.')
+      return
+    } finally {
+      setBusy(false)
+    }
 
     if (error) {
       setMessage('Adresse e-mail ou mot de passe incorrect.')

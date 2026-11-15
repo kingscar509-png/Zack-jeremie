@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
 import { createSupabaseServerClient } from '~/lib/supabase/server'
 
 export const getHomeData = createServerFn({ method: 'GET' }).handler(
@@ -46,9 +47,15 @@ export const getHomeData = createServerFn({ method: 'GET' }).handler(
   },
 )
 
+const businessSearchInput = z.object({
+  query: z.string().trim().max(100).optional().default(''),
+  city: z.string().trim().max(100).optional().default(''),
+  category: z.string().trim().max(100).optional().default(''),
+})
+
 export const searchBusinesses = createServerFn({ method: 'GET' })
-  .validator((query: string) => query)
-  .handler(async ({ data: query }) => {
+  .validator(businessSearchInput)
+  .handler(async ({ data: filters }) => {
     try {
       const supabase = createSupabaseServerClient()
       let request = supabase
@@ -60,12 +67,17 @@ export const searchBusinesses = createServerFn({ method: 'GET' })
         .order('created_at', { ascending: false })
         .limit(40)
 
-      const term = query.trim()
-      if (term) {
-        request = request.textSearch('search_document', term, {
+      if (filters.query) {
+        request = request.textSearch('search_document', filters.query, {
           type: 'websearch',
           config: 'simple',
         })
+      }
+      if (filters.city) {
+        request = request.ilike('city', `%${filters.city}%`)
+      }
+      if (filters.category) {
+        request = request.ilike('category', `%${filters.category}%`)
       }
 
       const { data, error } = await request
@@ -82,7 +94,7 @@ export const searchBusinesses = createServerFn({ method: 'GET' })
   })
 
 export const getBusinessBySlug = createServerFn({ method: 'GET' })
-  .validator((slug: string) => slug)
+  .validator(z.string().trim().min(2).max(140).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/))
   .handler(async ({ data: slug }) => {
     try {
       const supabase = createSupabaseServerClient()
@@ -97,12 +109,60 @@ export const getBusinessBySlug = createServerFn({ method: 'GET' })
 
       if (error) {
         console.error('Zack business detail query failed.')
-        return { business: null, unavailable: true }
+        return {
+          business: null,
+          products: [],
+          services: [],
+          catalogUnavailable: false,
+          unavailable: true,
+        }
       }
 
-      return { business: data, unavailable: false }
+      if (!data) {
+        return {
+          business: null,
+          products: [],
+          services: [],
+          catalogUnavailable: false,
+          unavailable: false,
+        }
+      }
+
+      const [productsResult, servicesResult] = await Promise.all([
+        supabase
+          .from('products')
+          .select('id, name, description, price, currency, image_url')
+          .eq('business_id', data.id)
+          .eq('is_available', true)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('services')
+          .select('id, name, description, price, currency, image_url, duration')
+          .eq('business_id', data.id)
+          .eq('is_available', true)
+          .order('created_at', { ascending: false }),
+      ])
+
+      const catalogUnavailable = Boolean(productsResult.error || servicesResult.error)
+      if (catalogUnavailable) {
+        console.error('Zack business catalog query failed.')
+      }
+
+      return {
+        business: data,
+        products: productsResult.data ?? [],
+        services: servicesResult.data ?? [],
+        catalogUnavailable,
+        unavailable: false,
+      }
     } catch {
       console.error('Zack business detail is unavailable.')
-      return { business: null, unavailable: true }
+      return {
+        business: null,
+        products: [],
+        services: [],
+        catalogUnavailable: false,
+        unavailable: true,
+      }
     }
   })

@@ -1,8 +1,10 @@
+> ⚠️ **Document historique — certains constats de schéma sont dépassés.** Le plan du 12 novembre indiquait que plusieurs tables de messagerie, commandes, paiements et abonnements étaient absentes. L'inventaire en lecture seule du 14 novembre confirme désormais 38 tables publiques avec RLS activée et 27 migrations appliquées. Les tests de ce document restent des scénarios à exécuter ; la présence des tables ne signifie pas que les interfaces, les permissions ou les parcours sont validés. Pour l'état de référence, consulter [`ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md`](./ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md).
+
 # Zack — plan de tests et critères de recette
 
-Date : 12 novembre 2026
-Branche : `preparation/phase-1-frontend-plan`
-Statut : scénarios à exécuter après installation des dépendances et configuration locale ; aucun test navigateur ni build n'a été exécuté depuis GitHub.
+Date : 14 novembre 2026
+Branche de travail : `hardening/phase-1-stabilisation`
+Statut : le CI GitHub valide l'installation, le TypeScript et le build sur le HEAD `b32c576` ; les tests navigateur et les tests avec vrais comptes restent à exécuter.
 
 ## 1. Préparation
 
@@ -94,21 +96,132 @@ Statut : scénarios à exécuter après installation des dépendances et configu
 - Thèmes clair, sombre et automatique respectent les préférences système.
 - Les images ont un texte alternatif approprié ou un alt vide lorsqu'elles sont décoratives.
 
-## 8. Modules non implémentés car absents du schéma vérifié
+## 8. Paiements et abonnements — tables présentes, parcours incomplet
 
-L'inventaire actuel ne contient pas de tables dédiées aux conversations/messages, commandes/paniers, transactions/paiements ou abonnements Zack. Ces fonctionnalités ne doivent pas être simulées dans l'interface avec de fausses données.
+L'inventaire du 14 novembre 2026 confirme que les tables suivantes existent déjà et ont RLS activée :
+- `subscription_plans` ;
+- `business_subscriptions` ;
+- `payments` ;
+- `payment_events` ;
+- `payment_recipients`.
 
-Elles restent planifiées, mais nécessitent d'abord un modèle de données approuvé, des règles RLS, des transitions d'état et des tests serveur. Les paiements de commandes restent différés. MonCash est réservé à l'encaissement des abonnements Zack après validation de son flux marchand.
+Le schéma ne signifie pas que le parcours est prêt :
+- seul le forfait Gratuit est actuellement configuré ;
+- aucun plan Pro/Ultra ni destinataire MonCash n'est enregistré ;
+- aucun abonnement, paiement ou événement de paiement n'est actuellement enregistré ;
+- les RPC acceptent encore NatCash, ne figent pas tous les snapshots et ne garantissent pas une seule demande en attente par entreprise ;
+- aucun écran de paiement ou d'administration des paiements n'est présent dans la branche frontend.
 
-## 9. État de validation à date
+Scénarios obligatoires avant activation des paiements :
+- un utilisateur ne peut demander un forfait que pour une entreprise qu'il gère ;
+- le serveur relit le prix, la durée, les avantages et le destinataire actif, sans faire confiance au navigateur ;
+- les snapshots restent identiques si le plan ou le destinataire change après la demande ;
+- une seule demande en attente existe par entreprise, même avec deux appels simultanés ;
+- une référence MonCash déjà utilisée est refusée ;
+- une demande refusée peut être remplacée selon la règle métier sans permettre de rejouer la même transaction ;
+- seul `main_admin` peut approuver ou refuser ;
+- le même forfait renouvelé prolonge la date de fin existante ;
+- un changement de forfait applique les nouvelles conditions à l'approbation, sans prorata au lancement, avec avertissement préalable ;
+- deux approbations concurrentes ne peuvent pas créer deux abonnements actifs ;
+- une notification en échec ne doit pas rendre ambigu le résultat du paiement ;
+- l'historique et les événements permettent de reconstituer chaque décision.
+
+Ces scénarios doivent d'abord être testés sur un environnement de développement gratuit. Aucun paiement réel ne doit être accepté tant que les écarts RPC, les snapshots, les interfaces et la recette ne sont pas terminés.
+
+## 9. Publication directe des contenus
+
+- Un owner/admin/editor autorisé peut publier directement les contenus de son entreprise selon les policies de la table concernée.
+- Aucun approbation Zack préalable ni file de modération ne doit bloquer la publication.
+- Les tests doivent couvrir l'isolation interentreprises, les rôles, le changement de `business_id`, la révocation d'un membre et la protection du statut de vérification.
+- Les signalements et retraits sont réactifs ; ils ne doivent pas être confondus avec une validation obligatoire avant publication.
+
+
+## 10. État de validation à date
 
 - Audit statique de l'ancien frontend : effectué.
 - Inventaire Supabase en lecture seule : effectué.
 - Types TypeScript Supabase : générés depuis le schéma actuel et enregistrés dans le dépôt.
-- Routes frontend initiales : écrites.
-- Build TypeScript/Vite : non exécuté.
+- Routes frontend initiales : écrites ; page de consultation des abonnements `/abonnements` ajoutée en lecture seule pour owner/admin.
+- Build TypeScript/Vite : réussi sur le HEAD `b32c576` (runs CI push `43627903143` et pull request `43627909871`, installation, TypeScript, build et finalisation terminés).
 - Tests navigateur : non exécutés.
 - Tests de sécurité avec comptes réels de test : non exécutés.
 - Déploiement : non effectué.
 
 Ne jamais marquer une étape comme réussie sans résultat de test observé.
+
+
+## 11. Mise à jour du statut CI — 14 novembre 2026
+
+- HEAD contrôlé : `b32c5768259429d5869590e1fff66cb95a4faf58`.
+- Run push `43627903143` : succès confirmé, installation, TypeScript, build de production et finalisation terminés.
+- Run pull request `43627909871` : succès confirmé, installation, TypeScript, build de production et finalisation terminés.
+- Les tests navigateur, les tests RLS avec comptes réels et la recette complète restent non exécutés.
+
+
+## 12. Mise à jour — consultation des abonnements
+
+Le 14 novembre 2026, une page `/abonnements` a été ajoutée à la branche de stabilisation :
+- authentification vérifiée côté serveur ;
+- liste limitée aux entreprises dont l'utilisateur est owner/admin ;
+- lecture des plans actifs, abonnements et paiements selon les RLS existantes ;
+- aucune récupération des numéros de réception MonCash ni des notes internes de revue ;
+- aucune création de demande, aucun encaissement et aucun changement d'état.
+
+Tests à faire avec des comptes réels : owner, admin, editor, utilisateur sans entreprise, entreprise multiple, session expirée, et accès interentreprises. Le parcours de paiement reste désactivé tant que les RPC MonCash ne sont pas corrigés et testés.
+
+Dernière vérification du code de la page sur le HEAD `b32c576` : les champs `review_note` et la RPC `get_payment_recipients` ne sont plus sollicités par cette page. La consultation est en lecture seule ; cela ne remplace pas les tests de sécurité avec plusieurs comptes.
+
+
+## 13. Mise à jour de validation — HEAD 86eba3f — 14 novembre 2026
+
+- Les quatre formulaires Auth gèrent maintenant les exceptions réseau et réinitialisent l'état occupé même en cas d'échec.
+- Le message de connexion ne révèle pas si une adresse e-mail existe ; l'inscription et la récupération conservent des messages neutres.
+- Quatre tests automatisés supplémentaires couvrent les protections Auth.
+- CI push `43636563843` et CI pull request `43636568676` : succès complet sur le HEAD `86eba3f1b35ff26d618d5a80aee51073ba9aad73`.
+- Résultat : 20/20 tests automatisés, vérification TypeScript et builds client, SSR et Nitro réussis.
+- Les tests navigateur, appareils mobiles et RLS avec comptes réels restent non exécutés. Aucun test sur la base Supabase de production n'est autorisé.
+- Aucun déploiement, paiement réel, changement de base, dépense ou fusion n'a été effectué.
+
+
+## 14. Plan de recette adapté aux moyens disponibles — 14 novembre 2026
+
+### Comptes disponibles
+
+La recette doit tenir compte de trois comptes seulement :
+- **Compte A — administrateur Zack** : réservé aux vérifications du rôle d'administration ; ne pas l'utiliser comme compte client ordinaire.
+- **Compte B — entreprise de test A** : compte propriétaire de l'entreprise A.
+- **Compte C — entreprise de test B** : compte propriétaire de l'entreprise B.
+
+Avec B et C, on peut vérifier l'isolation entre deux entreprises : B ne doit pas pouvoir lire ou modifier les données privées de C, et inversement. Le compte A sert uniquement aux fonctions réservées à l'administration.
+
+Les rôles editor et admin d'entreprise ne doivent pas être simulés en changeant manuellement des données en production. Ils seront testés dans un environnement de développement isolé, en attribuant les rôles nécessaires à B ou C dans les données de test. Un même compte peut avoir des rôles différents dans deux entreprises distinctes si le schéma et l'interface le permettent.
+
+### Ordre des tests avec ces trois comptes
+
+1. Connexion et déconnexion de B et C.
+2. Création ou attribution d'une entreprise de test A à B et d'une entreprise de test B à C, uniquement dans l'environnement isolé.
+3. Vérifier que B ne voit pas les données privées de C et que C ne voit pas celles de B.
+4. Vérifier les accès owner et, dans l'environnement isolé, editor/admin d'entreprise.
+5. Vérifier que le compte A accède aux fonctions d'administration prévues, sans utiliser ses privilèges pour contourner les tests B/C.
+6. Révoquer l'adhésion d'un membre dans l'environnement isolé et vérifier que son accès disparaît.
+7. Refaire les vérifications sur ordinateur et sur téléphone.
+
+### Pas encore d'adresse publique Zack
+
+L'absence de domaine public n'empêche pas les tests locaux du frontend. Le dépôt prévoit :
+- `npm install`
+- configuration locale de `.env.local` à partir de `.env.example`
+- `npm run dev` pour ouvrir l'application sur l'adresse locale fournie par Vite ;
+- `npm run build` puis `npm run preview` pour vérifier le build de production localement.
+
+Ne jamais coller les clés Supabase dans un dépôt GitHub, une capture d'écran ou une conversation. Utiliser uniquement la clé publishable côté navigateur ; ne jamais exposer une clé service_role.
+
+### Limite de sécurité impérative
+
+À ce jour, aucun environnement Supabase de test isolé n'a été confirmé. Tant qu'il n'existe pas :
+- ne pas créer de fausses entreprises ou adhésions dans Supabase production pour la recette ;
+- ne pas exécuter de tests d'écriture ou de révocation sur les comptes réels ;
+- poursuivre les tests automatisés, la revue statique et le build ;
+- reporter les tests multi-comptes qui nécessitent des données modifiables à un environnement isolé.
+
+Le domaine public, l'hébergement et le déploiement sont des étapes distinctes de la stabilisation du code. Aucun achat de domaine ni hébergement payant n'est requis pour continuer la recette locale.

@@ -22,10 +22,18 @@ function ForgotPasswordPage() {
     }
 
     setBusy(true)
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth/reinitialiser`,
-    })
-    setBusy(false)
+    let error: { message: string } | null = null
+    try {
+      const result = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth/reinitialiser`,
+      })
+      error = result.error
+    } catch {
+      setMessage('Le service de récupération est momentanément indisponible. Réessayez.')
+      return
+    } finally {
+      setBusy(false)
+    }
 
     setMessage(error
       ? 'Impossible d’envoyer le lien. Vérifiez l’adresse ou réessayez plus tard.'

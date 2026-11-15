@@ -1,6 +1,6 @@
 # Zack — Matrice RLS et écarts d'autorisation observés
 
-**Relevé :** 13 novembre 2026  
+**Dernière mise à jour :** 14 novembre 2026  
 **Projet :** `hwuwqalazmrmdxseawnm`  
 **Méthode :** lecture de `pg_policies`, des fonctions et des déclencheurs ; aucune modification effectuée.  
 **Statut :** audit préparatoire — les recommandations ne sont pas des migrations.
@@ -17,13 +17,13 @@
 | Domaine | Accès actuellement observé | Écart ou contrôle à prévoir |
 |---|---|---|
 | Entreprises | Public lit les entreprises vérifiées ; membres lisent leurs entreprises ; managers owner/admin peuvent modifier | Conserver la séparation entre lecture d'équipe et gestion ; ajouter les identifiants géographiques nationaux |
-| Produits | Public lit les produits des entreprises vérifiées ; owner/admin/editor peuvent créer, modifier et supprimer | Définir le niveau de modération et les champs qu'un éditeur peut modifier |
-| Services | Public lit les services des entreprises vérifiées ; owner/admin/editor peuvent gérer | Définir le niveau de modération et les permissions de contenu |
-| Publications | Owner/admin/editor peuvent insérer, modifier et supprimer ; public lit si `is_published = true` et entreprise vérifiée | Écart majeur : un membre peut potentiellement publier directement en écrivant le champ de publication ; imposer une approbation serveur |
-| Promotions | Owner/admin/editor peuvent gérer ; public lit les promotions actives et non archivées | Empêcher l'activation publique avant approbation centrale si la modération l'exige |
-| Événements | Owner/admin/editor peuvent insérer, modifier et supprimer ; public lit les événements publiés des entreprises vérifiées | Même contrôle sur `is_published` ; aligner avec la modération centralisée |
+| Produits | Public lit les produits publiés des entreprises vérifiées ; owner/admin/editor peuvent créer, modifier et supprimer selon les policies | Tester l'appartenance, les rôles, les champs modifiables et la publication directe |
+| Services | Public lit les services publiés des entreprises vérifiées ; owner/admin/editor peuvent gérer selon les policies | Tester l'appartenance, les rôles et les permissions de contenu |
+| Publications | Owner/admin/editor autorisés peuvent insérer, modifier, supprimer et publier directement ; public lit si `is_published = true` et entreprise vérifiée | Publication directe voulue ; tester l'isolation, les rôles et la protection du statut de vérification, sans approbation préalable |
+| Promotions | Owner/admin/editor autorisés peuvent gérer et activer directement ; public lit les promotions actives et non archivées | Publication directe voulue ; tester les rôles et l'isolation interentreprises |
+| Événements | Owner/admin/editor autorisés peuvent insérer, modifier, supprimer et publier directement ; public lit les événements publiés des entreprises vérifiées | Publication directe voulue ; tester les rôles et l'isolation interentreprises |
 | Horaires | Owner/admin/editor peuvent gérer ; public lit les horaires des entreprises vérifiées | Vérifier si l'éditeur doit pouvoir changer les horaires |
-| Médias d'entreprise | Owner/admin/editor peuvent gérer les lignes de média ; public lit les médias d'entreprises vérifiées | Le bucket public rend les fichiers accessibles par URL ; prévoir quarantaine des brouillons |
+| Médias d'entreprise | Owner/admin/editor peuvent gérer les lignes de média ; public lit les médias d'entreprises vérifiées | Bucket public : contrôler le propriétaire du fichier, les types et tailles ; signalements/retraits réactifs, sans quarantaine obligatoire |
 | Images produit | Owner/admin/editor peuvent gérer les images ; public lit les images des entreprises vérifiées | Vérifier la publication de l'image en cohérence avec l'état du produit |
 | Avis | Utilisateur connecté soumet et modifie son avis en attente ; public lit les avis approuvés ; owner/admin répondent | Ajouter anti-spam, règles de fréquence et tests de propriété |
 | Signalements | Visiteur anonyme ou connecté peut signaler une entreprise vérifiée ; l'état initial est contraint | Ajouter limitation serveur et anti-robot |
@@ -35,18 +35,22 @@
 | Membres d'entreprise | Utilisateur lit ses appartenances ; admins Zack avec permission peuvent lire les membres | Les permissions granulaires messages/commandes restent à construire |
 | Rôles admin Zack | Un admin lit son rôle ; main admin gère les rôles d'admin | Vérifier les procédures de récupération et les changements de permissions |
 
-## 3. Écart principal : modération centralisée non imposée uniformément
+## 3. Publication directe : comportement conforme à la décision produit
 
-Les policies actuelles des tables `posts`, `promotions` et `business_events` permettent aux membres owner/admin/editor d'insérer et modifier leurs contenus. Les politiques de lecture publique vérifient les indicateurs de publication/activation, mais les policies d'écriture ne suffisent pas à démontrer qu'un membre ne peut pas lui-même activer ces indicateurs.
+Décision confirmée le 14 novembre 2026 : les entreprises publient directement leurs publications, promotions et événements. Aucun contrôle préalable, approbation centrale Zack, file d'attente, trigger bloquant ou validation administrative avant publication ne doit être ajouté.
 
-Le produit exige une modération centralisée. La future conception doit donc :
-1. séparer l'état de soumission de l'état de publication ;
-2. faire de l'approbation une action réservée à un administrateur Zack autorisé ;
-3. empêcher l'auteur de modifier les champs de validation ;
-4. contrôler aussi les fonctions serveur et les transitions, pas seulement l'interface ;
-5. créer des tests RLS pour les rôles owner, admin et editor.
+La lecture des policies et triggers confirme que les membres autorisés peuvent écrire les contenus et activer leur publication. Les lectures publiques restent conditionnées par les indicateurs de publication et le statut de vérification de l'entreprise. Ce comportement est voulu ; ce n'est pas un défaut de sécurité.
 
-Les produits et services doivent faire l'objet d'une décision fonctionnelle explicite : validation centrale avant publication ou publication directe sous responsabilité de l'entreprise avec modération réactive. Ne pas inventer cette règle.
+La sécurité doit se concentrer sur :
+1. l'appartenance au même `business_id` ;
+2. les rôles autorisés sur chaque table ;
+3. la vérification du `business_id` final dans les clauses UPDATE `WITH CHECK` ;
+4. l'impossibilité pour un manager ordinaire de modifier le statut de vérification de l'entreprise ;
+5. l'isolation entre entreprises et l'effet immédiat de la révocation d'un membership.
+
+Les tests à réaliser avec des comptes réels doivent couvrir owner/admin/editor, les changements de `business_id`, la révocation, et la publication directe. Ils ne doivent pas chercher à interdire la publication normale d'un membre autorisé.
+
+Les signalements et retraits après examen sont des mécanismes réactifs de lutte contre les abus. Ils ne constituent pas une approbation avant publication.
 
 ## 4. Fonction statistiques : accès équipe à préciser
 
@@ -61,16 +65,18 @@ Ne pas changer la fonction avant cette décision.
 
 ## 5. Stockage et médias
 
-Le bucket `zack-public-media` est public. Les policies de stockage contrôlent les uploads, modifications et suppressions selon le dossier de l'entreprise, mais un bucket public rend les téléchargements accessibles à toute personne possédant l'URL.
+Le bucket `zack-public-media` est public. Les policies de stockage contrôlent les uploads, modifications et suppressions selon le dossier de l'entreprise, mais les téléchargements sont accessibles à toute personne disposant de l'URL.
 
-Les politiques de stockage accordent actuellement l'upload et la gestion à owner/admin/editor. Cela ne constitue pas une validation éditoriale.
+Les politiques accordent actuellement l'upload et la gestion à owner/admin/editor. La publication directe ne doit pas être bloquée par une étape d'approbation des médias.
 
-Préparer :
-- un dépôt privé des médias en attente ;
-- une validation de type MIME et de taille côté serveur ;
-- une publication vers l'emplacement public après approbation ;
-- une stratégie d'accès aux médias déjà publiés ;
-- l'alignement sur la décision « photos uniquement ».
+Prévoir :
+- validation du type réel, de la taille et du chemin du fichier ;
+- vérification côté serveur de l'appartenance au dossier de l'entreprise ;
+- alignement des types autorisés sur la décision « photos uniquement » ;
+- signalement et retrait réactif des médias abusifs ;
+- audit des actions de retrait/restauration.
+
+Ne pas créer de dépôt privé obligatoire ni de publication après approbation pour les médias ordinaires. Un futur brouillon privé, s'il est décidé, devra rester optionnel et ne pas bloquer le parcours de publication directe.
 
 ## 6. Rôles de test à utiliser
 
@@ -89,9 +95,9 @@ Préparer :
 ## 7. Ordre recommandé des corrections
 
 1. Révoquer l'appel direct de `log_admin_content_action()` aux rôles non nécessaires, après validation du SQL candidat et tests des déclencheurs.
-2. Corriger le contournement possible de la modération centralisée.
+2. Tester la publication directe des contenus avec chaque rôle autorisé et vérifier l'isolation interentreprises.
 3. Sécuriser les URLs externes du frontend historique.
-4. Définir le traitement privé/public des médias et aligner les types sur photos uniquement.
+4. Aligner les types de médias sur photos uniquement et tester les permissions Storage, les signalements et retraits réactifs.
 5. Définir l'anti-spam pour signalements, avis, événements et formulaires invités.
 6. Finaliser la matrice permissions entreprise et permissions admin Zack.
 7. Revoir les 44 avertissements de policies permissives, sans suppression massive automatique.
@@ -100,3 +106,8 @@ Préparer :
 ## 8. État
 
 Cette matrice est un constat de préparation. Aucune policy, fonction, table, bucket ou donnée n'a été modifié pendant l'audit.
+
+
+## 9. Décision produit actualisée — 14 novembre 2026
+
+La publication directe par les membres autorisés est la règle pour les posts, promotions et événements. Les anciennes recommandations d'approbation centrale et de quarantaine obligatoire sont obsolètes. Aucune migration de modération préalable ne doit être préparée.

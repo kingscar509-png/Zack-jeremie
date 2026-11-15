@@ -33,8 +33,16 @@ function ResetPasswordPage() {
     }
 
     setBusy(true)
-    const { error } = await supabase.auth.updateUser({ password })
-    setBusy(false)
+    let error: { message: string } | null = null
+    try {
+      const result = await supabase.auth.updateUser({ password })
+      error = result.error
+    } catch {
+      setMessage('Le service de réinitialisation est momentanément indisponible. Réessayez.')
+      return
+    } finally {
+      setBusy(false)
+    }
 
     if (error) {
       setMessage('Le lien est invalide ou expiré. Demandez un nouveau lien.')
