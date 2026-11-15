@@ -108,7 +108,7 @@ Protections :
 - `20261115141643_subscription_rating_view_and_plan_rpc_security`
 - `20261115141742_subscription_same_plan_renewals_queue`
 
-Les tests transactionnels exécutés ont confirmé le blocage au-delà des limites Gratuites (2 images, 5 produits, 5 services, 1 compte de gestion), la conservation de la base après rollback, l'utilisation des instantanés et le rejet des avis sans commande terminée.
+Les tests transactionnels exécutés ont confirmé les limites Gratuites (2 images, 5 produits, 5 services, 1 compte de gestion) et Pro (6 images, 15 produits, 10 services), le retour effectif au Gratuit après expiration, l'activation d'un forfait programmé à sa date de début, le renouvellement du même forfait après la période déjà payée, l'utilisation des instantanés, le rejet des avis sans commande terminée et la conservation des données de test après rollback.
 
 ## 5. Ordre d'implémentation restant
 
