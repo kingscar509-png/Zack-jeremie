@@ -72,6 +72,7 @@ Audit Supabase effectué en lecture seule sur le projet `hwuwqalazmrmdxseawnm` :
 5. **Fonctions SECURITY DEFINER** : l'advisor de sécurité signale une fonction exécutable par `anon` (`business_counts`) et 23 fonctions exécutables par `authenticated`. Plusieurs ont des contrôles internes légitimes, mais chaque fonction doit être auditée individuellement. Ne pas révoquer en bloc les RPC utilisées par l'application.
 6. **Advisor Auth** : la protection contre les mots de passe compromis est désactivée ; évaluer son activation dans les paramètres Auth avant ouverture publique.
 7. **Migrations** : l'historique distant comporte 28 entrées, mais aucun dossier de migrations versionné n'a été confirmé. Réconcilier l'historique et les fichiers avant de préparer un déploiement reproductible.
+8. **Performance** : l'advisor signale 12 clés étrangères sans index couvrant, 47 cas de policies permissives multiples et 28 index actuellement inutilisés. Les index inutilisés ne doivent pas être supprimés sur la seule base de cet indicateur : le projet est récent et le trafic encore faible.
 
 Les avertissements de policies permissives multiples et les fonctions privilégiées ne doivent pas être corrigés par suppression globale. Les policies doivent être évaluées selon leurs rôles et leurs conditions cumulées.
 
@@ -123,3 +124,11 @@ Les avertissements de policies permissives multiples et les fonctions privilégi
 ## 9. Critère de sortie de la première version
 
 La première version est prête lorsque les parcours Entreprise, Consommateur et Livreur annoncés sont réellement utilisables, que leurs accès sont cloisonnés côté serveur, que les parcours critiques ont passé les tests, et que les modules Fournisseurs/B2B restent non activés sans être supprimés.
+
+## 10. Notes sur les contrôles
+
+- Les 38 tables publiques ont toutes RLS activée ; ce constat ne prouve pas à lui seul que chaque policy est correcte.
+- L'advisor de sécurité du 15 novembre signale 1 fonction SECURITY DEFINER accessible à `anon`, 23 fonctions accessibles à `authenticated` et la protection Auth contre les mots de passe compromis désactivée.
+- L'advisor de performance du 15 novembre signale 12 clés étrangères sans index couvrant, 47 combinaisons de policies permissives multiples et 28 index non utilisés à cette date.
+- Le workflow GitHub `Zack frontend checks` est configuré sur les pushes de la branche `hardening/phase-1-stabilisation`. La récupération des runs associée au commit a renvoyé une liste vide avec l'outil de vérification disponible ; le statut du workflow après les commits documentaires reste donc à confirmer dans l'onglet Actions.
+
