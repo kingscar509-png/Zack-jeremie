@@ -65,10 +65,17 @@ Les fournisseurs acceptés sont `moncash` et `natcash`. Les migrations de durcis
 - Un changement vers un forfait différent, après validation du paiement, remplace le forfait précédent à la date d'approbation.
 - Une demande refusée n'interrompt pas le forfait actif.
 
+## Numéros de réception configurés
+
+- **MonCash :** `+509 3415 8914`.
+- **NatCash :** `+509 3519 0709`.
+
+Ces deux numéros sont enregistrés comme destinataires actifs dans `payment_recipients`. L'entreprise pourra choisir l'un ou l'autre lors du paiement. L'administrateur doit toujours vérifier le transfert dans le compte correspondant avant approbation.
+
 ## Configuration et intégration encore nécessaires
 
-- Ajouter le numéro de réception MonCash et son libellé.
-- Ajouter le numéro de réception NatCash et son libellé.
+- MonCash actif : `+509 3415 8914` (bénéficiaire affiché : MonCash – Zack).
+- NatCash actif : `+509 3519 0709` (bénéficiaire affiché : NatCash – Zack).
 - Terminer les contrôles des publications mensuelles et des établissements.
 - Connecter l'interface entreprise et l'interface administrateur aux RPC Supabase.
 - Tester le parcours avec les véritables rôles utilisateurs avant toute activation publique.
