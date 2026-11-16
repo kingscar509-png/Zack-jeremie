@@ -986,7 +986,7 @@
           safeDbRows("notifications",q=>q.eq("user_id",uid).order("created_at",{ascending:false})),
           safeDbRows("business_subscriptions"),
           safeDbRows("payments"),
-          supabaseClient.rpc("get_payment_recipients").then(x=>x.error?[]:(x.data||[])).catch(()=>[]),
+          (STATE.user.isAdmin&&isPrincipalAdmin()?supabaseClient.rpc("admin_list_payment_recipients"):supabaseClient.rpc("get_payment_recipients")).then(x=>x.error?[]:(x.data||[])).catch(()=>[]),
           safeDbRows("subscription_plans"),
           safeDbRows("business_events"),
           safeDbRows("reports"),
