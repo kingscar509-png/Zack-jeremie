@@ -5357,7 +5357,7 @@
         async forgotPass() {
           if (!supabaseClient) { toast("Le service de connexion est indisponible."); return; }
           const email = (document.getElementById("authEmail").value || "").trim().toLowerCase();
-          if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             STATE.authError = "Saisissez d'abord une adresse e-mail valide pour recevoir le lien.";
             render();
             return;
@@ -5372,7 +5372,7 @@
           if (!supabaseClient) { STATE.authError = "Impossible de joindre le service de connexion. Rechargez la page."; render(); return; }
           const email = (document.getElementById("authEmail").value || "").trim().toLowerCase();
           const password = document.getElementById("authPass").value || "";
-          if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             STATE.authError = "Veuillez saisir une adresse e-mail valide.";
             render();
             return;
@@ -5410,7 +5410,7 @@
           const email = (document.getElementById("regEmail").value || "").trim().toLowerCase();
           const password = document.getElementById("regPass").value || "";
           if (name.length < 2) { STATE.authError = "Le nom complet doit contenir au moins 2 caractères."; render(); return; }
-          if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) { STATE.authError = "Veuillez saisir une adresse e-mail valide."; render(); return; }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { STATE.authError = "Veuillez saisir une adresse e-mail valide."; render(); return; }
           if (password.length < 8) { STATE.authError = "Le mot de passe doit contenir au moins 8 caractères."; render(); return; }
           const { data, error } = await supabaseClient.auth.signUp({
             email: email,
