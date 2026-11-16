@@ -6252,14 +6252,11 @@
         admAddMoncashAcc(e) { e.preventDefault(); toast("Les comptes de réception sont gérés dans Supabase. L'ajout depuis ce formulaire local est désactivé."); },
         admSendBroadcast(e) { e.preventDefault(); toast("La diffusion globale n'est pas encore reliée à un service de notifications serveur. Aucun message n'a été envoyé."); },
         admReplySupport(e,id) { e.preventDefault(); toast("Les réponses au support doivent être enregistrées dans un fil serveur. Aucune réponse locale n'a été présentée comme envoyée."); },
-        admResolveReport(id) { toast("Le traitement des signalements n'est pas encore relié à une action serveur sécurisée. Aucun statut n'a changé."); },
-        async admAddCategory(e) {
-          e.preventDefault();if(!hasAdm("manage_categories")){toast("Permission insuffisante.");return;}
-          const name=(document.getElementById("newCatName").value||"").trim(),icon="🏷️";
-          if(!name){toast("Nom de catégorie obligatoire.");return;}
-          const order=STATE.categories.length+1,result=await supabaseClient.from("categories").insert({name,icon,is_active:true,display_order:order});
-          if(result.error){toast("Catégorie non créée : "+result.error.message);return;}
-          await loadZackPublicData();toast("Catégorie ajoutée.");render();
+        async admResolveReport(repId) {
+          if(!hasAdm("manage_comm")&&!hasAdm("manage_reports")){toast("Permission insuffisante.");return;}
+          const {error}=await supabaseClient.from("reports").update({status:"reviewed",handled_by:STATE.user.id,handled_at:new Date().toISOString()}).eq("id",repId);
+          if(error){toast("Signalement non traité : "+error.message);return;}
+          await loadZackWorkspace();toast("Signalement marqué comme examiné dans Supabase.");render();
         },
         async admSaveCategory(e,catId,idx) {
           e.preventDefault();if(!hasAdm("manage_categories")){toast("Permission insuffisante.");return;}
