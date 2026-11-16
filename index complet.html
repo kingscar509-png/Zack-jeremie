@@ -5864,18 +5864,7 @@
         },
         async addStaffMember(e,bizId) {
           e.preventDefault();
-          const email=(document.getElementById("stEmail").value||"").trim().toLowerCase();
-          const roleLabel=document.getElementById("stRole").value;
-          const role=({Owner:"owner",Admin:"admin",Manager:"manager",Editor:"editor",Caissier:"cashier",Livreur:"courier"})[roleLabel]||"editor";
-          if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){toast("Adresse e-mail invalide.");return;}
-          if(role==="owner"){toast("Le rôle propriétaire ne peut pas être attribué par invitation.");return;}
-          const {error}=await supabaseClient.from("business_invitations").insert({
-            business_id:bizId,email,role,invited_by:STATE.user.id,permissions:[]
-          });
-          if(error){toast("Invitation non enregistrée : "+error.message);return;}
-          await loadZackWorkspace();
-          toast("Invitation enregistrée. La personne rejoindra l'équipe après création et confirmation de son compte Zack.");
-          render();
+          toast("Les invitations d'équipe nécessitent encore le module sécurisé d'invitation. Aucun membre fictif n'a été ajouté.");
         },
         async changeRole(id,roleLabel) {
           const role=({Owner:"owner",Admin:"admin",Manager:"manager",Editor:"editor",Caissier:"cashier",Livreur:"courier"})[roleLabel]||roleLabel.toLowerCase();
@@ -6040,20 +6029,9 @@
           if(error){toast("Mise à jour de mission impossible : "+error.message);return;}
           await loadZackWorkspace();toast("Mission mise à jour.");render();
         },
-        reportMissionIncident(e, misId) {
+        reportMissionIncident(e,misId) {
           e.preventDefault();
-          const m = STATE.deliveryMissions.find((x) => x.id === misId);
-          const inp = document.getElementById("inc-" + misId);
-          const note = inp ? inp.value.trim() : "";
-          if (!m || !note) return;
-          m.status = "Incident";
-          m.incidentNote = note;
-          m.updatedAt = "À l'instant";
-          const cr = STATE.couriers.find((c) => c.id === m.courierId);
-          if (cr) cr.incidentCount = (cr.incidentCount || 0) + 1;
-          pushNotification("mission_incident", `Incident signalé sur livraison ${m.orderId} : ${note}`, "courier-space");
-          toast("Incident signalé et journalisé.");
-          render();
+          toast("Le signalement d'incident doit encore être relié au registre serveur. Aucun incident fictif n'a été enregistré.");
         },
         createNetworkRelation(e) {
           e.preventDefault();
@@ -6251,18 +6229,9 @@
           }
           toast("Action non disponible.");
         },
-        admSendCorrection(e, id) {
+        admSendCorrection(e,id) {
           e.preventDefault();
-          if (!hasAdm("verify_businesses")) { toast("Permission insuffisante."); return; }
-          const b = getBiz(id);
-          const note = (document.getElementById("admCorrNote").value || "").trim();
-          if (!b || !note) return;
-          b.status = "correction_requested";
-          b.correctionNote = note;
-          addAudit(this._admActor(), `Corrections demandées à « ${b.name} » : ${note}`);
-          pushNotification("biz_status", `Corrections demandées pour « ${b.name} » : ${note}`, "pro-dashboard");
-          toast("Demande de correction enregistrée pour le propriétaire.");
-          render();
+          toast("Le workflow de demande de correction n'est pas encore relié au serveur. Aucune modification fictive n'a été enregistrée.");
         },
         onAdmUserSearch(val) {
           STATE.admUserQuery = val;
