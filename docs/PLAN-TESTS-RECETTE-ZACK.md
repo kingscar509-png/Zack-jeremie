@@ -1,5 +1,35 @@
 # Zack — plan de tests et critères de recette
 
+## Mise à jour prioritaire — 16 novembre 2026
+
+Cette mise à jour remplace les informations devenues obsolètes dans les sections ci-dessous.
+
+- Frontend officiel de la phase 1 : `index complet.html`, branche `preparation/phase-1-frontend-plan`. Le frontend React/TanStack de `src/` n'est pas la référence active pour cette phase.
+- Le schéma Supabase contient déjà les tables des conversations/messages, commandes/lignes, livreurs/zones, avis, publications, événements, établissements, forfaits, abonnements, paiements et destinataires MonCash/NatCash.
+- Les contrôles CI de syntaxe JavaScript inline et de structure du frontend HTML passent sur le commit `7f8eecbc3777eb054e8e418f77fbf143239ebb9b`.
+- L'authentification Supabase comprend connexion, inscription, demande de récupération et formulaire de nouveau mot de passe.
+- Les actions métier principales sont raccordées à Supabase : création d'entreprise/produit/service/promotion/événement, commandes, messagerie, favoris, profil, avis vérifiés, affectation livreur, statuts de commande, demande d'abonnement et revue administrative des paiements.
+- Les politiques RLS de lecture et de mise à jour des messages ont été resserrées afin que seuls le client de la conversation ou les membres autorisés de l'entreprise puissent y accéder.
+- Les fonctions d'invitation d'équipe, de demande de correction et de signalement d'incident restent désactivées dans le frontend tant qu'elles ne disposent pas d'un flux serveur adapté. Les médias de certains formulaires ne sont pas encore tous envoyés vers Storage.
+- Les tests transactionnels backend des quotas, établissements, publications, renouvellements et avis vérifiés ont été exécutés avec rollback.
+- Aucun test navigateur réel avec sessions Supabase n'a encore été exécuté. Les tests d'inscription, confirmation e-mail, connexion, récupération, permissions multi-rôles et recette complète restent obligatoires.
+- Aucune preview HTTPS n'a encore été déployée.
+- Le Security Advisor signale encore la protection contre les mots de passe compromis désactivée et des fonctions `SECURITY DEFINER` à examiner individuellement. La table `business_publication_usage` sans policy directe est volontairement privée.
+
+### Séquence restante avant la recette finale
+
+1. Terminer le raccordement des médias/Storage et des actions de gestion encore locales.
+2. Auditer individuellement les RPC `SECURITY DEFINER` restantes et les permissions.
+3. Configurer les URL autorisées Supabase Auth et activer la protection contre les mots de passe compromis.
+4. Préparer une preview HTTPS sans fusionner vers `main`.
+5. Tester avec des comptes distincts client, entreprise, livreur et administrateur, puis vérifier les journaux et RLS.
+6. Corriger les défauts observés avant de déclarer les espaces opérationnels.
+
+Les paiements de commandes restent directs entre client et vendeur, hors Zack. Les abonnements sont réglés manuellement par MonCash ou NatCash et activés après vérification réelle. Fournisseurs et Marché B2B restent « À venir ».
+
+---
+
+
 Date : 12 novembre 2026
 Branche : `preparation/phase-1-frontend-plan`
 Statut : scénarios à exécuter après installation des dépendances et configuration locale ; aucun test navigateur ni build n'a été exécuté depuis GitHub.
