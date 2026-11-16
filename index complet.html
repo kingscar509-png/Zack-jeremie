@@ -944,9 +944,10 @@
           safeDbRows("business_subscriptions")
         ]);
         const oldCategories=STATE.categories||[];
-        STATE.categories=cats.map(row=>{
+        STATE.categories=cats.filter(row=>!row.parent_id).map(row=>{
           const match=oldCategories.find(x=>String(x.name||"").toLowerCase()===String(row.name||"").toLowerCase());
-          return {id:match?match.id:row.id,dbId:row.id,name:row.name,icon:row.icon||"🏪",active:row.is_active!==false};
+          const children=cats.filter(child=>child.parent_id===row.id);
+          return {id:match?match.id:row.id,dbId:row.id,name:row.name,icon:row.icon||"🏪",active:row.is_active!==false,subCategories:children.map(x=>x.name),subCategoryIds:children.map(x=>x.id)};
         });
         STATE.plans={};
         plans.forEach(row=>{
@@ -6559,65 +6560,53 @@
           toast("Signalement marqué comme traité.");
           render();
         },
-        admAddCategory(e) {
-          e.preventDefault();
-          if (!hasAdm("manage_categories")) { toast("Permission insuffisante."); return; }
-          const name = (document.getElementById("newCatName").value || "").trim();
-          const subs = (document.getElementById("newCatSubs").value || "").split(",").map((x) => x.trim()).filter(Boolean);
-          if (!name) return;
-          const id = "cat-" + Date.now();
-          STATE.categories.push({ id, name, active: true, subCategories: subs });
-          addAudit(this._admActor(), `Catégorie ajoutée : « ${name} »`);
-          toast("Catégorie ajoutée !");
-          render();
+        async admAddCategory(e) {
+          e.preventDefault();if(!hasAdm("manage_categories")){toast("Permission insuffisante.");return;}
+          const name=(document.getElementById("newCatName").value||"").trim(),icon="🏷️";
+          if(!name){toast("Nom de catégorie obligatoire.");return;}
+          const order=STATE.categories.length+1,result=await supabaseClient.from("categories").insert({name,icon,is_active:true,display_order:order});
+          if(result.error){toast("Catégorie non créée : "+result.error.message);return;}
+          await loadZackPublicData();toast("Catégorie ajoutée.");render();
         },
-        admSaveCategory(e, catId, idx) {
-          e.preventDefault();
-          if (!hasAdm("manage_categories")) { toast("Permission insuffisante."); return; }
-          const c = STATE.categories.find((x) => x.id === catId);
-          const name = (document.getElementById("catEd-" + idx).value || "").trim();
-          if (!c || !name) return;
-          c.name = name;
-          addAudit(this._admActor(), `Catégorie renommée : « ${name} »`);
-          toast("Catégorie renommée.");
-          render();
+        async admSaveCategory(e,catId,idx) {
+          e.preventDefault();if(!hasAdm("manage_categories")){toast("Permission insuffisante.");return;}
+          const category=STATE.categories.find(x=>x.id===catId),name=(document.getElementById("catEd-"+idx).value||"").trim();
+          if(!category||!name||!category.dbId)return;
+          const result=await supabaseClient.from("categories").update({name}).eq("id",category.dbId);
+          if(result.error){toast("Catégorie non modifiée : "+result.error.message);return;}
+          await loadZackPublicData();toast("Catégorie mise à jour dans Supabase.");render();
         },
-        admToggleCat(catId) {
-          if (!hasAdm("manage_categories")) { toast("Permission insuffisante."); return; }
-          const c = STATE.categories.find((x) => x.id === catId);
-          if (!c) return;
-          c.active = c.active === false;
-          addAudit(this._admActor(), `Catégorie « ${c.name} » ${c.active ? "activée" : "désactivée"}`);
-          render();
+        async admToggleCat(catId) {
+          if(!hasAdm("manage_categories")){toast("Permission insuffisante.");return;}
+          const category=STATE.categories.find(x=>x.id===catId);if(!category||!category.dbId)return;
+          const result=await supabaseClient.from("categories").update({is_active:category.active===false}).eq("id",category.dbId);
+          if(result.error){toast("Statut non modifié : "+result.error.message);return;}
+          await loadZackPublicData();toast("Statut de catégorie mis à jour.");render();
         },
-        admDeleteCat(catId) {
-          if (!hasAdm("manage_categories")) { toast("Permission insuffisante."); return; }
-          const used = STATE.businesses.some((b) => b.categoryId === catId);
-          if (used) { toast("Impossible de supprimer une catégorie utilisée par des entreprises (désactivez-la plutôt)."); return; }
-          const c = STATE.categories.find((x) => x.id === catId);
-          STATE.categories = STATE.categories.filter((x) => x.id !== catId);
-          addAudit(this._admActor(), `Catégorie supprimée : « ${c ? c.name : catId} »`);
-          toast("Catégorie supprimée.");
-          render();
+        async admDeleteCat(catId) {
+          if(!hasAdm("manage_categories")){toast("Permission insuffisante.");return;}
+          const category=STATE.categories.find(x=>x.id===catId);if(!category||!category.dbId)return;
+          const used=STATE.businesses.some(b=>b._db&&b._db.category_id===category.dbId);
+          if(used){toast("Cette catégorie est utilisée par une entreprise. Désactivez-la plutôt.");return;}
+          const result=await supabaseClient.from("categories").delete().eq("id",category.dbId);
+          if(result.error){toast("Catégorie non supprimée : "+result.error.message);return;}
+          await loadZackPublicData();toast("Catégorie supprimée.");render();
         },
-        admAddSubCat(e, catId, idx) {
-          e.preventDefault();
-          if (!hasAdm("manage_categories")) { toast("Permission insuffisante."); return; }
-          const c = STATE.categories.find((x) => x.id === catId);
-          const val = (document.getElementById("subAdd-" + idx).value || "").trim();
-          if (!c || !val) return;
-          if (!c.subCategories) c.subCategories = [];
-          c.subCategories.push(val);
-          addAudit(this._admActor(), `Sous-catégorie « ${val} » ajoutée à « ${c.name} »`);
-          render();
+        async admAddSubCat(e,catId,idx) {
+          e.preventDefault();if(!hasAdm("manage_categories")){toast("Permission insuffisante.");return;}
+          const category=STATE.categories.find(x=>x.id===catId),name=(document.getElementById("subAdd-"+idx).value||"").trim();
+          if(!category||!category.dbId||!name)return;
+          const result=await supabaseClient.from("categories").insert({name,parent_id:category.dbId,icon:"•",is_active:true,display_order:(category.subCategories||[]).length+1});
+          if(result.error){toast("Sous-catégorie non créée : "+result.error.message);return;}
+          await loadZackPublicData();toast("Sous-catégorie ajoutée.");render();
         },
-        admRemoveSubCat(catId, subIdx) {
-          if (!hasAdm("manage_categories")) { toast("Permission insuffisante."); return; }
-          const c = STATE.categories.find((x) => x.id === catId);
-          if (!c || !c.subCategories) return;
-          const removed = c.subCategories.splice(subIdx, 1);
-          addAudit(this._admActor(), `Sous-catégorie « ${removed[0] || ""} » retirée de « ${c.name} »`);
-          render();
+        async admRemoveSubCat(catId,subIdx) {
+          if(!hasAdm("manage_categories")){toast("Permission insuffisante.");return;}
+          const category=STATE.categories.find(x=>x.id===catId),childId=category&&category.subCategoryIds?category.subCategoryIds[subIdx]:null;
+          if(!childId)return;
+          const result=await supabaseClient.from("categories").delete().eq("id",childId);
+          if(result.error){toast("Sous-catégorie non retirée : "+result.error.message);return;}
+          await loadZackPublicData();toast("Sous-catégorie retirée.");render();
         },
         admSaveSettings(e) {
           e.preventDefault();
