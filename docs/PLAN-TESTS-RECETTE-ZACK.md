@@ -1,5 +1,38 @@
 # Zack — plan de tests et critères de recette
 
+
+## Avancement complémentaire — 16 novembre 2026
+
+### Actions supplémentaires raccordées ou sécurisées
+
+- Les signalements de fiches entreprise/produits/services/promotions/événements sont maintenant enregistrés dans `public.reports`, avec l'entreprise concernée et le compte auteur lorsqu'il est connecté.
+- Une policy RLS permet à chaque utilisateur connecté de consulter uniquement ses propres signalements ; les administrateurs conservent leur accès selon leur permission `reports`.
+- Le traitement administratif d'un signalement met maintenant à jour son statut dans Supabase (`reviewed`) avec l'identité et l'heure de traitement.
+- Le changement de disponibilité d'un produit met à jour `products.is_available` dans Supabase au lieu de changer uniquement l'affichage local.
+- Les actions de modération administrative qui n'avaient pas de fonction serveur sûre ont été neutralisées : elles ne prétendent plus enregistrer une suspension, une suppression, une annonce, une réponse support ou un paramètre qui resterait seulement dans le navigateur.
+- Les fonctions locales des modules Professionnel indépendant, Réseau Zack et Marché B2B sont neutralisées pour cette première version ; le Marché B2B reste « À venir ».
+- La fonction de bootstrap `claim_main_admin()` n'est plus exécutable par `anon` ou `authenticated`, car le rôle principal est déjà attribué. La vérification SQL confirme que seuls `postgres` et `service_role` peuvent encore l'exécuter.
+- Un RPC `admin_list_payment_recipients()` réservé à l'administrateur principal a été ajouté pour charger les identifiants et états de tous les numéros MonCash/NatCash dans l'écran d'administration. Test transactionnel avec le rôle authentifié et le principal admin : les deux destinataires actifs sont retournés.
+- GitHub Actions a réussi les contrôles syntaxe/structure HTML sur le commit `1db2ce61f3b70bbdde05f9cb2408a3f31f12dad3`.
+
+### Actions volontairement non activées
+
+- Les tickets de support ne sont pas encore enregistrés dans une table dédiée ; le formulaire ne prétend donc plus envoyer un ticket.
+- Les photos de profil ne sont pas encore envoyées vers un stockage dédié ; l'action ne prétend plus les sauvegarder en ligne.
+- Les invitations d'équipe n'ont pas encore de parcours complet d'acceptation/notification ; elles ne sont pas annoncées comme opérationnelles.
+- Les suspensions administratives d'utilisateurs, de profils pro ou de livreurs ne sont pas actives tant qu'un flux serveur d'administration n'est pas défini et testé.
+- Les actions de suppression/modération de contenu qui n'ont pas de journalisation serveur adaptée restent bloquées.
+
+### Sécurité Supabase après les corrections
+
+- `claim_main_admin()` n'est plus accessible aux utilisateurs authentifiés.
+- `business_counts(uuid)` n'est plus accessible à `anon` ni à `authenticated` ; elle reste réservée à `service_role`.
+- La lecture des messages et les mises à jour de `read_at` sont limitées aux participants autorisés.
+- Les alertes restantes du Security Advisor comprennent 22 fonctions `SECURITY DEFINER` accessibles aux utilisateurs authentifiés. Elles ont été examinées individuellement : les fonctions d'administration vérifient les rôles/permissions dans leur corps ; les fonctions de commande, abonnement, livreur et gestion d'entreprise vérifient l'identité et les droits métier. Ces alertes ne doivent pas être effacées par une révocation globale qui casserait les opérations.
+- `business_publication_usage` reste volontairement privée, sans policy d'accès direct.
+- La protection des mots de passe compromis reste à activer dans les paramètres Auth du projet.
+
+
 ## Mise à jour prioritaire — 16 novembre 2026
 
 Cette mise à jour remplace les informations devenues obsolètes dans les sections ci-dessous.
