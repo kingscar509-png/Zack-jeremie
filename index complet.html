@@ -3805,30 +3805,8 @@
          9C. PHASE 5 : ESPACE LIVREUR 100% GRATUIT & MULTI-AFFILIATION
          ========================================================= */
       function getCurrentCourier() {
-        const uid = STATE.user ? STATE.user.id : "u1";
-        let cr = STATE.couriers.find((c) => c.userId === uid);
-        if (!cr && STATE.user) {
-          cr = {
-            id: "cour-" + uid,
-            userId: uid,
-            name: STATE.user.name,
-            phone: STATE.user.phone || "+509",
-            dept: STATE.user.dept || "Ouest",
-            commune: STATE.user.commune || "Port-au-Prince",
-            sectionCommunale: STATE.user.sectionCommunale || "",
-            quartier: STATE.user.quartier || "",
-            vehicleType: "Moto",
-            vehicleInfo: "À compléter",
-            coverageZones: [STATE.user.commune || "Port-au-Prince"],
-            idDocNote: "Pièce d'identité à soumettre (confidentiel · non public)",
-            idDocVerified: "pending",
-            availability: "Disponible",
-            incidentCount: 0,
-            freeBadge: true
-          };
-          STATE.couriers.push(cr);
-        }
-        return cr || STATE.couriers[0];
+        const uid=STATE.user?STATE.user.id:"";
+        return STATE.couriers.find(c=>c.userId===uid)||null;
       }
 
       function viewCourierSpace() {
@@ -3837,6 +3815,7 @@
         }
         const roleSt = getUserRoleStatus("courier");
         const cr = getCurrentCourier();
+        if(!cr) return `<div class="notice notice-info">Aucun profil livreur actif n'est associé à ce compte. Demandez une invitation à une entreprise Zack pour rejoindre son équipe de livraison.</div>`;
         const isSuspended = roleSt === "suspended" || cr.availability === "Suspendu";
         const myMissions = STATE.deliveryMissions.filter((m) => m.courierId === cr.id);
         const filteredMissions = myMissions.filter((m) => STATE.courierMissionFilter === "done" ? ["Terminée", "Incident"].includes(m.status) : !["Terminée", "Incident"].includes(m.status));
@@ -5570,18 +5549,21 @@
           STATE.activeConvId = id;
           this.open("messages-chat");
         },
-        startChat(bizId, prefill, ctx) {
-          const contextType = (ctx && ctx.contextType) || "biz";
-          const contextId = (ctx && ctx.contextId) || bizId;
-          const contextLabel = (ctx && ctx.contextLabel) || "";
-          const uid = STATE.user ? STATE.user.id : "u1";
-          let c = STATE.conversations.find((x) => x.bizId === bizId && x.contextType === contextType && x.contextId === contextId);
-          if (!c) {
-            c = { id: "conv-" + Date.now(), bizId, contextType, contextId, contextLabel, participants: [uid, bizId], blocked: false, blockedBy: "", unread: 0, messages: [] };
-            STATE.conversations.unshift(c);
+        async startChat(bizId,prefill,ctx) {
+          if(!STATE.user){toast("Connectez-vous pour envoyer un message.");this.switchRoot("auth");return;}
+          const {data:existing,error:findError}=await supabaseClient.from("conversations").select("*").eq("business_id",bizId).eq("customer_id",STATE.user.id).maybeSingle();
+          if(findError){toast("Impossible d'ouvrir la conversation : "+findError.message);return;}
+          let conversation=existing;
+          if(!conversation){
+            const created=await supabaseClient.from("conversations").insert({business_id:bizId,customer_id:STATE.user.id}).select("*").single();
+            if(created.error){toast("Conversation impossible à créer : "+created.error.message);return;}
+            conversation=created.data;
           }
-          if (prefill) c.messages.push({ from: "me", text: prefill, time: "À l'instant", read: false });
-          this.openChat(c.id);
+          if(prefill){
+            const sent=await supabaseClient.from("messages").insert({conversation_id:conversation.id,sender_id:STATE.user.id,body:prefill});
+            if(sent.error){toast("Message non envoyé : "+sent.error.message);return;}
+          }
+          await loadZackWorkspace();this.openChat(conversation.id);
         },
         startChatItem(bizId, type, itemId) {
           let prefill = "", contextLabel = "";
@@ -5605,66 +5587,44 @@
           toast(c.blocked ? "Conversation bloquée." : "Conversation débloquée.");
           render();
         },
-        sendChat(e, cid) {
+        async sendChat(e,cid) {
+          e.preventDefault();const input=document.getElementById("chatInp");const body=input?input.value.trim():"";
+          if(!body||body.length>4000)return;
+          const {error}=await supabaseClient.from("messages").insert({conversation_id:cid,sender_id:STATE.user.id,body});
+          if(error){toast("Message non envoyé : "+error.message);return;}
+          await loadZackWorkspace();this.openChat(cid);
+          const next=document.getElementById("chatInp");if(next)next.focus();
+        },
+        async markOneNotifRead(nid) {
+          const {error}=await supabaseClient.from("notifications").update({read_at:new Date().toISOString()}).eq("id",nid).eq("user_id",STATE.user.id);
+          if(error){toast("Notification non mise à jour : "+error.message);return;}
+          const n=STATE.notifications.find(x=>x.id===nid);if(n)n.read=true;
+          if(n?.route)this.open(n.route);else render();
+        },
+        async markAllNotifsRead() {
+          const {error}=await supabaseClient.from("notifications").update({read_at:new Date().toISOString()}).eq("user_id",STATE.user.id).is("read_at",null);
+          if(error){toast("Notifications non mises à jour : "+error.message);return;}
+          STATE.notifications.forEach(n=>n.read=true);toast("Toutes les notifications sont marquées comme lues.");render();
+        },
+        async submitReview(e,bizId) {
           e.preventDefault();
-          const inp = document.getElementById("chatInp");
-          const v = inp ? inp.value.trim() : "";
-          if (!v) return;
-          const conv = STATE.conversations.find((c) => c.id === cid);
-          if (!conv || conv.blocked) return;
-          conv.messages.push({ from: "me", text: v, time: "À l'instant", read: true });
-          pushNotification("chat_message", `Message envoyé dans « ${conv.contextLabel || "Discussion"} ».`, "messages-list");
-          render();
-          const nextInp = document.getElementById("chatInp");
-          if (nextInp) nextInp.focus();
+          if(!STATE.user){toast("Connectez-vous pour laisser un avis.");return;}
+          const comment=(document.getElementById("revComment").value||"").trim();
+          const rating=Number(document.getElementById("revRating").value)||5;
+          const eligible=STATE.orders.find(o=>o.bizId===bizId&&o.customerId===STATE.user.id&&["Livrée","Terminée"].includes(o.status)&&!STATE.reviews.some(r=>r.orderId===o.id));
+          if(!eligible){toast("Un avis vérifié est possible après une commande terminée.");return;}
+          if(comment.length<3){toast("Le commentaire doit contenir au moins 3 caractères.");return;}
+          const {error}=await supabaseClient.from("reviews").insert({business_id:bizId,user_id:STATE.user.id,order_id:eligible.id,rating,content:comment,status:"pending"});
+          if(error){toast("Avis non enregistré : "+error.message);return;}
+          await loadZackWorkspace();toast("Avis envoyé. Il sera publié après modération.");render();
         },
-        markOneNotifRead(nid) {
-          const n = STATE.notifications.find((x) => x.id === nid);
-          if (!n) return;
-          n.read = true;
-          if (n.route) this.open(n.route);
-          else render();
+        async replyReview(e,revId) {
+          e.preventDefault();const input=document.getElementById("rep-"+revId);const response=input?input.value.trim():"";
+          if(!response)return;
+          const {error}=await supabaseClient.from("reviews").update({owner_response:response,owner_responded_at:new Date().toISOString()}).eq("id",revId);
+          if(error){toast("Réponse non enregistrée : "+error.message);return;}
+          await loadZackWorkspace();toast("Réponse publiée.");render();
         },
-        markAllNotifsRead() {
-          STATE.notifications.forEach((n) => { n.read = true; });
-          toast("Toutes les notifications sont marquées comme lues.");
-          render();
-        },
-        submitReview(e, bizId) {
-          e.preventDefault();
-          const b = getBiz(bizId);
-          const comment = (document.getElementById("revComment").value || "").trim();
-          const rating = Number(document.getElementById("revRating").value) || 5;
-          if (!b || comment.length < 3) {
-            toast("Veuillez écrire un commentaire d'au moins 3 caractères.");
-            return;
-          }
-          STATE.reviews.unshift({
-            id: "rev-" + Date.now(),
-            bizId,
-            author: STATE.user ? STATE.user.name : "Visiteur (aperçu)",
-            rating,
-            date: "2026-11-12",
-            comment,
-            reply: ""
-          });
-          const bizRevs = STATE.reviews.filter((r) => r.bizId === bizId);
-          b.reviewCount = bizRevs.length;
-          b.rating = Number((bizRevs.reduce((s, r) => s + r.rating, 0) / bizRevs.length).toFixed(1));
-          toast("Aperçu d'avis enregistré localement.");
-          render();
-        },
-        replyReview(e, revId) {
-          e.preventDefault();
-          const inp = document.getElementById("rep-" + revId);
-          const txt = inp ? inp.value.trim() : "";
-          const r = STATE.reviews.find((x) => x.id === revId);
-          if (!r || !txt) return;
-          r.reply = txt;
-          toast("Réponse enregistrée (aperçu local).");
-          render();
-        },
-
         uploadUserPhoto(e, field) {
           const f = e.target.files[0]; if (!f || !STATE.user) return;
           readFileAsDataUrl(f, (url) => { STATE.user[field] = url; toast("Photo mise à jour !"); render(); });
@@ -5877,38 +5837,29 @@
           if(error){toast("Suppression impossible : "+error.message);return;}
           await loadZackWorkspace();toast("Service supprimé.");render();
         },
-        saveBizId(e, bizId) {
-          e.preventDefault();
-          const b = getBiz(bizId);
-          if (!b) return;
-          const webRaw = document.getElementById("edWeb").value.trim();
-          const fbRaw = document.getElementById("edFb").value.trim();
-          const igRaw = document.getElementById("edIg").value.trim();
-          if ((webRaw && !safeUrl(webRaw)) || (fbRaw && !safeUrl(fbRaw)) || (igRaw && !safeUrl(igRaw))) {
-            toast("Les URLs doivent commencer par https:// ou http://.");
-            return;
-          }
-          b.name = document.getElementById("edName").value.trim();
-          b.categoryId = document.getElementById("edCat").value;
-          b.subCategory = document.getElementById("edSub").value.trim();
-          b.shortDesc = document.getElementById("edShort").value.trim();
-          b.longDesc = document.getElementById("edLong").value.trim();
-          b.dept = document.getElementById("edDept").value;
-          b.commune = document.getElementById("edComm").value.trim();
-          b.city = b.commune;
-          const edSect = document.getElementById("edSect");
-          b.sectionCommunale = edSect ? edSect.value.trim() : (b.sectionCommunale || "");
-          b.quartier = document.getElementById("edQuart").value.trim();
-          b.address = document.getElementById("edAddr").value.trim();
-          b.phone = document.getElementById("edPhone").value.trim();
-          b.whatsapp = safeDigits(document.getElementById("edWa").value.trim());
-          b.email = document.getElementById("edEmail").value.trim();
-          b.website = webRaw ? safeUrl(webRaw) : "";
-          b.socials = { facebook: fbRaw ? safeUrl(fbRaw) : "", instagram: igRaw ? safeUrl(igRaw) : "" };
-          b.hours = document.getElementById("edHours").value.trim();
-          b.complementaryInfo = document.getElementById("edExtra").value.trim();
-          toast("Fiche boutique enregistrée (aperçu local).");
-          this.back();
+        async saveBizId(e,bizId) {
+          e.preventDefault();const b=getBiz(bizId);if(!b)return;
+          const webRaw=document.getElementById("edWeb").value.trim();
+          const fbRaw=document.getElementById("edFb").value.trim();
+          const igRaw=document.getElementById("edIg").value.trim();
+          if((webRaw&&!safeUrl(webRaw))||(fbRaw&&!safeUrl(fbRaw))||(igRaw&&!safeUrl(igRaw))){toast("Les URLs doivent commencer par https:// ou http://.");return;}
+          const payload={
+            name:document.getElementById("edName").value.trim(),
+            category:getCatName(document.getElementById("edCat").value),
+            category_id:STATE.categories.find(x=>x.id===document.getElementById("edCat").value)?.dbId||null,
+            description:document.getElementById("edLong").value.trim(),
+            city:document.getElementById("edComm").value.trim(),
+            neighborhood:document.getElementById("edQuart").value.trim(),
+            address:document.getElementById("edAddr").value.trim(),
+            street:document.getElementById("edAddr").value.trim(),
+            phone:document.getElementById("edPhone").value.trim(),
+            whatsapp:safeDigits(document.getElementById("edWa").value.trim()),
+            email:document.getElementById("edEmail").value.trim(),
+            website:webRaw||null,facebook_url:fbRaw||null,instagram_url:igRaw||null
+          };
+          const {error}=await supabaseClient.from("businesses").update(payload).eq("id",bizId);
+          if(error){toast("Fiche non enregistrée : "+error.message);return;}
+          await loadZackWorkspace();toast("Fiche entreprise mise à jour.");this.back();
         },
         adjustProdStock(prodId, delta) {
           const p = STATE.products.find((x) => x.id === prodId);
@@ -5946,38 +5897,24 @@
           if(error){toast("Affectation impossible : "+error.message);return;}
           await loadZackWorkspace();toast("Livreur affecté à la commande.");render();
         },
-        inviteCourierToBiz(bizId, courierId) {
-          const dup = STATE.courierAffiliations.find((a) => a.bizId === bizId && a.courierId === courierId && ["Invitation envoyée", "Active"].includes(a.status));
-          if (dup) { toast("Invitation déjà active ou envoyée pour ce livreur."); return; }
-          const b = getBiz(bizId);
-          const d = new Date(), p = (n) => String(n).padStart(2, "0");
-          const today = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-          STATE.courierAffiliations.unshift({
-            id: "aff-" + Date.now(),
-            bizId,
-            courierId,
-            status: "Invitation envoyée",
-            invitedBy: STATE.user ? STATE.user.name : (b ? b.name : "Entreprise"),
-            terms: "Courses locales · conditions convenues entre l'entreprise et le livreur",
-            createdAt: today,
-            updatedAt: today,
-            history: [`${today} : Invitation envoyée par ${b ? b.name : bizId}`]
-          });
-          pushNotification("courier_invite", `${b ? b.name : "Une entreprise"} a invité un livreur dans son équipe.`, "courier-space");
-          toast("Invitation envoyée au livreur !");
-          render();
+        async inviteCourierToBiz(bizId,courierId) {
+          const courier=STATE.couriers.find(x=>x.id===courierId);
+          if(!courier||!courier.userId){toast("Ce livreur n'a pas encore de compte lié.");return;}
+          const membership=await supabaseClient.from("business_members").insert({business_id:bizId,user_id:courier.userId,role:"courier",permissions:["deliveries"]});
+          if(membership.error){toast("Affiliation impossible : "+membership.error.message);return;}
+          const created=await supabaseClient.from("couriers").insert({business_id:bizId,user_id:courier.userId,name:courier.name,phone:courier.phone,vehicle:courier.vehicleType,is_active:true});
+          if(created.error){await supabaseClient.from("business_members").delete().eq("business_id",bizId).eq("user_id",courier.userId);toast("Profil livreur non créé : "+created.error.message);return;}
+          await loadZackWorkspace();toast("Livreur affilié à l'entreprise.");render();
         },
-        endCourierAffiliation(affId, actorSide) {
-          const a = STATE.courierAffiliations.find((x) => x.id === affId);
-          if (!a) return;
-          const d = new Date(), p = (n) => String(n).padStart(2, "0");
-          const today = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-          a.status = actorSide === "courier" ? "Quittée par le livreur" : "Terminée";
-          a.updatedAt = today;
-          if (!a.history) a.history = [];
-          a.history.push(`${today} : ${actorSide === "courier" ? "Le livreur a quitté l'entreprise librement" : "Retiré de l'équipe par l'entreprise"}`);
-          toast("Affiliation terminée.");
-          render();
+        async endCourierAffiliation(affId,actorSide) {
+          const aff=STATE.courierAffiliations.find(x=>x.id===affId);if(!aff)return;
+          const courier=STATE.couriers.find(x=>x.id===aff.courierId);
+          if(!courier)return;
+          const member=await supabaseClient.from("business_members").delete().eq("business_id",aff.bizId).eq("user_id",courier.userId);
+          if(member.error){toast("Fin d'affiliation impossible : "+member.error.message);return;}
+          const row=await supabaseClient.from("couriers").delete().eq("business_id",aff.bizId).eq("user_id",courier.userId);
+          if(row.error){toast("Affiliation retirée, mais profil livreur à vérifier : "+row.error.message);}
+          await loadZackWorkspace();toast("Affiliation terminée.");render();
         },
         async setOrderStatus(id,s) {
           const map={"Acceptée":"accepted","En préparation":"preparing","Prête":"ready","En livraison":"out_for_delivery","Livrée":"delivered","Terminée":"completed","Annulée":"cancelled"};
@@ -5986,21 +5923,42 @@
           if(error){toast("Mise à jour de la commande refusée : "+error.message);return;}
           await loadZackWorkspace();toast("Statut de commande mis à jour.");render();
         },
-        addStaffMember(e, bizId) {
+        async addStaffMember(e,bizId) {
           e.preventDefault();
-          STATE.teamMembers.push({
-            id: "tm-" + Date.now(), bizId,
-            name: document.getElementById("stName").value.trim(),
-            email: document.getElementById("stEmail").value.trim(),
-            phone: document.getElementById("stPhone").value.trim(),
-            role: document.getElementById("stRole").value
+          const email=(document.getElementById("stEmail").value||"").trim().toLowerCase();
+          const roleLabel=document.getElementById("stRole").value;
+          const role=({Owner:"owner",Admin:"admin",Manager:"manager",Editor:"editor",Caissier:"cashier",Livreur:"courier"})[roleLabel]||"editor";
+          if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){toast("Adresse e-mail invalide.");return;}
+          if(role==="owner"){toast("Le rôle propriétaire ne peut pas être attribué par invitation.");return;}
+          const {error}=await supabaseClient.from("business_invitations").insert({
+            business_id:bizId,email,role,invited_by:STATE.user.id,permissions:[]
           });
-          toast("Nouveau membre intégré au staff !");
+          if(error){toast("Invitation non enregistrée : "+error.message);return;}
+          await loadZackWorkspace();
+          toast("Invitation enregistrée. La personne rejoindra l'équipe après création et confirmation de son compte Zack.");
           render();
         },
-        changeRole(id, r) { const m = STATE.teamMembers.find((x) => x.id === id); if (m) { m.role = r; toast("Rôle modifié : " + r); } },
-        removeStaff(id) { STATE.teamMembers = STATE.teamMembers.filter((m) => m.id !== id); toast("Membre retiré."); render(); },
-
+        async changeRole(id,roleLabel) {
+          const role=({Owner:"owner",Admin:"admin",Manager:"manager",Editor:"editor",Caissier:"cashier",Livreur:"courier"})[roleLabel]||roleLabel.toLowerCase();
+          if(role==="owner"){toast("Le propriétaire ne peut pas être remplacé depuis cette action.");return;}
+          const {error}=await supabaseClient.from("business_members").update({role}).eq("business_id",STATE.proBizId).eq("user_id",id);
+          if(error){toast("Modification du rôle impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Rôle d'équipe mis à jour.");render();
+        },
+        async removeStaff(id) {
+          const pending=STATE.teamMembers.find(x=>x.id===id&&x.invitationId);
+          if(pending){
+            const {error}=await supabaseClient.from("business_invitations").update({status:"cancelled"}).eq("id",pending.invitationId);
+            if(error){toast("Annulation impossible : "+error.message);return;}
+          }else{
+            const member=STATE.teamMembers.find(x=>x.userId===id&&x.bizId===STATE.proBizId);
+            if(!member||member.role==="Owner"){toast("Le propriétaire ne peut pas être retiré.");return;}
+            const {error}=await supabaseClient.from("business_members").delete().eq("business_id",STATE.proBizId).eq("user_id",id);
+            if(error){toast("Retrait impossible : "+error.message);return;}
+            if(member.role==="Livreur")await supabaseClient.from("couriers").delete().eq("business_id",STATE.proBizId).eq("user_id",id);
+          }
+          await loadZackWorkspace();toast("Membre retiré de l'équipe.");render();
+        },
         fillComm(dept) {
           const sel = document.getElementById("nbComm"); if (!sel) return;
           sel.innerHTML = (HAITI_GEO[dept] ? Object.keys(HAITI_GEO[dept]) : []).map((c) => `<option>${esc(c)}</option>`).join("");
@@ -6119,30 +6077,29 @@
         },
         setCourierTab(t) { STATE.courierTab = t; render(); },
         setCourierMissionFilter(f) { STATE.courierMissionFilter = f; render(); },
-        setCourierAvailability(val) {
-          const cr = getCurrentCourier();
-          if (getUserRoleStatus("courier") === "suspended" || cr.availability === "Suspendu") {
-            toast("Votre compte livreur est suspendu par l'administration.");
-            return;
-          }
-          cr.availability = val;
-          toast("Disponibilité livreur : " + val);
-          render();
+        async setCourierAvailability(val) {
+          if(!STATE.user)return;
+          const available=val!=="Indisponible"&&val!=="Suspendu";
+          const {error}=await supabaseClient.rpc("set_own_courier_availability",{p_available:available});
+          if(error){toast("Disponibilité non modifiée : "+error.message);return;}
+          const courier=getCurrentCourier();if(courier)courier.availability=val;
+          toast("Disponibilité mise à jour.");render();
         },
-        saveCourierProfile(e) {
-          e.preventDefault();
-          if (!lockSubmit("save-cour")) return;
-          const cr = getCurrentCourier();
-          cr.vehicleType = document.getElementById("crVehType").value;
-          cr.vehicleInfo = document.getElementById("crVehInfo").value.trim();
-          cr.dept = document.getElementById("crDept").value;
-          cr.commune = document.getElementById("crComm").value.trim();
-          cr.sectionCommunale = document.getElementById("crSect").value.trim();
-          cr.quartier = document.getElementById("crQuart").value.trim();
-          cr.coverageZones = document.getElementById("crZones").value.split(",").map((s) => s.trim()).filter(Boolean);
-          cr.idDocNote = document.getElementById("crIdDoc").value.trim();
-          toast("Profil livreur & documents mis à jour (aperçu local).");
-          render();
+        async saveCourierProfile(e) {
+          e.preventDefault();if(!lockSubmit("save-cour"))return;
+          const cr=getCurrentCourier();if(!cr)return;
+          const {error}=await supabaseClient.rpc("update_own_courier_profile",{
+            p_vehicle:document.getElementById("crVehType").value,
+            p_vehicle_info:document.getElementById("crVehInfo").value.trim(),
+            p_department:document.getElementById("crDept").value,
+            p_commune:document.getElementById("crComm").value.trim(),
+            p_section_communal:document.getElementById("crSect").value.trim(),
+            p_neighborhood:document.getElementById("crQuart").value.trim(),
+            p_coverage_zones:document.getElementById("crZones").value.split(",").map(x=>x.trim()).filter(Boolean),
+            p_id_doc_note:document.getElementById("crIdDoc").value.trim()
+          });
+          if(error){toast("Profil livreur non enregistré : "+error.message);return;}
+          await loadZackWorkspace();toast("Profil livreur enregistré.");render();
         },
         respondCourierAff(affId, decision) {
           const a = STATE.courierAffiliations.find((x) => x.id === affId);
