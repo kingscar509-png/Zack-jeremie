@@ -26,10 +26,21 @@ jobs:
       - name: Récupérer le dépôt
         uses: actions/checkout@v4
 
-      - name: Préparer GitHub Pages
-        uses: actions/configure-pages@v5
+      - name: Vérifier la syntaxe JavaScript du frontend
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const scripts = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)]
+            .map(match => match[1].trim())
+            .filter(Boolean);
+          if (!scripts.length) throw new Error('Aucun script JavaScript intégré trouvé.');
+          scripts.forEach((source, index) => new vm.Script(source, { filename: `index.html:inline-script-${index + 1}` }));
+          console.log(`Syntaxe valide : ${scripts.length} script(s) JavaScript.`);
+          NODE
 
-      - name: Préparer le frontend officiel
+      - name: Préparer GitHub Pages
         run: |
           mkdir -p _site
           cp index.html _site/index.html
