@@ -912,6 +912,19 @@
           return data||[];
         } catch(error){console.warn("Zack data load "+table+":",error);return [];}
       }
+      async function uploadZackImage(source,bizId,folder) {
+        if(!source)return {url:null,path:null};
+        if(!source.startsWith("data:image/"))return {url:source,path:null};
+        const response=await fetch(source);
+        if(!response.ok)throw new Error("Image illisible.");
+        const blob=await response.blob();
+        const ext=({ "image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif" })[blob.type]||"jpg";
+        const path=bizId+"/"+folder+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;
+        const uploaded=await supabaseClient.storage.from("zack-public-media").upload(path,blob,{contentType:blob.type,upsert:false});
+        if(uploaded.error)throw uploaded.error;
+        const publicUrl=supabaseClient.storage.from("zack-public-media").getPublicUrl(path).data.publicUrl;
+        return {url:publicUrl,path};
+      }
       async function loadZackPublicData() {
         if(!supabaseClient) return;
         const [cats,biz,prods,images,services,posts,promos,events,hours,media,reviews,zones,plans,subs] = await Promise.all([
@@ -5792,27 +5805,36 @@
           e.preventDefault();if(!supabaseClient){toast("Service indisponible.");return;}
           const name=document.getElementById("npName").value.trim(),price=Number(document.getElementById("npPrice").value),se=document.getElementById("npStock"),stock=se?Math.max(0,Number(se.value)||0):null;
           if(!name||!Number.isFinite(price)||price<0){toast("Vérifiez le nom et le prix.");return;}
-          const r=await supabaseClient.from("products").insert({business_id:bizId,name,description:document.getElementById("npDesc").value.trim()||null,price,currency:STATE.currency||"HTG",is_available:stock===null?true:stock>0,stock_quantity:stock,variant:document.getElementById("npVar").value.trim()||null});
-          if(r.error){toast("Produit non enregistré : "+r.error.message);return;} STATE.draftImages=[];await loadZackWorkspace();toast("Produit enregistré dans le catalogue.");this.switchRoot("pro-dashboard");
+          const created=await supabaseClient.from("products").insert({business_id:bizId,name,description:document.getElementById("npDesc").value.trim()||null,price,currency:STATE.currency||"HTG",is_available:stock===null?true:stock>0,stock_quantity:stock,variant:document.getElementById("npVar").value.trim()||null}).select("id").single();
+          if(created.error){toast("Produit non enregistré : "+created.error.message);return;}
+          const plan=STATE.plans[(getBiz(bizId)||{}).plan]||{},limit=Number(plan.maxImages||2),sources=(STATE.draftImages||[]).slice(0,limit),rows=[],paths=[];
+          try{
+            for(let i=0;i<sources.length;i++){const image=await uploadZackImage(sources[i],bizId,"products");rows.push({product_id:created.data.id,business_id:bizId,image_url:image.url,storage_path:image.path,is_primary:i===0,display_order:i});if(image.path)paths.push(image.path);}
+            if(rows.length){const saved=await supabaseClient.from("product_images").insert(rows);if(saved.error)throw saved.error;}
+          }catch(err){if(paths.length)await supabaseClient.storage.from("zack-public-media").remove(paths);toast("Produit créé, mais les images n'ont pas toutes été enregistrées : "+err.message);}
+          STATE.draftImages=[];await loadZackWorkspace();toast("Produit enregistré dans le catalogue.");this.switchRoot("pro-dashboard");
         },
         async addService(e,bizId) {
           e.preventDefault();if(!supabaseClient){toast("Service indisponible.");return;}
           const name=document.getElementById("nsName").value.trim(),price=Number(document.getElementById("nsPrice").value);if(!name){toast("Le nom du service est obligatoire.");return;}
-          const r=await supabaseClient.from("services").insert({business_id:bizId,name,price:price>0?price:null,currency:STATE.currency||"HTG",duration:document.getElementById("nsCond").value.trim()||null,description:document.getElementById("nsDesc").value.trim()||null,is_available:true});
+          let imageUrl=null;try{if(STATE.draftImages[0])imageUrl=(await uploadZackImage(STATE.draftImages[0],bizId,"services")).url;}catch(err){toast("Image non envoyée : "+err.message);}
+          const r=await supabaseClient.from("services").insert({business_id:bizId,name,price:price>0?price:null,currency:STATE.currency||"HTG",duration:document.getElementById("nsCond").value.trim()||null,description:document.getElementById("nsDesc").value.trim()||null,image_url:imageUrl,is_available:true});
           if(r.error){toast("Service non enregistré : "+r.error.message);return;}STATE.draftImages=[];await loadZackWorkspace();toast("Service enregistré.");this.back();
         },
         async addPromo(e,bizId) {
           e.preventDefault();if(!supabaseClient){toast("Service indisponible.");return;}
           const title=document.getElementById("nprmTitle").value.trim(),oldPrice=Number(document.getElementById("nprmOld").value),newPrice=Number(document.getElementById("nprmNew").value),end=document.getElementById("nprmEnd").value;
           if(!title||!end||!Number.isFinite(oldPrice)||!Number.isFinite(newPrice)||oldPrice<=newPrice||newPrice<0){toast("Vérifiez le titre, les prix et la date de fin.");return;}
-          const r=await supabaseClient.from("promotions").insert({business_id:bizId,title,description:document.getElementById("nprmCond").value.trim()||null,original_price:oldPrice,discounted_price:newPrice,start_at:new Date().toISOString(),end_at:new Date(end+"T23:59:59").toISOString(),is_active:true});
+          let imageUrl=null;try{if(STATE.draftImages[0])imageUrl=(await uploadZackImage(STATE.draftImages[0],bizId,"promotions")).url;}catch(err){toast("Image non envoyée : "+err.message);}
+          const r=await supabaseClient.from("promotions").insert({business_id:bizId,title,description:document.getElementById("nprmCond").value.trim()||null,original_price:oldPrice,discounted_price:newPrice,image_url:imageUrl,start_at:new Date().toISOString(),end_at:new Date(end+"T23:59:59").toISOString(),is_active:true});
           if(r.error){toast("Promotion non enregistrée : "+r.error.message);return;}STATE.draftImages=[];await loadZackWorkspace();toast("Promotion enregistrée.");this.open("promos");
         },
         async addEvent(e,bizId) {
           e.preventDefault();if(!supabaseClient){toast("Service indisponible.");return;}
           const date=document.getElementById("nevDate").value,time=document.getElementById("nevTime").value||"12:00",title=document.getElementById("nevTitle").value.trim();
           if(!title||!date){toast("Le titre et la date sont obligatoires.");return;}
-          const r=await supabaseClient.from("business_events").insert({business_id:bizId,title,description:document.getElementById("nevDesc").value.trim()||null,location:document.getElementById("nevPlace").value.trim()||null,start_at:new Date(date+"T"+time+":00").toISOString(),is_published:true});
+          let imageUrl=null;try{if(STATE.draftImages[0])imageUrl=(await uploadZackImage(STATE.draftImages[0],bizId,"events")).url;}catch(err){toast("Image non envoyée : "+err.message);}
+          const r=await supabaseClient.from("business_events").insert({business_id:bizId,title,description:document.getElementById("nevDesc").value.trim()||null,location:document.getElementById("nevPlace").value.trim()||null,image_url:imageUrl,start_at:new Date(date+"T"+time+":00").toISOString(),is_published:true});
           if(r.error){toast("Événement non enregistré : "+r.error.message);return;}STATE.draftImages=[];await loadZackWorkspace();toast("Événement enregistré.");this.open("events");
         },
         toggleProdAvail(id) {
