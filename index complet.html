@@ -5678,29 +5678,38 @@
           const f = e.target.files[0]; if (!f || !STATE.user) return;
           readFileAsDataUrl(f, (url) => { STATE.user[field] = url; toast("Photo mise à jour !"); render(); });
         },
-        uploadBizPhoto(e, bizId, field) {
-          const f = e.target.files[0]; if (!f) return;
-          readFileAsDataUrl(f, (url) => { const b = getBiz(bizId); if (b) { b[field] = url; toast("Image boutique mise à jour !"); render(); } });
-        },
-        uploadBizGallery(e, bizId) {
-          const b = getBiz(bizId);
-          if (!b) return;
-          if (!b.gallery) b.gallery = [];
-          const files = Array.from(e.target.files || []);
-          files.forEach((file) => {
-            readFileAsDataUrl(file, (url) => {
-              b.gallery.push(url);
-              toast("Photo ajoutée à la galerie.");
-              render();
-            });
+        uploadBizPhoto(e,bizId,field) {
+          const file=e.target.files&&e.target.files[0];if(!file)return;
+          readFileAsDataUrl(file,async dataUrl=>{
+            try{
+              const uploaded=await uploadZackImage(dataUrl,bizId,"brand"),column=field==="logoDataUrl"?"logo_url":"cover_url";
+              const result=await supabaseClient.from("businesses").update({[column]:uploaded.url}).eq("id",bizId);
+              if(result.error){if(uploaded.path)await supabaseClient.storage.from("zack-public-media").remove([uploaded.path]);throw result.error;}
+              await loadZackWorkspace();toast("Image de l'entreprise enregistrée.");render();
+            }catch(err){toast("Image non enregistrée : "+err.message);}
           });
         },
-        removeBizGalleryImg(bizId, idx) {
-          const b = getBiz(bizId);
-          if (b && b.gallery) {
-            b.gallery.splice(idx, 1);
-            render();
-          }
+        uploadBizGallery(e,bizId) {
+          const files=Array.from(e.target.files||[]);
+          if(!files.length)return;
+          files.forEach(file=>readFileAsDataUrl(file,async dataUrl=>{
+            let uploaded=null;
+            try{
+              uploaded=await uploadZackImage(dataUrl,bizId,"gallery");
+              const b=getBiz(bizId),order=(b&&b.gallery?b.gallery.length:0);
+              const result=await supabaseClient.from("business_media").insert({business_id:bizId,media_url:uploaded.url,media_type:"image",display_order:order});
+              if(result.error)throw result.error;
+              await loadZackWorkspace();toast("Photo ajoutée à la galerie.");render();
+            }catch(err){if(uploaded&&uploaded.path)await supabaseClient.storage.from("zack-public-media").remove([uploaded.path]);toast("Photo non enregistrée : "+err.message);}
+          }));
+        },
+        async removeBizGalleryImg(bizId,idx) {
+          const b=getBiz(bizId),url=b&&b.gallery?b.gallery[idx]:null;if(!url)return;
+          const result=await supabaseClient.from("business_media").delete().eq("business_id",bizId).eq("media_url",url);
+          if(result.error){toast("Photo non retirée : "+result.error.message);return;}
+          const marker="/storage/v1/object/public/zack-public-media/",pos=url.indexOf(marker);
+          if(pos>=0){const path=decodeURIComponent(url.slice(pos+marker.length));await supabaseClient.storage.from("zack-public-media").remove([path]);}
+          await loadZackWorkspace();toast("Photo retirée de la galerie.");render();
         },
         async saveProfile(e) {
           e.preventDefault();if(!lockSubmit("save-profile"))return;
