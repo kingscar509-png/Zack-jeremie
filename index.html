@@ -974,7 +974,7 @@
         if(!supabaseClient||!STATE.user) return;
         await loadZackPublicData();
         const uid=STATE.user.id;
-        const [members,couriers,establishments,favorites,orders,items,convs,messages,notifs,subs,payments,recipients,plans,events,reports,adminRoles,invitations,adminDirectory] = await Promise.all([
+        const [members,couriers,establishments,favorites,orders,items,convs,messages,notifs,subs,payments,recipients,plans,events,reports,adminRoles,invitations,adminDirectory,grants] = await Promise.all([
           safeDbRows("business_members",q=>q.eq("user_id",uid)),
           safeDbRows("couriers"),
           safeDbRows("business_establishments"),
@@ -992,8 +992,14 @@
           safeDbRows("reports"),
           safeDbRows("admin_roles"),
           Promise.resolve([]),
-          supabaseClient.rpc("admin_list_admins").then(x=>x.error?[]:(x.data||[])).catch(()=>[])
+          supabaseClient.rpc("admin_list_admins").then(x=>x.error?[]:(x.data||[])).catch(()=>[]),
+          safeDbRows("subscription_grants")
         ]);
+        STATE.subscriptionGrants = grants.map(g => {
+          const business = STATE.businesses.find(b => b.id === g.business_id);
+          const plan = plans.find(p => p.id === g.plan_id);
+          return { id:g.id, targetType:"business", targetId:g.business_id, targetName:business?.name || "Entreprise", planName:plan?.name || "Forfait", days:Number(g.days), reason:g.reason, grantedBy:g.granted_by === uid ? (STATE.user.name || "Administrateur principal") : "Administration Zack", date:g.created_at ? new Date(g.created_at).toISOString().slice(0,10) : "", excludedFromRevenue:true };
+        });
         const bizIds=[...new Set(members.map(x=>x.business_id))];
         const team= bizIds.length ? await safeDbRows("business_members",q=>q.in("business_id",bizIds)) : members;
         const memberIds=[...new Set(team.map(x=>x.user_id))];
@@ -2143,7 +2149,7 @@
                 <form class="form-stack" onsubmit="app.submitAuthRegister(event)" novalidate>
                   <div class="field"><label for="regName">${esc(t("name_label"))}</label><input id="regName" class="input" required placeholder="Jean-Marc Baptiste" /></div>
                   <div class="field"><label for="regEmail">Adresse e-mail</label><input id="regEmail" type="email" class="input" autocomplete="email" required placeholder="votre-adresse@email.com" /></div>
-                  <div class="field"><label for="regPass">${esc(t("pass_label"))} (min. 6 caractères)</label><input id="regPass" type="password" minlength="6" class="input" required /></div>
+                  <div class="field"><label for="regPass">${esc(t("pass_label"))} (min. 8 caractères)</label><input id="regPass" type="password" minlength="6" class="input" required /></div>
                   <button type="submit" class="btn btn-navy btn-block">${esc(t("btn_register"))}</button>
                 </form>
               `}
@@ -6220,7 +6226,31 @@
         admTogglePlanActive(idx) { toast("L'activation/désactivation des forfaits est verrouillée pendant la préparation du lancement."); },
         admCreatePlan(e) { e.preventDefault(); toast("La création de nouveaux forfaits est désactivée jusqu'à la finalisation de l'interface et des tests de quotas."); },
         admGrantCustomPeriod(e) { e.preventDefault(); toast("Les périodes d'abonnement offertes ne sont pas encore gérées par une RPC d'administration. Aucun accès payant n'a été accordé."); },
-        admGrantFreePeriod(id) { toast("Les périodes offertes ne sont pas encore gérées par une RPC sécurisée. Aucun abonnement n'a été accordé."); },
+        async admGrantCustomPeriod(e) {
+          e.preventDefault();
+          if (!isPrincipalAdmin()) { toast("Réservé à l'Administrateur principal."); return; }
+          const bizId=document.getElementById("grBiz")?.value;
+          const planName=document.getElementById("grPlan")?.value;
+          const days=Number(document.getElementById("grDays")?.value);
+          const reason=(document.getElementById("grReason")?.value||"").trim();
+          const plan=STATE.plans[planName];
+          if(!bizId||!plan?.id||!Number.isInteger(days)||days<1||days>365||reason.length<3){toast("Vérifiez l'entreprise, le forfait, la durée (1 à 365 jours) et le motif.");return;}
+          const result=await supabaseClient.rpc("admin_grant_subscription",{p_business:bizId,p_plan:plan.id,p_days:days,p_reason:reason});
+          if(result.error){toast("Abonnement non accordé : "+result.error.message);return;}
+          await loadZackWorkspace();
+          toast("Abonnement "+planName+" offert pour "+days+" jours. Aucun paiement n'a été enregistré.");
+          render();
+        },
+        async admGrantFreePeriod(id) {
+          if (!isPrincipalAdmin()) { toast("Réservé à l'Administrateur principal."); return; }
+          const plan=STATE.plans["Pro"];
+          if(!plan?.id){toast("Le forfait Pro est introuvable.");return;}
+          const result=await supabaseClient.rpc("admin_grant_subscription",{p_business:id,p_plan:plan.id,p_days:30,p_reason:"Offre administrative standard de 30 jours"});
+          if(result.error){toast("Abonnement non accordé : "+result.error.message);return;}
+          await loadZackWorkspace();
+          toast("30 jours Pro offerts. Aucun paiement n'a été enregistré.");
+          render();
+        },
         _applySubscriptionGrant(bizId, planName, days, reason) {
           const b = getBiz(bizId);
           if (!b) return;
