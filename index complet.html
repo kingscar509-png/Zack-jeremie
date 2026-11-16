@@ -1084,6 +1084,7 @@
         }
         await loadZackPublicData();
         supabaseClient.auth.onAuthStateChange((event) => {
+          if (event === "PASSWORD_RECOVERY") { STATE.screen = "auth-reset"; STATE.history = []; render(); return; }
           if (event === "SIGNED_OUT") {
             STATE.user = null;
             STATE.activeSpace = "client";
@@ -2046,6 +2047,21 @@
       /* =========================================================
          6. ÉCRAN 1 : CONNEXION / INSCRIPTION AU LANCEMENT
          ========================================================= */
+      function viewPasswordRecovery() {
+        return `
+          <div class="narrow-wrap" style="padding-top:18px;">
+            <div class="card card-pad form-stack">
+              <h2>Créer un nouveau mot de passe</h2>
+              <p class="small muted">Choisissez un nouveau mot de passe pour votre compte Zack.</p>
+              <form class="form-stack" onsubmit="app.submitNewPassword(event)">
+                <div class="field"><label for="newPassword">Nouveau mot de passe</label><input id="newPassword" class="input" type="password" minlength="8" autocomplete="new-password" required /></div>
+                <div class="field"><label for="confirmNewPassword">Confirmer le mot de passe</label><input id="confirmNewPassword" class="input" type="password" minlength="8" autocomplete="new-password" required /></div>
+                <button class="btn btn-navy btn-block" type="submit">Enregistrer le nouveau mot de passe</button>
+              </form>
+            </div>
+          </div>`;
+      }
+
       function viewAuth() {
         return `
           <div class="narrow-wrap" style="display:flex; flex-direction:column; gap:14px; padding-top:4px;">
@@ -5262,6 +5278,17 @@
 
         setAuthTab(tab) { STATE.authTab = tab; STATE.authError = ""; render(); },
         togglePass() { STATE.showPassword = !STATE.showPassword; render(); },
+        async submitNewPassword(e) {
+          e.preventDefault();
+          const password=document.getElementById("newPassword").value||"",confirm=document.getElementById("confirmNewPassword").value||"";
+          if(password.length<8){toast("Le mot de passe doit contenir au moins 8 caractères.");return;}
+          if(password!==confirm){toast("Les deux mots de passe ne correspondent pas.");return;}
+          const {error}=await supabaseClient.auth.updateUser({password});
+          if(error){toast("Mot de passe non modifié : "+error.message);return;}
+          await hydrateAuthenticatedUser((await supabaseClient.auth.getUser()).data.user);
+          toast("Mot de passe modifié. Votre compte est sécurisé.");
+          this.switchRoot("home");
+        },
         async forgotPass() {
           if (!supabaseClient) { toast("Le service de connexion est indisponible."); return; }
           const email = (document.getElementById("authEmail").value || "").trim().toLowerCase();
@@ -6837,6 +6864,7 @@
         let html = "";
         if (s.startsWith("admin-") && !isAdminSession()) html = viewHome();
         else if (s === "auth") html = viewAuth();
+        else if (s === "auth-reset") html = viewPasswordRecovery();
         else if (s === "home") html = viewHome();
         else if (s === "explore") html = viewExplore();
         else if (s === "promos") html = viewPromos();
