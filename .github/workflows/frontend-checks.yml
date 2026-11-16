@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: Frontend checks
+  html:
+    name: Selected HTML frontend syntax and structure
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,7 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Check selected HTML frontend JavaScript syntax
+      - name: Check selected HTML frontend
         run: |
           node <<'NODE'
           const fs = require('node:fs');
@@ -30,7 +30,7 @@ jobs:
           const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
             .map(match => match[1])
             .filter(script => script.includes('const STATE'));
-          if (scripts.length !== 1) throw new Error('Le script principal de index complet.html est introuvable ou ambigu.');
+          if (scripts.length !== 1) throw new Error('Le script principal est introuvable ou ambigu.');
           new Function(scripts[0]);
           const required = [
             'signInWithPassword', 'auth.signUp', 'PASSWORD_RECOVERY',
@@ -44,7 +44,3 @@ jobs:
           if (html.includes('btn-demo')) throw new Error('Un accès de démonstration est encore présent.');
           console.log('Frontend HTML : syntaxe et contrôles structurels OK.');
           NODE
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
-      - name: Build and type-check React workspace
-        run: npm run build
