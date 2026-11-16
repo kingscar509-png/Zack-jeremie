@@ -2149,7 +2149,7 @@
                 <form class="form-stack" onsubmit="app.submitAuthRegister(event)" novalidate>
                   <div class="field"><label for="regName">${esc(t("name_label"))}</label><input id="regName" class="input" required placeholder="Jean-Marc Baptiste" /></div>
                   <div class="field"><label for="regEmail">Adresse e-mail</label><input id="regEmail" type="email" class="input" autocomplete="email" required placeholder="votre-adresse@email.com" /></div>
-                  <div class="field"><label for="regPass">${esc(t("pass_label"))} (min. 8 caractères)</label><input id="regPass" type="password" minlength="6" class="input" required /></div>
+                  <div class="field"><label for="regPass">${esc(t("pass_label"))} (min. 8 caractères)</label><input id="regPass" type="password" minlength="8" autocomplete="new-password" class="input" required /></div>
                   <button type="submit" class="btn btn-navy btn-block">${esc(t("btn_register"))}</button>
                 </form>
               `}
