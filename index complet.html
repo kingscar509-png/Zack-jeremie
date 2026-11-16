@@ -1088,6 +1088,10 @@
           if (event === "SIGNED_OUT") {
             STATE.user = null;
             STATE.activeSpace = "client";
+            STATE.orders = []; STATE.deliveryMissions = []; STATE.favorites = [];
+            STATE.conversations = []; STATE.notifications = []; STATE.moncashPayments = [];
+            STATE.teamMembers = []; STATE.couriers = []; STATE.establishments = [];
+            STATE.moncashAccounts = [];
             if (STATE.screen !== "auth") window.app.switchRoot("auth");
           }
         });
