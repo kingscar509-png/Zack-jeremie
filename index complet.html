@@ -637,7 +637,7 @@
           create_biz: "Créer ma fiche Pro", explore: "Explorer l'annuaire",
           pro_space: "Espace Pro (Entreprise)", admin_space: "Administration Zack",
           personal_space: "Espace Personnel", public_space: "Espace Public",
-          demo_banner: "Aperçu démonstration : les entreprises, avis et statistiques affichés sont des exemples avant connexion à la base de données."
+          demo_banner: "Les informations publiques affichées sont chargées depuis les données disponibles sur Zack."
         },
         ht: {
           nav_home: "Akèy", nav_search: "Chèche", nav_msg: "Mesaj", nav_prof: "Pwofil",
@@ -667,7 +667,7 @@
           create_biz: "Kreye paj biznis mwen", explore: "Eksplore repètwa a",
           pro_space: "Espas Pwofesyonèl", admin_space: "Administrasyon Zack",
           personal_space: "Espas Pèsonèl", public_space: "Espas Piblik",
-          demo_banner: "Apèsi demonstrasyon : antrepriz, avi ak chif ki la yo se egzanp anvan koneksyon ak baz done a."
+          demo_banner: "Enfòmasyon piblik yo chaje apati done ki disponib sou Zack."
         }
       };
 
@@ -2705,7 +2705,7 @@
         } else {
           tabBody = `
             <div class="form-stack">
-              <div class="demo-banner"><span>Avis exemples (aperçu démonstration). Les avis vérifiés nécessiteront un compte authentifié via Supabase.</span></div>
+              <div class="demo-banner"><span>Les avis affichés proviennent des évaluations soumises par des clients Zack.</span></div>
               ${revs.length ? revs.map((r) => `
                 <div class="card card-pad">
                   <div class="flex-between"><strong>${esc(r.author)}</strong><span class="small tabular" style="color:#D97706;">★ ${r.rating}/5 · ${esc(r.date || "")}</span></div>
@@ -3372,7 +3372,7 @@
               <strong>Catalogue & stock de ${esc(biz.name)}</strong>
               <button type="button" class="btn btn-yellow btn-sm" onclick="app.open('pro-publish')">+ Ajouter</button>
             </div>
-            <div class="notice notice-info">Gestion de stock indicative en aperçu local ; la synchronisation atomique du stock lors des commandes nécessite Supabase.</div>
+            <div class="notice notice-info">Le stock affiché est informatif : la décrémentation automatique et la réservation atomique ne sont pas encore activées.</div>
             <div class="card card-pad form-stack">
               <strong>Produits (${prods.length})</strong>
               ${prods.length ? prods.map((p) => `
@@ -3407,7 +3407,7 @@
         if (scr === "pro-reviews") {
           const revs = STATE.reviews.filter((r) => r.bizId === biz.id);
           return `
-            <div class="notice notice-info">Avis d'aperçu local. La modération réelle et les réponses certifiées nécessitent Supabase.</div>
+            <div class="notice notice-info">Les avis publiés sont issus de commandes terminées et validés selon les règles de modération Zack.</div>
             ${revs.length ? revs.map((r) => `
               <div class="card card-pad form-stack">
                 <div class="flex-between"><strong>${esc(r.author)}</strong><span class="small tabular" style="color:#D97706;">★ ${r.rating}/5</span></div>
@@ -3558,7 +3558,7 @@
           const bizGrants = (STATE.subscriptionGrants || []).filter((g) => g.targetId === biz.id);
           return `
             <div class="notice notice-warn">
-              <strong>Paiements & Abonnements (aperçu local) :</strong> aucun transfert automatique MonCash n'est exécuté ici. Vous pouvez soumettre un justificatif pour test de validation administrative ; en production, l'API Digicel MonCash + Supabase valideront les transactions.
+              <strong>Paiements & abonnements :</strong> les transferts MonCash/NatCash sont vérifiés manuellement par l'administrateur principal. Aucun paiement de commande ne transite par Zack.
             </div>
             <div class="notice notice-ok">
               <strong>Règle Zack :</strong> les <strong>Livreurs</strong> et <strong>Chercheurs d'emploi</strong> restent 100% gratuits à vie. Les tarifs ci-dessous concernent uniquement les comptes commerciaux configurés par l'Administrateur principal.
@@ -3997,7 +3997,7 @@
 
         return `
           <div class="notice notice-info">
-            <strong>Réseau Zack (aperçu local) :</strong> gérez vos relations structurées avec historique et permissions (10 types de liens entre clients, professionnels, livreurs, fournisseurs, revendeurs et entreprises).
+            <strong>Réseau Zack — module en préparation :</strong> gérez vos relations structurées avec historique et permissions (10 types de liens entre clients, professionnels, livreurs, fournisseurs, revendeurs et entreprises).
           </div>
           <div class="tabs-bar">
             <button type="button" class="tab-item ${STATE.networkTab === "all" ? "active" : ""}" onclick="app.setFilter('networkTab', 'all')">Toutes (${STATE.networkRelations.length})</button>
