@@ -32,7 +32,7 @@ jobs:
       - name: Préparer le frontend officiel
         run: |
           mkdir -p _site
-          cp "index complet.html" _site/index.html
+          cp index.html _site/index.html
           touch _site/.nojekyll
 
       - name: Charger le site
