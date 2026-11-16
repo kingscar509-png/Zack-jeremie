@@ -977,7 +977,7 @@
           safeDbRows("business_events"),
           safeDbRows("reports"),
           safeDbRows("admin_roles"),
-          safeDbRows("business_invitations")
+          Promise.resolve([])
         ]);
         const bizIds=[...new Set(members.map(x=>x.business_id))];
         const team= bizIds.length ? await safeDbRows("business_members",q=>q.in("business_id",bizIds)) : members;
@@ -5758,58 +5758,31 @@
         removeDraftImg(idx) { STATE.draftImages.splice(idx, 1); render(); },
 
         async addProduct(e,bizId) {
-          e.preventDefault();const business=getBiz(bizId);if(!business||!canPro("content"))return;
-          const name=document.getElementById("npName").value.trim(),price=Number(document.getElementById("npPrice").value),description=document.getElementById("npDesc").value.trim();
-          const stock=Math.max(0,Number(document.getElementById("npStock")?.value)||0),variant=document.getElementById("npVar").value.trim();
-          if(!name||!Number.isFinite(price)||price<0||!description){toast("Vérifiez les informations du produit.");return;}
-          try{
-            const images=await uploadBusinessImages(bizId,STATE.draftImages,"products");
-            const {data:product,error}=await supabaseClient.from("products").insert({business_id:bizId,name,description,price,currency:"HTG",image_url:images[0]||null,is_available:stock>0,stock_quantity:stock,variant:variant||null}).select("*").single();
-            if(error)throw error;
-            if(images.length){const rows=images.map((url,index)=>({product_id:product.id,business_id:bizId,image_url:url,storage_path:url,is_primary:index===0,display_order:index}));const saved=await supabaseClient.from("product_images").insert(rows);if(saved.error)throw saved.error;}
-            STATE.draftImages=[];await loadZackWorkspace();toast("Produit enregistré dans le catalogue Zack.");this.switchRoot("pro-catalog");
-          }catch(error){toast("Publication du produit impossible : "+error.message);}
+          e.preventDefault();if(!supabaseClient){toast("Service indisponible.");return;}
+          const name=document.getElementById("npName").value.trim(),price=Number(document.getElementById("npPrice").value),se=document.getElementById("npStock"),stock=se?Math.max(0,Number(se.value)||0):null;
+          if(!name||!Number.isFinite(price)||price<0){toast("Vérifiez le nom et le prix.");return;}
+          const r=await supabaseClient.from("products").insert({business_id:bizId,name,description:document.getElementById("npDesc").value.trim()||null,price,currency:STATE.currency||"HTG",is_available:stock===null?true:stock>0,stock_quantity:stock,variant:document.getElementById("npVar").value.trim()||null});
+          if(r.error){toast("Produit non enregistré : "+r.error.message);return;} STATE.draftImages=[];await loadZackWorkspace();toast("Produit enregistré dans le catalogue.");this.switchRoot("pro-dashboard");
         },
         async addService(e,bizId) {
-          e.preventDefault();
-          try{
-            const images=await uploadBusinessImages(bizId,STATE.draftImages.slice(0,1),"services");
-            const price=Number(document.getElementById("nsPrice").value);
-            const {error}=await supabaseClient.from("services").insert({
-              business_id:bizId,name:document.getElementById("nsName").value.trim(),
-              description:document.getElementById("nsDesc").value.trim(),price:price===0?null:price,
-              currency:"HTG",duration:document.getElementById("nsCond").value.trim(),image_url:images[0]||null,is_available:true
-            });
-            if(error)throw error;
-            STATE.draftImages=[];await loadZackWorkspace();toast("Service enregistré dans Zack.");this.back();
-          }catch(error){toast("Enregistrement du service impossible : "+error.message);}
+          e.preventDefault();if(!supabaseClient){toast("Service indisponible.");return;}
+          const name=document.getElementById("nsName").value.trim(),price=Number(document.getElementById("nsPrice").value);if(!name){toast("Le nom du service est obligatoire.");return;}
+          const r=await supabaseClient.from("services").insert({business_id:bizId,name,price:price>0?price:null,currency:STATE.currency||"HTG",duration:document.getElementById("nsCond").value.trim()||null,description:document.getElementById("nsDesc").value.trim()||null,is_available:true});
+          if(r.error){toast("Service non enregistré : "+r.error.message);return;}STATE.draftImages=[];await loadZackWorkspace();toast("Service enregistré.");this.back();
         },
         async addPromo(e,bizId) {
-          e.preventDefault();
-          try{
-            const title=document.getElementById("nprmTitle").value.trim(),oldPrice=Number(document.getElementById("nprmOld").value),newPrice=Number(document.getElementById("nprmNew").value);
-            if(!title||oldPrice<=0||newPrice<0||newPrice>=oldPrice){toast("Vérifiez les anciens et nouveaux prix de la promotion.");return;}
-            const images=await uploadBusinessImages(bizId,STATE.draftImages.slice(0,1),"promotions"),end=document.getElementById("nprmEnd").value;
-            const {error}=await supabaseClient.from("promotions").insert({business_id:bizId,title,description:document.getElementById("nprmCond").value.trim(),discount_type:"percentage",discount_value:Number(((oldPrice-newPrice)/oldPrice*100).toFixed(2)),original_price:oldPrice,discounted_price:newPrice,image_url:images[0]||null,start_at:new Date().toISOString(),end_at:end?new Date(end+"T23:59:59").toISOString():null,is_active:true});
-            if(error)throw error;
-            STATE.draftImages=[];await loadZackWorkspace();toast("Promotion publiée dans Zack.");this.open("promos");
-          }catch(error){toast("Publication de la promotion impossible : "+error.message);}
+          e.preventDefault();if(!supabaseClient){toast("Service indisponible.");return;}
+          const title=document.getElementById("nprmTitle").value.trim(),oldPrice=Number(document.getElementById("nprmOld").value),newPrice=Number(document.getElementById("nprmNew").value),end=document.getElementById("nprmEnd").value;
+          if(!title||!end||!Number.isFinite(oldPrice)||!Number.isFinite(newPrice)||oldPrice<=newPrice||newPrice<0){toast("Vérifiez le titre, les prix et la date de fin.");return;}
+          const r=await supabaseClient.from("promotions").insert({business_id:bizId,title,description:document.getElementById("nprmCond").value.trim()||null,original_price:oldPrice,discounted_price:newPrice,start_at:new Date().toISOString(),end_at:new Date(end+"T23:59:59").toISOString(),is_active:true});
+          if(r.error){toast("Promotion non enregistrée : "+r.error.message);return;}STATE.draftImages=[];await loadZackWorkspace();toast("Promotion enregistrée.");this.open("promos");
         },
         async addEvent(e,bizId) {
-          e.preventDefault();
-          try{
-            const images=await uploadBusinessImages(bizId,STATE.draftImages.slice(0,1),"events");
-            const date=document.getElementById("nevDate").value;
-            const time=document.getElementById("nevTime").value||"09:00";
-            const startAt=new Date(date+"T"+time).toISOString();
-            const {error}=await supabaseClient.from("business_events").insert({
-              business_id:bizId,title:document.getElementById("nevTitle").value.trim(),
-              description:document.getElementById("nevDesc").value.trim(),location:document.getElementById("nevPlace").value.trim(),
-              image_url:images[0]||null,start_at:startAt,is_published:true
-            });
-            if(error)throw error;
-            STATE.draftImages=[];await loadZackWorkspace();toast("Événement enregistré dans Zack.");this.open("events");
-          }catch(error){toast("Publication de l'événement impossible : "+error.message);}
+          e.preventDefault();if(!supabaseClient){toast("Service indisponible.");return;}
+          const date=document.getElementById("nevDate").value,time=document.getElementById("nevTime").value||"12:00",title=document.getElementById("nevTitle").value.trim();
+          if(!title||!date){toast("Le titre et la date sont obligatoires.");return;}
+          const r=await supabaseClient.from("business_events").insert({business_id:bizId,title,description:document.getElementById("nevDesc").value.trim()||null,location:document.getElementById("nevPlace").value.trim()||null,start_at:new Date(date+"T"+time+":00").toISOString(),is_published:true});
+          if(r.error){toast("Événement non enregistré : "+r.error.message);return;}STATE.draftImages=[];await loadZackWorkspace();toast("Événement enregistré.");this.open("events");
         },
         toggleProdAvail(id) {
           const p = STATE.products.find((x) => x.id === id);
@@ -5885,10 +5858,8 @@
           await loadZackWorkspace();toast("Affiliation terminée.");render();
         },
         async setOrderStatus(id,s) {
-          const map={"Acceptée":"accepted","En préparation":"preparing","Prête":"ready","En livraison":"out_for_delivery","Livrée":"delivered","Terminée":"completed","Annulée":"cancelled"};
-          const status=map[s]||s;
-          const {error}=await supabaseClient.rpc("seller_set_order_status",{p_order:id,p_status:status});
-          if(error){toast("Mise à jour de la commande refusée : "+error.message);return;}
+          if(!supabaseClient){toast("Service indisponible.");return;}const map={"En préparation":"preparing","Prête":"ready","En livraison":"out_for_delivery","Livrée":"delivered","Terminée":"completed"};
+          const r=await supabaseClient.rpc("seller_set_order_status",{p_order:id,p_status:map[s]||s});if(r.error){toast("Statut non modifié : "+r.error.message);return;}
           await loadZackWorkspace();toast("Statut de commande mis à jour.");render();
         },
         async addStaffMember(e,bizId) {
@@ -5949,20 +5920,15 @@
           dl.innerHTML = items.map((qt) => `<option value="${esc(qt)}"></option>`).join("");
         },
         async createBiz(e) {
-          e.preventDefault();if(!STATE.user){toast("Connectez-vous pour enregistrer une entreprise.");this.switchRoot("auth");return;}
+          e.preventDefault(); if(!supabaseClient||!STATE.user){toast("Connectez-vous pour créer une entreprise.");return;}
           if(!lockSubmit("create-biz"))return;
-          const name=document.getElementById("nbName").value.trim(),webRaw=document.getElementById("nbWeb").value.trim();
-          if(webRaw&&!safeUrl(webRaw)){toast("Le site web doit commencer par https:// ou http://.");return;}
-          const dept=document.getElementById("nbDept").value,comm=document.getElementById("nbComm").value||(HAITI_GEO[dept]?Object.keys(HAITI_GEO[dept])[0]:"");
-          const quartier=document.getElementById("nbQuart").value.trim(),address=document.getElementById("nbAddr").value.trim(),phone=document.getElementById("nbPhone").value.trim();
-          if(!name||!comm||!address||!phone){toast("Complétez les champs obligatoires.");return;}
-          const category=getCatName(document.getElementById("nbCat").value);
-          const {data:businessId,error}=await supabaseClient.rpc("create_business",{p_name:name,p_slug:slugifyBusinessName(name),p_description:document.getElementById("nbDesc").value.trim(),p_category:category,p_address:address,p_neighborhood:quartier,p_phone:phone,p_whatsapp:safeDigits(document.getElementById("nbWa").value.trim()),p_email:document.getElementById("nbEmail").value.trim()});
-          if(error){toast("Création impossible : "+error.message);return;}
-          const update=await supabaseClient.from("businesses").update({department:dept,city:comm,section_communal:document.getElementById("nbSect").value.trim(),activity_summary:document.getElementById("nbSub").value.trim(),hours_text:document.getElementById("nbHours").value.trim(),website:webRaw||null}).eq("id",businessId);
-          if(update.error)toast("Entreprise créée, mais certaines informations restent à compléter : "+update.error.message);
-          await loadZackWorkspace();STATE.proBizId=businessId;STATE.selectedBizId=businessId;
-          toast("Entreprise enregistrée. Elle est maintenant en attente de vérification par Zack.");this.switchRoot("pro-dashboard");
+          const name=document.getElementById("nbName").value.trim(),webRaw=document.getElementById("nbWeb").value.trim(),dept=document.getElementById("nbDept").value,comm=document.getElementById("nbComm").value||"",phone=document.getElementById("nbPhone").value.trim();
+          if(name.length<2){toast("Le nom de l'entreprise est obligatoire.");return;} if(webRaw&&!safeUrl(webRaw)){toast("Le site web doit commencer par https:// ou http://.");return;} if(phone&&!isValidHaitiPhone(phone)){toast("Numéro haïtien invalide.");return;}
+          const slug=name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48)+"-"+STATE.user.id.slice(0,8);
+          const r=await supabaseClient.rpc("create_business",{p_name:name,p_slug:slug,p_description:document.getElementById("nbDesc").value.trim()||null,p_category:document.getElementById("nbCat").value||null,p_address:document.getElementById("nbAddr").value.trim()||null,p_neighborhood:document.getElementById("nbQuart").value.trim()||null,p_phone:phone||null,p_whatsapp:safeDigits(document.getElementById("nbWa").value.trim())||null,p_email:document.getElementById("nbEmail").value.trim()||null});
+          if(r.error){toast("Création impossible : "+r.error.message);return;} const id=r.data;
+          const u=await supabaseClient.from("businesses").update({department:dept||null,city:comm||null,section_communal:(document.getElementById("nbSect")?.value||"").trim()||null,street:document.getElementById("nbAddr").value.trim()||null,website:webRaw?safeUrl(webRaw):null,activity_summary:document.getElementById("nbSub").value.trim()||null,hours_text:document.getElementById("nbHours").value.trim()||null}).eq("id",id);
+          if(u.error)toast("Entreprise créée, détails à compléter : "+u.error.message); await loadZackWorkspace(); STATE.proBizId=id;STATE.selectedBizId=id;toast("Entreprise enregistrée, en attente de validation.");this.switchRoot("pro-dashboard");
         },
         setProIndepTab(t) { STATE.proIndepTab = t; render(); },
         saveProIndepProfile(e) {
@@ -6242,19 +6208,11 @@
           document.getElementById("drawerSheet").focus();
         },
         async submitMonCashPreview(e,bizId,planName) {
-          e.preventDefault();
-          const business=getBiz(bizId),plan=STATE.plans[planName];
-          const provider=(document.getElementById("mcProvider")?.value||"").toLowerCase();
-          const reference=(document.getElementById("mcTxRef")?.value||"").trim();
-          if(!business||!plan?.id||!["moncash","natcash"].includes(provider)||reference.length<4){toast("Vérifiez le moyen de transfert et la référence.");return;}
-          if(!lockSubmit("subscription-"+bizId))return;
-          const {error}=await supabaseClient.rpc("request_subscription_payment",{
-            p_business:bizId,p_plan:plan.id,p_provider:provider,p_reference:reference
-          });
-          if(error){toast("Demande non enregistrée : "+error.message);return;}
-          await loadZackWorkspace();this.closeDrawer();
-          toast("Preuve reçue. Votre abonnement sera activé après vérification manuelle.");
-          render();
+          e.preventDefault();if(!supabaseClient){toast("Service de paiement indisponible.");return;}
+          const pl=STATE.plans[planName],ref=(document.getElementById("mcTxRef").value||"").trim(),sel=document.getElementById("mcProvider"),provider=(sel?sel.value:"moncash").toLowerCase();
+          if(!pl||!pl.id||!ref){toast("Informations de paiement incomplètes.");return;}
+          const r=await supabaseClient.rpc("request_subscription_payment",{p_business:bizId,p_plan:pl.id,p_provider:provider,p_reference:ref});
+          if(r.error){toast("Demande non enregistrée : "+r.error.message);return;}await loadZackWorkspace();this.closeDrawer();toast("Référence transmise. Activation après vérification réelle.");render();
         },
         setAdminProfile(id) {
           const a = STATE.admins.find((x) => x.id === id);
@@ -6605,17 +6563,12 @@
           render();
         },
         async admVerifyPayment(payId) {
-          if(!hasAdm("verify_payments")){toast("Permission insuffisante.");return;}
-          const {error}=await supabaseClient.rpc("admin_review_payment",{p_payment:payId,p_approve:true,p_note:null});
-          if(error){toast("Validation impossible : "+error.message);return;}
-          await loadZackWorkspace();toast("Paiement vérifié et abonnement traité.");render();
+          if(!isAdminSession()){toast("Accès administrateur requis.");return;}const r=await supabaseClient.rpc("admin_review_payment",{p_payment:payId,p_approve:true,p_note:null});
+          if(r.error){toast("Validation impossible : "+r.error.message);return;}await loadZackWorkspace();toast("Paiement validé et abonnement activé.");render();
         },
         async admRejectPayment(payId) {
-          if(!hasAdm("verify_payments")){toast("Permission insuffisante.");return;}
-          const note=window.prompt("Motif du refus (facultatif) :")||"";
-          const {error}=await supabaseClient.rpc("admin_review_payment",{p_payment:payId,p_approve:false,p_note:note});
-          if(error){toast("Refus impossible : "+error.message);return;}
-          await loadZackWorkspace();toast("Paiement refusé.");render();
+          if(!isAdminSession()){toast("Accès administrateur requis.");return;}const r=await supabaseClient.rpc("admin_review_payment",{p_payment:payId,p_approve:false,p_note:"Refus après vérification administrative"});
+          if(r.error){toast("Refus impossible : "+r.error.message);return;}await loadZackWorkspace();toast("Paiement refusé.");render();
         },
         async admSaveMoncashAcc(e,accId,idx) {
           e.preventDefault();if(!hasAdm("manage_moncash_accounts")){toast("Réservé à l'Administrateur principal.");return;}
