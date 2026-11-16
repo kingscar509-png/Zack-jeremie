@@ -6321,135 +6321,21 @@
           if (wrap) wrap.innerHTML = renderAdmUsersList();
           else render();
         },
-        admUserToggleStatus(id) {
-          if (!hasAdm("manage_users")) { toast("Permission insuffisante."); return; }
-          const u = STATE.adminUsers.find((x) => x.id === id);
-          if (!u) return;
-          u.status = u.status === "active" ? "suspended" : "active";
-          addAudit(this._admActor(), `Compte utilisateur « ${u.name} » ${u.status === "active" ? "réactivé" : "suspendu"}`);
-          toast(u.status === "active" ? "Compte réactivé." : "Compte suspendu.");
-          render();
-        },
-        admToggleProVerify(proId) {
-          if (!hasAdm("manage_users")) { toast("Permission insuffisante."); return; }
-          const p = STATE.proProfiles.find((x) => x.id === proId);
-          if (!p) return;
-          p.verified = !p.verified;
-          addAudit(this._admActor(), `Professionnel « ${p.name} » ${p.verified ? "vérifié" : "dé-vérifié"}`);
-          toast(p.verified ? "Professionnel vérifié ✓" : "Badge pro retiré.");
-          render();
-        },
-        admToggleProStatus(proId) {
-          if (!hasAdm("manage_users")) { toast("Permission insuffisante."); return; }
-          const p = STATE.proProfiles.find((x) => x.id === proId);
-          if (!p) return;
-          p.status = p.status === "active" ? "suspended" : "active";
-          if (STATE.user && STATE.user.id === p.userId && STATE.user.roles && STATE.user.roles.pro) {
-            STATE.user.roles.pro.status = p.status === "active" ? "verified" : "suspended";
-          }
-          addAudit(this._admActor(), `Rôle professionnel de « ${p.name} » ${p.status === "active" ? "réactivé" : "suspendu"}`);
-          toast(p.status === "active" ? "Rôle pro réactivé." : "Rôle pro suspendu.");
-          render();
-        },
-        admSetCourierDoc(courId, status) {
-          if (!hasAdm("manage_users")) { toast("Permission insuffisante."); return; }
-          const c = STATE.couriers.find((x) => x.id === courId);
-          if (!c) return;
-          c.idDocVerified = status;
-          addAudit(this._admActor(), `Pièce d'identité livreur « ${c.name} » marquée : ${status}`);
-          toast(status === "verified" ? "Identité livreur validée ✓" : "Document livreur refusé.");
-          render();
-        },
-        admToggleCourierStatus(courId) {
-          if (!hasAdm("manage_users")) { toast("Permission insuffisante."); return; }
-          const c = STATE.couriers.find((x) => x.id === courId);
-          if (!c) return;
-          const wasSuspended = c.availability === "Suspendu";
-          c.availability = wasSuspended ? "Disponible" : "Suspendu";
-          if (STATE.user && STATE.user.id === c.userId && STATE.user.roles && STATE.user.roles.courier) {
-            STATE.user.roles.courier.status = wasSuspended ? "verified" : "suspended";
-          }
-          addAudit(this._admActor(), `Livreur « ${c.name} » ${wasSuspended ? "réactivé" : "suspendu"}`);
-          toast(wasSuspended ? "Livreur réactivé." : "Livreur suspendu.");
-          render();
-        },
-        admToggleB2bSuspend(b2bId) {
-          if (!hasAdm("moderate_content")) { toast("Permission insuffisante."); return; }
-          const bp = (STATE.b2bPosts || []).find((x) => x.id === b2bId);
-          if (!bp) return;
-          bp.status = bp.status === "Suspendue" ? "Publiée" : "Suspendue";
-          addAudit(this._admActor(), `Annonce B2B « ${bp.title} » passée au statut : ${bp.status}`);
-          toast(`Annonce B2B : ${bp.status}`);
-          render();
-        },
-        admNetworkAction(relId, status) {
-          if (!hasAdm("moderate_content")) { toast("Permission insuffisante."); return; }
-          const rel = (STATE.networkRelations || []).find((x) => x.id === relId);
-          if (!rel) return;
-          rel.status = status;
-          const d = new Date(), pad = (n) => String(n).padStart(2, "0");
-          const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-          rel.updatedAt = today;
-          if (!rel.history) rel.history = [];
-          rel.history.push(`${today} : Statut modifié par modération admin → ${status}`);
-          addAudit(this._admActor(), `Relation Réseau Zack (${rel.initiatorLabel} ↔ ${rel.targetLabel}) → ${status}`);
-          toast(`Relation mise à jour : ${status}`);
-          render();
-        },
-        admToggleHidden(kind, id) {
-          if (!hasAdm("moderate_content")) { toast("Permission insuffisante."); return; }
-          const map = { product: STATE.products, service: STATE.services, promo: STATE.promotions, event: STATE.events, review: STATE.reviews };
-          const arr = map[kind];
-          if (!arr) return;
-          const item = arr.find((x) => x.id === id);
-          if (!item) return;
-          item.hidden = !item.hidden;
-          addAudit(this._admActor(), `Contenu (${kind}) ${item.hidden ? "masqué temporairement" : "réaffiché"} : ${item.name || item.title || item.author}`);
-          toast(item.hidden ? "Contenu masqué." : "Contenu visible.");
-          render();
-        },
-        admDeleteEntity(kind, id) {
-          if (!hasAdm("moderate_content")) { toast("Permission insuffisante."); return; }
-          if (kind === "product") STATE.products = STATE.products.filter((x) => x.id !== id);
-          else if (kind === "service") STATE.services = STATE.services.filter((x) => x.id !== id);
-          else if (kind === "promo") STATE.promotions = STATE.promotions.filter((x) => x.id !== id);
-          else if (kind === "event") STATE.events = STATE.events.filter((x) => x.id !== id);
-          else if (kind === "b2b") STATE.b2bPosts = (STATE.b2bPosts || []).filter((x) => x.id !== id);
-          else if (kind === "review") STATE.reviews = STATE.reviews.filter((x) => x.id !== id);
-          else if (kind === "announcement") STATE.officialAnnouncements = STATE.officialAnnouncements.filter((x) => x.id !== id);
-          addAudit(this._admActor(), `Contenu (${kind}) supprimé par modération (${id})`);
-          toast("Élément retiré.");
-          render();
-        },
-        admAddAnnouncement(e) {
-          e.preventDefault();
-          if (!hasAdm("moderate_content") && !hasAdm("manage_comm")) { toast("Permission insuffisante."); return; }
-          const title = (document.getElementById("annTitle").value || "").trim();
-          const body = (document.getElementById("annBody").value || "").trim();
-          if (!title || !body) return;
-          const d = new Date(), p = (n) => String(n).padStart(2, "0");
-          STATE.officialAnnouncements.unshift({ id: "ann-" + Date.now(), title, target: "all", date: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`, body });
-          addAudit(this._admActor(), `Annonce officielle publiée : « ${title} »`);
-          toast("Annonce officielle ajoutée !");
-          render();
-        },
+        admUserToggleStatus(id) { toast("La suspension des comptes utilisateurs n'est pas encore reliée à une action serveur sécurisée. Aucun changement n'a été effectué."); },
+        admToggleProVerify(id) { toast("La vérification des profils professionnels doit être reliée à une procédure serveur. Aucun badge n'a été modifié."); },
+        admToggleProStatus(id) { toast("La suspension des profils professionnels n'est pas encore disponible côté serveur. Aucun changement n'a été effectué."); },
+        admSetCourierDoc(id,status) { toast("La validation des pièces d'identité livreur attend un workflow serveur sécurisé. Aucun document n'a été validé."); },
+        admToggleCourierStatus(id) { toast("La suspension administrative des livreurs attend une action serveur sécurisée. Aucun compte n'a été modifié."); },
+        admToggleB2bSuspend(id) { toast("Le Marché B2B reste « À venir » pour le lancement initial. Aucune annonce n'a été modifiée."); },
+        admNetworkAction(id,status) { toast("Le Réseau Zack n'est pas encore activé pour le lancement initial. Aucune relation n'a été modifiée."); },
+        admToggleHidden(kind,id) { toast("La modération de ce contenu n'est pas encore reliée à une action serveur. Aucun contenu n'a été masqué."); },
+        admDeleteEntity(kind,id) { toast("La suppression administrative n'est pas encore reliée à une action serveur avec journal d'audit. Rien n'a été supprimé."); },
+        admAddAnnouncement(e) { e.preventDefault(); toast("Les annonces officielles ne sont pas encore enregistrées dans un registre serveur. Rien n'a été publié."); },
         saveAdminPlans(e) { e.preventDefault(); toast("La modification des forfaits est suspendue pour éviter de changer les conditions déjà payées. Les tarifs et quotas validés restent ceux de la matrice Zack."); },
         admTogglePlanActive(idx) { toast("L'activation/désactivation des forfaits est verrouillée pendant la préparation du lancement."); },
         admCreatePlan(e) { e.preventDefault(); toast("La création de nouveaux forfaits est désactivée jusqu'à la finalisation de l'interface et des tests de quotas."); },
-        admGrantCustomPeriod(e) {
-          e.preventDefault();
-          if (!hasAdm("manage_plans")) { toast("Réservé à l'Administrateur principal."); return; }
-          const bizId = document.getElementById("grBiz").value;
-          const planName = document.getElementById("grPlan").value;
-          const days = Math.max(1, Math.min(365, Math.round(Number(document.getElementById("grDays").value || 30))));
-          const reason = (document.getElementById("grReason").value || "").trim();
-          this._applySubscriptionGrant(bizId, planName, days, reason || "Geste administratif");
-        },
-        admGrantFreePeriod(bizId) {
-          if (!hasAdm("manage_plans")) { toast("Réservé à l'Administrateur principal."); return; }
-          const planName = STATE.plans["Pro"] ? "Pro" : Object.keys(STATE.plans)[0];
-          this._applySubscriptionGrant(bizId, planName, 30, "Période offerte 30 jours");
-        },
+        admGrantCustomPeriod(e) { e.preventDefault(); toast("Les périodes d'abonnement offertes ne sont pas encore gérées par une RPC d'administration. Aucun accès payant n'a été accordé."); },
+        admGrantFreePeriod(id) { toast("Les périodes offertes ne sont pas encore gérées par une RPC sécurisée. Aucun abonnement n'a été accordé."); },
         _applySubscriptionGrant(bizId, planName, days, reason) {
           const b = getBiz(bizId);
           if (!b) return;
@@ -6512,54 +6398,10 @@
           if(error){toast("Modification impossible : "+error.message);return;}
           await loadZackWorkspace();render();
         },
-        admAddMoncashAcc(e) {
-          e.preventDefault();
-          if (!hasAdm("manage_moncash_accounts")) { toast("Réservé à l'Administrateur principal."); return; }
-          const label = (document.getElementById("newMcLbl").value || "").trim();
-          const phone = (document.getElementById("newMcPh").value || "").trim();
-          if (!label || !phone) return;
-          STATE.moncashAccounts.push({ id: "mc-" + Date.now(), label, phone, isActiveRecipient: false, enabled: true });
-          addAudit(this._admActor(), `Compte MonCash ajouté : ${label} (${phone})`);
-          toast("Compte MonCash ajouté !");
-          render();
-        },
-        admSendBroadcast(e) {
-          e.preventDefault();
-          if (!hasAdm("manage_comm")) { toast("Permission insuffisante."); return; }
-          const target = document.getElementById("commTarget").value;
-          const title = (document.getElementById("commTitle").value || "").trim();
-          const body = (document.getElementById("commBody").value || "").trim();
-          if (!title || !body) return;
-          pushNotification("system_announcement", `[Zack Officiel] ${title} — ${body}`, "home");
-          if (target === "all") {
-            const d = new Date(), p = (n) => String(n).padStart(2, "0");
-            STATE.officialAnnouncements.unshift({ id: "ann-" + Date.now(), title, target, date: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`, body });
-          }
-          addAudit(this._admActor(), `Communication envoyée (${target}) : « ${title} »`);
-          toast("Notification & message officiel diffusés (aperçu) !");
-          render();
-        },
-        admReplySupport(e, tkId) {
-          e.preventDefault();
-          if (!hasAdm("manage_comm")) { toast("Permission insuffisante."); return; }
-          const tk = STATE.supportTickets.find((x) => x.id === tkId);
-          const rep = (document.getElementById("supRep-" + tkId).value || "").trim();
-          if (!tk || !rep) return;
-          tk.reply = rep;
-          tk.status = "Résolu";
-          addAudit(this._admActor(), `Ticket support résolu : « ${tk.subject} »`);
-          toast("Réponse enregistrée !");
-          render();
-        },
-        admResolveReport(repId) {
-          if (!hasAdm("manage_comm")) { toast("Permission insuffisante."); return; }
-          const r = STATE.reports.find((x) => x.id === repId);
-          if (!r) return;
-          r.status = "Traité";
-          addAudit(this._admActor(), `Signalement traité (${r.targetType} · ${r.bizName})`);
-          toast("Signalement marqué comme traité.");
-          render();
-        },
+        admAddMoncashAcc(e) { e.preventDefault(); toast("Les comptes de réception sont gérés dans Supabase. L'ajout depuis ce formulaire local est désactivé."); },
+        admSendBroadcast(e) { e.preventDefault(); toast("La diffusion globale n'est pas encore reliée à un service de notifications serveur. Aucun message n'a été envoyé."); },
+        admReplySupport(e,id) { e.preventDefault(); toast("Les réponses au support doivent être enregistrées dans un fil serveur. Aucune réponse locale n'a été présentée comme envoyée."); },
+        admResolveReport(id) { toast("Le traitement des signalements n'est pas encore relié à une action serveur sécurisée. Aucun statut n'a changé."); },
         async admAddCategory(e) {
           e.preventDefault();if(!hasAdm("manage_categories")){toast("Permission insuffisante.");return;}
           const name=(document.getElementById("newCatName").value||"").trim(),icon="🏷️";
@@ -6608,38 +6450,8 @@
           if(result.error){toast("Sous-catégorie non retirée : "+result.error.message);return;}
           await loadZackPublicData();toast("Sous-catégorie retirée.");render();
         },
-        admSaveSettings(e) {
-          e.preventDefault();
-          if (!hasAdm("platform_settings")) { toast("Réservé à l'Administrateur principal."); return; }
-          STATE.platformSettings = {
-            ...STATE.platformSettings,
-            officialName: document.getElementById("psName").value.trim(),
-            officialEmail: document.getElementById("psMail").value.trim(),
-            officialPhone: document.getElementById("psPhone").value.trim(),
-            homeBannerTitle: document.getElementById("psBanner").value.trim(),
-            showPromosHome: document.getElementById("psShowPromos").checked,
-            showEventsHome: document.getElementById("psShowEvents").checked,
-            notifPushEnabled: document.getElementById("psNotifPush").checked,
-            notifEmailEnabled: document.getElementById("psNotifMail").checked,
-            termsSummary: document.getElementById("psTerms").value.trim(),
-            privacySummary: document.getElementById("psPriv").value.trim(),
-            publishRules: document.getElementById("psRules").value.trim()
-          };
-          addAudit(this._admActor(), "Paramètres généraux de la plateforme mis à jour");
-          toast("Paramètres généraux enregistrés (aperçu local) !");
-          render();
-        },
-        admAddCommune(e) {
-          e.preventDefault();
-          if (!hasAdm("platform_settings")) { toast("Réservé à l'Administrateur principal."); return; }
-          const dept = document.getElementById("geoDept").value;
-          const comm = (document.getElementById("geoComm").value || "").trim();
-          if (!HAITI_GEO[dept] || !comm) return;
-          if (!HAITI_GEO[dept][comm]) HAITI_GEO[dept][comm] = ["Centre-ville"];
-          addAudit(this._admActor(), `Commune ajoutée : ${comm} (${dept})`);
-          toast(`Commune « ${comm} » ajoutée à ${dept}.`);
-          render();
-        },
+        admSaveSettings(e) { e.preventDefault(); toast("Les paramètres généraux doivent être enregistrés dans Supabase avant de pouvoir être modifiés. Aucun paramètre local n'a été publié."); },
+        admAddCommune(e) { e.preventDefault(); toast("La gestion du référentiel géographique doit être reliée à Supabase. Aucune commune n'a été ajoutée."); },
         async admAddAdmin(e) {
           e.preventDefault();if(!isPrincipalAdmin()){toast("Réservé à l'Administrateur principal.");return;}
           const email=(document.getElementById("newAdmEmail").value||"").trim().toLowerCase(),selected=Array.from(document.querySelectorAll('input[name="newAdmPerm"]:checked')).map(el=>el.value),permissions=compactAdminPermissions(selected);
