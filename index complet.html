@@ -3464,6 +3464,7 @@
             ${ords.map((o) => {
               const linkedMission = STATE.deliveryMissions.find((m) => m.orderId === o.id);
               const assignedCour = linkedMission ? STATE.couriers.find((c) => c.id === linkedMission.courierId) : null;
+              const nextOrderStatus = ["accepted","partially_accepted"].includes(o._db?.status) ? ["preparing","En préparation"] : o._db?.status === "preparing" ? ["ready","Prête"] : o._db?.status === "ready" ? (o.fulfillment === "delivery" ? ["out_for_delivery","En livraison"] : ["completed","Terminée"]) : o._db?.status === "out_for_delivery" ? ["delivered","Livrée"] : o._db?.status === "delivered" ? ["completed","Terminée"] : null;
               return `
                 <div class="card card-pad form-stack">
                   <div class="flex-between"><strong>${esc(o.id)}</strong><span>${esc(o.customerName)}</span></div>
@@ -3486,10 +3487,10 @@
                       </div>
                     `).join("")}
                   </div>
-                  ${["accepted","partially_accepted","preparing","ready","out_for_delivery"].includes(o._db?.status) ? `
+                  ${nextOrderStatus ? `
                     <select class="select" aria-label="Statut de la commande ${esc(o.id)}" onchange="app.setOrderStatus('${o.id}', this.value)">
                       <option value="" selected disabled>Statut actuel : ${esc(o.status)}</option>
-                      ${(o.fulfillment==="delivery" ? [["preparing","En préparation"],["ready","Prête"],["out_for_delivery","En livraison"],["delivered","Livrée"],["completed","Terminée"]] : [["preparing","En préparation"],["ready","Prête"],["completed","Terminée"]]).map(([value,label]) => `<option value="${label}" ${o.status === label ? 'selected' : ''}>${label}</option>`).join("")}
+                      ${[nextOrderStatus].map(([value,label]) => `<option value="${label}">${label}</option>`).join("")}
                     </select>
                   ` : `<div class="small muted">Statut : <strong>${esc(o.status)}</strong> · Les décisions d'acceptation ou de refus se font au niveau des articles.</div>`}
                   ${o.mode === "Livraison" ? `
