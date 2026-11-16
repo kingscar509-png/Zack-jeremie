@@ -839,6 +839,156 @@
         return svgs[kind] || svgs.craft;
       }
 
+      function dbText(value) { return value == null ? "" : String(value); }
+      function dbDate(value) { return value ? new Date(value).toISOString().slice(0,10) : ""; }
+      function dbCategoryId(name, dbId) {
+        const found = (STATE.categories || []).find((x) => String(x.name || "").trim().toLowerCase() === String(name || "").trim().toLowerCase() || x.dbId === dbId);
+        return found ? found.id : (dbId || "other");
+      }
+      function mapDbBusiness(row, hoursRows, mediaRows, ratingRows, planRows, subRows) {
+        const categoryName = row.category || ((STATE.categories || []).find((x) => x.dbId === row.category_id) || {}).name || "Autre";
+        const hours = (hoursRows || []).filter((x) => x.business_id === row.id).sort((a,b)=>a.day_of_week-b.day_of_week)
+          .map((x)=>x.is_closed ? "Fermé" : [x.opening_time,x.closing_time].filter(Boolean).join("–")).filter(Boolean).join(" · ");
+        const gallery = (mediaRows || []).filter((x)=>x.business_id===row.id).sort((a,b)=>a.display_order-b.display_order).map((x)=>x.media_url);
+        const rating = (ratingRows || []).find((x)=>x.business_id===row.id);
+        const activeSub = (subRows || []).filter((x)=>x.business_id===row.id && ["active","queued"].includes(x.status) && (!x.starts_at || new Date(x.starts_at)<=new Date()) && (!x.ends_at || new Date(x.ends_at)>new Date())).sort((a,b)=>new Date(b.starts_at||0)-new Date(a.starts_at||0))[0];
+        const plan = activeSub ? (planRows || []).find((x)=>x.id===activeSub.plan_id) : null;
+        const city = row.city || "";
+        return {
+          id:row.id,name:row.name,initials:(row.name||"Z").slice(0,2).toUpperCase(),
+          grad:"linear-gradient(135deg, #0A1A4F, #3B82F6)",
+          logoDataUrl:row.logo_url||"",coverDataUrl:row.cover_url||"",
+          subCategory:categoryName,shortDesc:row.description||"",longDesc:row.description||"",
+          categoryId:dbCategoryId(categoryName,row.category_id),dept:"",commune:city,city,
+          quartier:row.neighborhood||"",address:row.address||"",phone:row.phone||"",whatsapp:row.whatsapp||"",
+          email:row.email||"",website:row.website||"",
+          socials:{facebook:row.facebook_url||"",instagram:row.instagram_url||"",tiktok:row.tiktok_url||"",youtube:row.youtube_url||""},
+          hours:hours,gallery:gallery,status:row.status,rating:Number(rating?.average_rating||0),
+          reviewCount:Number(rating?.review_count||0),followers:0,views:0,createdAt:dbDate(row.created_at),
+          plan:plan ? plan.name : "Gratuit",planStatus:plan ? "active" : "active",planExpiresAt:activeSub?.ends_at||"",
+          featured:false,documentsVerified:row.status==="verified",correctionNote:"",_db:row
+        };
+      }
+      function mapDbOrder(row, items) {
+        const statusMap={pending:"En attente",accepted:"Acceptée",partially_accepted:"Partiellement acceptée",preparing:"En préparation",ready:"Prête",out_for_delivery:"En livraison",delivered:"Livrée",completed:"Terminée",cancelled:"Annulée",rejected:"Refusée"};
+        return {
+          id:row.id,orderNumber:row.order_number,date:row.created_at,customerId:row.customer_id,
+          customerName:"Client Zack",customerPhone:row.contact_phone||"",bizId:row.business_id,
+          mode:row.fulfillment==="delivery"?"Livraison":"Retrait sur place",
+          address:row.delivery_address||"",items:(items||[]).filter(x=>x.order_id===row.id).map(x=>({id:x.id,productId:x.product_id,name:x.name,qty:x.quantity,priceHtg:Number(x.unit_price),status:x.status})),
+          totalHtg:Number(row.total),subtotalHtg:Number(row.subtotal),deliveryFeeHtg:Number(row.delivery_fee),
+          currency:row.currency,status:statusMap[row.status]||row.status,paymentNote:"Paiement direct avec le vendeur (hors Zack)",
+          paymentStatus:row.payment_status,courierId:row.courier_id,deliveryZoneId:row.delivery_zone_id,
+          fulfillment:row.fulfillment,_db:row
+        };
+      }
+      async function safeDbRows(table, configure) {
+        try {
+          let query=supabaseClient.from(table).select("*");
+          if(configure) query=configure(query);
+          const {data,error}=await query;
+          if(error){console.warn("Zack data load "+table+":",error.message);return [];}
+          return data||[];
+        } catch(error){console.warn("Zack data load "+table+":",error);return [];}
+      }
+      async function loadZackPublicData() {
+        if(!supabaseClient) return;
+        const [cats,biz,prods,images,services,posts,promos,events,hours,media,reviews,zones,plans,subs] = await Promise.all([
+          safeDbRows("categories",q=>q.eq("is_active",true).order("display_order")),
+          safeDbRows("businesses"),
+          safeDbRows("products"),
+          safeDbRows("product_images"),
+          safeDbRows("services"),
+          safeDbRows("posts"),
+          safeDbRows("promotions"),
+          safeDbRows("business_events"),
+          safeDbRows("business_hours"),
+          safeDbRows("business_media"),
+          safeDbRows("reviews",q=>q.eq("status","approved")),
+          safeDbRows("business_delivery_zones",q=>q.eq("is_active",true)),
+          safeDbRows("subscription_plans",q=>q.order("display_order")),
+          safeDbRows("business_subscriptions")
+        ]);
+        const oldCategories=STATE.categories||[];
+        STATE.categories=cats.map(row=>{
+          const match=oldCategories.find(x=>String(x.name||"").toLowerCase()===String(row.name||"").toLowerCase());
+          return {id:match?match.id:row.id,dbId:row.id,name:row.name,icon:row.icon||"🏪",active:row.is_active!==false};
+        });
+        STATE.plans={};
+        plans.forEach(row=>{
+          STATE.plans[row.name]={name:row.name,code:row.code,priceHtg:Number(row.price_htg),durationDays:Number(row.duration_days),maxImages:Number(row.max_images_per_item),maxProducts:row.max_products,maxServices:row.max_services,maxPublications:row.max_publications_per_month,maxTeamMembers:row.max_team_members,maxEstablishments:row.max_establishments,statsLevel:row.stats_level,visibilityLevel:row.visibility_level,active:row.is_active};
+        });
+        STATE.businesses=biz.map(row=>mapDbBusiness(row,hours,media,[],plans,subs));
+        STATE.products=prods.map(row=>({
+          id:row.id,bizId:row.business_id,name:row.name,category:(STATE.businesses.find(b=>b.id===row.business_id)||{}).subCategory||"",
+          priceHtg:Number(row.price||0),currency:row.currency||"HTG",available:row.is_available!==false,
+          variants:"",desc:row.description||"",art:"craft",
+          images:images.filter(im=>im.product_id===row.id).sort((a,b)=>a.display_order-b.display_order).map(im=>im.image_url),
+          imageUrl:row.image_url||"",stockQty:null,_db:row
+        }));
+        STATE.services=services.map(row=>({id:row.id,bizId:row.business_id,name:row.name,priceHtg:Number(row.price||0),currency:row.currency||"HTG",onQuote:row.price==null||Number(row.price)===0,conditions:row.duration||"",desc:row.description||"",images:row.image_url?[row.image_url]:[],available:row.is_available!==false,_db:row}));
+        STATE.publications=posts.map(row=>({id:row.id,bizId:row.business_id,type:row.post_type==="announcement"?"Annonce":row.post_type==="event"?"Événement":"Actualité",date:dbDate(row.published_at||row.created_at),title:row.title||"",content:row.content||"",images:row.media_url?[row.media_url]:[],hidden:!row.is_published,_db:row}));
+        STATE.promotions=promos.map(row=>({id:row.id,bizId:row.business_id,title:row.title,oldHtg:null,newHtg:null,discountType:row.discount_type,discountValue:Number(row.discount_value||0),start:dbDate(row.start_at),end:dbDate(row.end_at),conditions:row.description||"",images:row.image_url?[row.image_url]:[],hidden:!row.is_active||Boolean(row.archived_at),_db:row}));
+        STATE.events=events.map(row=>({id:row.id,bizId:row.business_id,title:row.title,date:dbDate(row.start_at),time:row.start_at?new Date(row.start_at).toLocaleTimeString("fr-HT",{hour:"2-digit",minute:"2-digit"}):"",place:row.location||"",desc:row.description||"",images:row.image_url?[row.image_url]:[],hidden:!row.is_published||Boolean(row.archived_at),_db:row}));
+        STATE.reviews=reviews.map(row=>({id:row.id,bizId:row.business_id,author:"Client Zack",rating:Number(row.rating),date:dbDate(row.created_at),comment:row.content||"",reply:row.owner_response||"",orderId:row.order_id,_db:row}));
+        STATE.establishments=STATE.businesses.map(b=>({id:"main-"+b.id,bizId:b.id,name:b.name+" · Siège principal",dept:"",commune:b.commune,quartier:b.quartier,address:b.address,phone:b.phone,hours:b.hours,isMain:true}));
+        STATE.deliveryZones=zones.map(row=>({id:row.id,bizId:row.business_id,name:row.name,fee:Number(row.fee),currency:row.currency||"HTG"}));
+      }
+      async function loadZackWorkspace() {
+        if(!supabaseClient||!STATE.user) return;
+        await loadZackPublicData();
+        const uid=STATE.user.id;
+        const [members,couriers,establishments,favorites,orders,items,convs,messages,notifs,subs,payments,recipients,plans,events,reports,adminRoles] = await Promise.all([
+          safeDbRows("business_members",q=>q.eq("user_id",uid)),
+          safeDbRows("couriers"),
+          safeDbRows("business_establishments"),
+          safeDbRows("business_favorites",q=>q.eq("user_id",uid)),
+          safeDbRows("orders"),
+          safeDbRows("order_items"),
+          safeDbRows("conversations"),
+          safeDbRows("messages"),
+          safeDbRows("notifications",q=>q.eq("user_id",uid).order("created_at",{ascending:false})),
+          safeDbRows("business_subscriptions"),
+          safeDbRows("payments"),
+          supabaseClient.rpc("get_payment_recipients").then(x=>x.error?[]:(x.data||[])).catch(()=>[]),
+          safeDbRows("subscription_plans"),
+          safeDbRows("business_events"),
+          safeDbRows("reports"),
+          safeDbRows("admin_roles")
+        ]);
+        const bizIds=[...new Set(members.map(x=>x.business_id))];
+        const team= bizIds.length ? await safeDbRows("business_members",q=>q.in("business_id",bizIds)) : members;
+        const memberIds=[...new Set(team.map(x=>x.user_id))];
+        const profiles=memberIds.length ? await safeDbRows("profiles",q=>q.in("id",memberIds)) : [];
+        STATE.teamMembers=team.map(m=>{const p=profiles.find(x=>x.id===m.user_id)||{};return {id:m.user_id,bizId:m.business_id,userId:m.user_id,name:p.full_name||"Membre Zack",email:"",phone:p.phone||"",role:({owner:"Owner",admin:"Admin",manager:"Manager",editor:"Editor",cashier:"Caissier",courier:"Livreur"})[m.role]||m.role,permissions:m.permissions||[]};});
+        STATE.couriers=couriers.map(row=>({id:row.id,bizId:row.business_id,userId:row.user_id,name:row.name,phone:row.phone||"",vehicleType:row.vehicle||"Moto",vehicleInfo:"",dept:"",commune:"",quartier:"",coverageZones:[],idDocNote:"",idDocVerified:"pending",availability:row.is_active?"Disponible":"Suspendu",incidentCount:0,freeBadge:true,_db:row}));
+        STATE.establishments=STATE.establishments.concat(establishments.map(row=>({id:row.id,bizId:row.business_id,name:row.name,dept:"",commune:row.city||"",quartier:row.neighborhood||"",address:row.address||"",phone:row.phone||"",hours:"",isMain:false,_db:row})));
+        STATE.favorites=favorites.map(x=>x.business_id);
+        STATE.orders=orders.map(row=>mapDbOrder(row,items));
+        STATE.deliveryMissions=orders.filter(o=>o.courier_id && couriers.some(c=>c.id===o.courier_id)).map(o=>({id:o.id,orderId:o.order_number,bizId:o.business_id,courierId:o.courier_id,pickupAddress:(STATE.businesses.find(b=>b.id===o.business_id)||{}).address||"",dropoffAddress:o.delivery_address||"",customerName:"Client Zack",customerPhone:o.contact_phone,feeHtg:Number(o.delivery_fee),status:({pending:"Assignée",accepted:"Acceptée",preparing:"En préparation",ready:"Prête",out_for_delivery:"En cours",delivered:"Terminée",completed:"Terminée",cancelled:"Annulée"})[o.status]||o.status,createdAt:o.created_at,updatedAt:o.updated_at}));
+        STATE.courierAffiliations=STATE.couriers.map(cr=>({id:cr.id,bizId:cr.bizId,courierId:cr.id,status:cr.availability==="Disponible"?"Active":"Suspendue",invitedBy:"Entreprise",createdAt:cr._db?.created_at||"",updatedAt:cr._db?.created_at||"",history:[]}));
+        STATE.conversations=convs.map(row=>({id:row.id,bizId:row.business_id,contextType:"biz",contextId:row.business_id,contextLabel:(STATE.businesses.find(b=>b.id===row.business_id)||{}).name||"Discussion",participants:[row.customer_id,row.business_id],blocked:false,blockedBy:"",unread:messages.filter(m=>m.conversation_id===row.id&&!m.read_at&&m.sender_id!==uid).length,messages:messages.filter(m=>m.conversation_id===row.id).map(m=>({id:m.id,from:m.sender_id===uid?"me":"biz",senderId:m.sender_id,text:m.body,time:new Date(m.created_at).toLocaleTimeString("fr-HT",{hour:"2-digit",minute:"2-digit"}),read:Boolean(m.read_at)}))}));
+        STATE.notifications=notifs.map(row=>({id:row.id,type:row.notification_type,label:row.title,route:"personal-notifications",text:row.message,time:new Date(row.created_at).toLocaleString("fr-HT"),read:Boolean(row.read_at)}));
+        const planById=Object.fromEntries(plans.map(x=>[x.id,x]));
+        const subById=Object.fromEntries(subs.map(x=>[x.id,x]));
+        STATE.moncashPayments=payments.map(p=>{const sub=subById[p.subscription_id]||{};const plan=planById[sub.plan_id]||{};return {id:p.id,bizId:p.business_id,planName:plan.name||"Forfait",amountHtg:Number(p.amount),txRef:p.proof_reference,provider:p.provider,recipientPhone:"",date:p.created_at,status:({needs_review:"pending",succeeded:"verified",failed:"rejected"})[p.status]||p.status,reviewNote:p.review_note,subscriptionId:p.subscription_id};});
+        STATE.moncashAccounts=recipients.map(r=>({id:r.id,provider:r.provider,label:r.label,phone:r.account_number,enabled:r.is_active,isActiveRecipient:r.is_active}));
+        STATE.plans={};
+        plans.forEach(row=>{STATE.plans[row.name]={name:row.name,code:row.code,priceHtg:Number(row.price_htg),durationDays:Number(row.duration_days),maxImages:Number(row.max_images_per_item),maxProducts:row.max_products,maxServices:row.max_services,maxPublications:row.max_publications_per_month,maxTeamMembers:row.max_team_members,maxEstablishments:row.max_establishments,statsLevel:row.stats_level,visibilityLevel:row.visibility_level,active:row.is_active};});
+        STATE.reports=reports.map(r=>({id:r.id,targetType:r.target_type||"Signalement",targetId:r.target_id,bizName:"",userId:r.reporter_id,reason:r.reason||"",date:dbDate(r.created_at),status:r.status||"Ouvert",_db:r}));
+        if(STATE.user.isAdmin){
+          const adminProfiles=await safeDbRows("profiles",q=>q.in("id",adminRoles.map(x=>x.user_id)));
+          STATE.admins=adminRoles.map(a=>{const p=adminProfiles.find(x=>x.id===a.user_id)||{};return {id:"auth-admin-"+a.user_id,userId:a.user_id,name:p.full_name||"Admin Zack",email:"",isPrincipal:a.role==="main_admin",roleLabel:a.role==="main_admin"?"Administrateur principal":"Administrateur",active:true,permissions:a.permissions||[]};});
+          STATE.adminProfileId="auth-admin-"+uid;
+          STATE.adminUsers=profiles.map(p=>({id:p.id,name:p.full_name||"Utilisateur",phone:p.phone||"",status:"active"}));
+        }
+        if(bizIds.length){
+          STATE.proBizId=bizIds[0];STATE.selectedBizId=bizIds[0];
+          const ownBiz=STATE.businesses.find(b=>b.id===bizIds[0]);
+          if(ownBiz) STATE.proRole=({owner:"Owner",admin:"Admin",manager:"Manager",editor:"Editor",cashier:"Caissier",courier:"Livreur"})[members[0].role]||"Editor";
+        }
+      }
+
       async function hydrateAuthenticatedUser(authUser) {
         if (!supabaseClient || !authUser || !authUser.id) throw new Error("Session utilisateur invalide.");
         let profileResult = await supabaseClient.from("profiles")
@@ -898,6 +1048,7 @@
           STATE.adminProfileId = adminId;
         }
         STATE.activeSpace = isAdmin ? "admin" : "client";
+        await loadZackWorkspace();
       }
 
       async function initializeSupabaseAuth() {
@@ -906,6 +1057,7 @@
           render();
           return;
         }
+        await loadZackPublicData();
         supabaseClient.auth.onAuthStateChange((event) => {
           if (event === "SIGNED_OUT") {
             STATE.user = null;
