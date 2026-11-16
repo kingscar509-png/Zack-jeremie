@@ -5694,9 +5694,9 @@
           if(error){toast("Réponse non enregistrée : "+error.message);return;}
           await loadZackWorkspace();toast("Réponse publiée.");render();
         },
-        uploadUserPhoto(e, field) {
-          const f = e.target.files[0]; if (!f || !STATE.user) return;
-          readFileAsDataUrl(f, (url) => { STATE.user[field] = url; toast("Photo mise à jour !"); render(); });
+        uploadUserPhoto(e,field) {
+          e.preventDefault?.();
+          toast("L'envoi des photos de profil attend la configuration d'un espace Storage privé. Aucune image locale n'a été enregistrée comme si elle était en ligne.");
         },
         uploadBizPhoto(e,bizId,field) {
           const file=e.target.files&&e.target.files[0];if(!file)return;
@@ -5767,46 +5767,19 @@
           document.getElementById("drawerOverlay").classList.add("open");
           document.getElementById("drawerSheet").focus();
         },
-        submitEntityReport(e, targetType, targetId, label) {
-          e.preventDefault();
-          if (!lockSubmit("rep-" + targetId)) return;
-          const reason = document.getElementById("repReason").value;
-          const details = (document.getElementById("repDetails").value || "").trim();
-          const d = new Date(), p = (n) => String(n).padStart(2, "0");
-          const date = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-          STATE.reports.unshift({
-            id: "rep-" + Date.now(),
-            targetType,
-            targetId,
-            bizName: label,
-            userId: STATE.user ? STATE.user.id : "guest",
-            reason: `${reason} — ${details}`,
-            date,
-            status: "Ouvert"
-          });
-          this.closeDrawer();
-          pushNotification("report_submitted", `Signalement enregistré : ${targetType} « ${label} ».`, "personal-reports");
-          toast("Signalement enregistré pour vérification par l'administration.");
-          render();
+        async submitEntityReport(e,targetType,targetId,label) {
+          e.preventDefault();if(!lockSubmit("rep-"+targetId))return;
+          const reason=(document.getElementById("repReason").value||"").trim(),details=(document.getElementById("repDetails").value||"").trim();
+          const targets={"Entreprise":{businessId:targetId},"Produit":STATE.products.find(x=>x.id===targetId),"Service":STATE.services.find(x=>x.id===targetId),"Promotion":STATE.promotions.find(x=>x.id===targetId),"Événement":STATE.events.find(x=>x.id===targetId)};
+          const target=targets[targetType],businessId=targetType==="Entreprise"?targetId:(target&&(target.bizId||target.business_id));
+          if(!businessId){toast("Impossible d'identifier l'entreprise concernée. Le signalement n'a pas été envoyé.");return;}
+          const {error}=await supabaseClient.from("reports").insert({business_id:businessId,target_type:targetType.toLowerCase(),target_id:targetId,reason,details,reporter_id:STATE.user?STATE.user.id:null,status:"open"});
+          if(error){toast("Signalement non envoyé : "+error.message);return;}
+          this.closeDrawer();if(STATE.user)await loadZackWorkspace();toast("Signalement transmis à l'équipe Zack.");render();
         },
         submitClientSupport(e) {
           e.preventDefault();
-          if (!lockSubmit("client-sup")) return;
-          const subj = (document.getElementById("csSubj").value || "").trim();
-          const msg = (document.getElementById("csMsg").value || "").trim();
-          if (!subj || !msg) return;
-          const d = new Date(), p = (n) => String(n).padStart(2, "0");
-          STATE.supportTickets.unshift({
-            id: "sup-" + Date.now(),
-            sender: STATE.user ? STATE.user.name : "Client Zack",
-            subject: subj,
-            message: msg,
-            date: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`,
-            status: "Ouvert",
-            reply: ""
-          });
-          toast("Demande d'assistance envoyée à l'équipe Zack.");
-          render();
+          toast("Le formulaire d'assistance sera activé dès que la messagerie de support serveur sera prête. Pour signaler une entreprise ou un produit, utilisez « Signaler un problème » sur sa fiche.");
         },
 
         setProBiz(id) { STATE.proBizId = id; STATE.draftImages = []; render(); },
@@ -5866,12 +5839,11 @@
           const r=await supabaseClient.from("business_events").insert({business_id:bizId,title,description:document.getElementById("nevDesc").value.trim()||null,location:document.getElementById("nevPlace").value.trim()||null,image_url:imageUrl,start_at:new Date(date+"T"+time+":00").toISOString(),is_published:true});
           if(r.error){toast("Événement non enregistré : "+r.error.message);return;}STATE.draftImages=[];await loadZackWorkspace();toast("Événement enregistré.");this.open("events");
         },
-        toggleProdAvail(id) {
-          const p = STATE.products.find((x) => x.id === id);
-          if (!p) return;
-          p.available = !p.available;
-          toast(p.available ? "Produit marqué disponible." : "Produit marqué indisponible.");
-          render();
+        async toggleProdAvail(id) {
+          const product=STATE.products.find(x=>x.id===id);if(!product||!supabaseClient)return;
+          const {error}=await supabaseClient.from("products").update({is_available:!product.available}).eq("id",id);
+          if(error){toast("Disponibilité non modifiée : "+error.message);return;}
+          await loadZackWorkspace();toast("Disponibilité du produit mise à jour.");render();
         },
         async deleteProd(id) {
           const {error}=await supabaseClient.from("products").delete().eq("id",id);
@@ -6002,47 +5974,9 @@
           if(u.error)toast("Entreprise créée, détails à compléter : "+u.error.message); await loadZackWorkspace(); STATE.proBizId=id;STATE.selectedBizId=id;toast("Entreprise enregistrée, en attente de validation.");this.switchRoot("pro-dashboard");
         },
         setProIndepTab(t) { STATE.proIndepTab = t; render(); },
-        saveProIndepProfile(e) {
-          e.preventDefault();
-          if (!lockSubmit("save-pro-indep")) return;
-          const p = getCurrentProProfile();
-          p.headline = document.getElementById("piHead").value.trim();
-          p.specialties = document.getElementById("piSpec").value.split(",").map((s) => s.trim()).filter(Boolean);
-          p.skills = document.getElementById("piSkill").value.split(",").map((s) => s.trim()).filter(Boolean);
-          p.experiences = document.getElementById("piExp").value.split("\n").map((s) => s.trim()).filter(Boolean);
-          p.dept = document.getElementById("piDept").value;
-          p.commune = document.getElementById("piComm").value.trim();
-          p.sectionCommunale = document.getElementById("piSect").value.trim();
-          p.quartier = document.getElementById("piQuart").value.trim();
-          p.availability = document.getElementById("piAvail").value;
-          p.rateHtg = Math.max(0, Number(document.getElementById("piRate").value) || 0);
-          p.seekingWork = document.getElementById("piSeek").checked;
-          p.sellingServices = document.getElementById("piSell").checked;
-          toast("Profil professionnel enregistré (aperçu local).");
-          render();
-        },
-        addProService(e) {
-          e.preventDefault();
-          if (!lockSubmit("add-pro-srv")) return;
-          const p = getCurrentProProfile();
-          const priceHtg = Math.max(0, Number(document.getElementById("psPrice").value) || 0);
-          STATE.proServices.unshift({
-            id: "psrv-" + Date.now(),
-            proId: p.id,
-            name: document.getElementById("psName").value.trim(),
-            priceHtg,
-            onQuote: priceHtg === 0,
-            conditions: document.getElementById("psCond").value.trim(),
-            desc: document.getElementById("psDesc").value.trim(),
-            active: true
-          });
-          toast("Prestation ajoutée à votre vitrine Pro.");
-          render();
-        },
-        toggleProService(id) {
-          const s = STATE.proServices.find((x) => x.id === id);
-          if (s) { s.active = !s.active; render(); }
-        },
+        saveProIndepProfile(e) { e.preventDefault(); toast("L'espace Professionnel indépendant n'est pas activé dans la première version publique. Aucun profil local n'a été enregistré."); },
+        addProService(e) { e.preventDefault(); toast("La vitrine Professionnel indépendant est prévue pour une phase ultérieure. Aucun service fictif n'a été ajouté."); },
+        toggleProService(id) { toast("La gestion des prestations indépendantes sera activée avec le module correspondant. Aucun changement local n'a été effectué."); },
         applyFreeJob(b2bId, title, companyName) {
           const prof = getCurrentProProfile();
           if (STATE.proApplications.some((a) => a.b2bId === b2bId && a.proId === prof.id)) {
@@ -6115,98 +6049,15 @@
           e.preventDefault();
           toast("Le signalement d'incident doit encore être relié au registre serveur. Aucun incident fictif n'a été enregistré.");
         },
-        createNetworkRelation(e) {
-          e.preventDefault();
-          if (!lockSubmit("net-rel")) return;
-          const pairType = document.getElementById("nrPair").value;
-          const targetLabel = document.getElementById("nrTarget").value.trim();
-          const roleLabel = document.getElementById("nrRole").value.trim();
-          const permissions = document.getElementById("nrPerms").value.split(",").map((s) => s.trim()).filter(Boolean);
-          const expiresAt = document.getElementById("nrExp").value;
-          const conditions = document.getElementById("nrCond").value.trim();
-          const dup = STATE.networkRelations.find((r) => r.pairType === pairType && r.targetLabel.toLowerCase() === targetLabel.toLowerCase() && ["Invitation envoyée", "En attente", "Acceptée", "Active"].includes(r.status));
-          if (dup) {
-            toast("Anti-doublon : une invitation ou relation active existe déjà avec ce partenaire.");
-            return;
-          }
-          const d = new Date(), p = (n) => String(n).padStart(2, "0");
-          const today = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-          const biz = getBiz(STATE.proBizId);
-          const initiatorLabel = STATE.activeSpace === "business" && biz ? biz.name : (STATE.user ? STATE.user.name : "Membre Zack");
-          STATE.networkRelations.unshift({
-            id: "rel-" + Date.now(),
-            pairType,
-            initiatorUserId: STATE.user ? STATE.user.id : "u1",
-            initiatorLabel,
-            targetLabel,
-            roleLabel,
-            permissions: permissions.length ? permissions : ["Collaboration standard"],
-            conditions,
-            status: "Invitation envoyée",
-            createdAt: today,
-            updatedAt: today,
-            expiresAt,
-            history: [`${today} : Invitation envoyée par ${initiatorLabel}`]
-          });
-          pushNotification("network_invite", `Invitation Réseau Zack envoyée à ${targetLabel} (${roleLabel}).`, "network-home");
-          toast("Invitation Réseau Zack envoyée !");
-          render();
-        },
-        transitionNetworkRelation(relId, newStatus) {
-          const r = STATE.networkRelations.find((x) => x.id === relId);
-          if (!r) return;
-          const d = new Date(), p = (n) => String(n).padStart(2, "0");
-          const today = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-          r.status = newStatus;
-          r.updatedAt = today;
-          if (!r.history) r.history = [];
-          r.history.push(`${today} : Statut → ${newStatus}`);
-          pushNotification("network_status", `Relation « ${r.targetLabel} » passée au statut ${newStatus}.`, "network-home");
-          toast("Relation mise à jour : " + newStatus);
-          render();
-        },
-        createB2bPost(e) {
-          e.preventDefault();
-          if (!STATE.user) { toast("Connectez-vous pour publier une annonce B2B."); return; }
-          if (!lockSubmit("b2b-post")) return;
-          const kind = document.getElementById("b2bKind").value;
-          const category = document.getElementById("b2bCat").value;
-          const title = document.getElementById("b2bTitle").value.trim();
-          const dept = document.getElementById("b2bDept").value;
-          const commune = document.getElementById("b2bComm").value.trim();
-          const budgetHtg = Math.max(0, Number(document.getElementById("b2bBudget").value) || 0);
-          const quantityOrVolume = document.getElementById("b2bQty").value.trim();
-          const deadline = document.getElementById("b2bDead").value;
-          const status = document.getElementById("b2bStatus").value;
-          const contractOrTerms = document.getElementById("b2bTerms").value.trim();
-          const summary = document.getElementById("b2bSum").value.trim();
-          const biz = getBiz(STATE.proBizId);
-          const authorName = STATE.activeSpace === "business" && biz ? biz.name : STATE.user.name;
-          const d = new Date(), p = (n) => String(n).padStart(2, "0");
-          STATE.b2bPosts.unshift({
-            id: "b2b-" + Date.now(),
-            kind, category, title,
-            authorUserId: STATE.user.id,
-            authorName,
-            authorBizId: STATE.activeSpace === "business" && biz ? biz.id : "",
-            dept, commune, quartier: "",
-            budgetHtg, quantityOrVolume, deadline, contractOrTerms, summary, status,
-            createdAt: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`,
-            responses: []
-          });
-          STATE.b2bTab = status === "Brouillon" ? "mine" : "browse";
-          toast(status === "Brouillon" ? "Brouillon B2B enregistré." : "Annonce B2B publiée (aperçu local) !");
-          render();
-        },
+        createNetworkRelation(e) { e.preventDefault(); toast("Le Réseau Zack n'est pas activé dans la première version publique. Aucune relation locale n'a été créée."); },
+        transitionNetworkRelation(id,status) { toast("Le Réseau Zack n'est pas activé dans la première version publique. Aucun statut local n'a été modifié."); },
+        createB2bPost(e) { e.preventDefault(); toast("Le Marché B2B est prévu « À venir ». Aucune annonce locale n'a été créée."); },
         toggleB2bSave(id) {
           const i = STATE.b2bSavedIds.indexOf(id);
           if (i >= 0) STATE.b2bSavedIds.splice(i, 1); else STATE.b2bSavedIds.push(id);
           render();
         },
-        setB2bPostStatus(id, st) {
-          const p = STATE.b2bPosts.find((x) => x.id === id);
-          if (p) { p.status = st; toast("Statut annonce : " + st); render(); }
-        },
+        setB2bPostStatus(id) { toast("Le Marché B2B est prévu « À venir ». Aucun statut local n'a été modifié."); },
         openB2bReplyDrawer(postId) {
           const p = STATE.b2bPosts.find((x) => x.id === postId);
           if (!p) return;
