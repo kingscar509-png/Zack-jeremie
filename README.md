@@ -1,2 +1,78 @@
-# Zack-jeremie
-Creation d’un platforme pour les entreprise
+# Zack — plateforme nationale des entreprises haïtiennes
+
+Zack est une plateforme destinée à aider le public à découvrir les entreprises partout en Haïti, et à permettre aux professionnels de présenter et gérer leur activité.
+
+## État du dépôt
+
+- Pour la phase 1 de Zack, le frontend officiel retenu est `index complet.html` (HTML/CSS/JavaScript), conformément à la décision produit du 15 novembre 2026.
+- Le frontend React/TanStack dans `src/` n'est pas la référence active de cette phase et ne doit pas remplacer l'interface HTML choisie.
+- Supabase fournit l'authentification, les rôles et les données réelles.
+- `legacy/index.html` reste une archive distincte et ne doit pas être confondue avec `index complet.html`.
+- Les documents d'audit, d'architecture, de sécurité et de recette sont dans `docs/`.
+
+## Démarrage local
+
+Prérequis : Node.js récent et npm.
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+Renseigner dans `.env.local` :
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+Utiliser uniquement la clé publishable/anon. Ne jamais placer une clé `service_role`, un secret marchand, un PIN ou un OTP dans le frontend.
+
+Lancer le serveur :
+
+```bash
+npm run dev
+```
+
+Vérifier la production :
+
+```bash
+npm run build
+npm run preview
+```
+
+## Fonctionnalités frontend déjà amorcées
+
+- Accueil national et catégories actives.
+- Recherche serveur des entreprises vérifiées.
+- Fiche publique d'entreprise vérifiée.
+- Inscription, connexion et récupération du mot de passe.
+- Profil personnel et centre de notifications.
+- Espace professionnel : liste des entreprises gérées et demande de création d'une entreprise.
+- Thèmes clair, sombre et automatique.
+
+Ces fonctionnalités sont écrites mais doivent encore passer par l'installation, le build, les tests navigateur et les tests de permissions avant d'être considérées comme validées.
+
+## Backend Supabase : structures présentes, interfaces à construire
+
+Le schéma Supabase actuel comprend notamment les tables de conversations/messages, commandes/lignes, livreurs/zones de livraison, forfaits/abonnements et paiements. Leur présence en base ne signifie pas que les parcours sont disponibles dans le frontend ni que tous les besoins produit sont couverts.
+
+Les modules de messagerie, commandes multi-vendeurs, abonnements Zack, paiements MonCash et administration doivent être vérifiés, complétés et testés avant d'être annoncés comme opérationnels. Ne jamais afficher de données fictives.
+
+État précis et écarts relevés le 14 novembre : [complément d'audit Supabase après migrations m8 à m13](docs/ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md).
+
+## Règles de contribution
+
+- Travailler d'abord sur `preparation/phase-1-frontend-plan`.
+- Ne pas fusionner vers `main` ni publier sans validation.
+- Ne pas modifier Supabase sans migration examinée et accord explicite.
+- Ne pas supprimer les objets Supabase ajoutés le 12 novembre.
+- Ne jamais considérer un contrôle d'interface comme une protection de sécurité.
+
+## Documents de référence
+
+- [Audit de reprise du 14 novembre 2026](docs/AUDIT-REPRISE-2026-11-14.md)
+- [Complément d'audit Supabase après migrations m8 à m13](docs/ETAT-REEL-SUPABASE-2026-11-14-APRES-M8-M13.md)
+- [État réel et plan phase 1](docs/ETAT-REEL-ET-PLAN-PHASE-1.md)
+- [Matrice écrans, données et permissions](docs/MATRICE-ECRANS-SUPABASE-PERMISSIONS.md)
+- [Architecture frontend](docs/ARCHITECTURE-FRONTEND-ZACK.md)
+- [Plan d'exécution](docs/PLAN-EXECUTION-ZACK.md)
+- [Audit Supabase en lecture seule](docs/AUDIT-SECURITE-SUPABASE-LECTURE-SEULE.md)
+- [Plan de tests et recette](docs/PLAN-TESTS-RECETTE-ZACK.md)

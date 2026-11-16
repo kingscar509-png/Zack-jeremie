@@ -1,0 +1,46 @@
+name: Zack frontend checks
+
+on:
+  push:
+    branches:
+      - preparation/phase-1-frontend-plan
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  html:
+    name: Selected HTML frontend syntax and structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check selected HTML frontend
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('index complet.html', 'utf8');
+          const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
+            .map(match => match[1])
+            .filter(script => script.includes('const STATE'));
+          if (scripts.length !== 1) throw new Error('Le script principal est introuvable ou ambigu.');
+          new Function(scripts[0]);
+          const required = [
+            'signInWithPassword', 'auth.signUp', 'PASSWORD_RECOVERY',
+            'auth.updateUser({password})', 'rpc("place_order"',
+            'rpc("create_business"', 'rpc("request_subscription_payment"',
+            'rpc("admin_review_payment"'
+          ];
+          for (const token of required) {
+            if (!html.includes(token)) throw new Error('Fonction attendue absente : ' + token);
+          }
+          if (html.includes('btn-demo')) throw new Error('Un accès de démonstration est encore présent.');
+          console.log('Frontend HTML : syntaxe et contrôles structurels OK.');
+          NODE

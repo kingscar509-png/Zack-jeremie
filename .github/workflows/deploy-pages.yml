@@ -1,0 +1,45 @@
+name: Zack — mise en ligne de test
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: zack-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publier la version de test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Préparer GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Préparer le frontend officiel
+        run: |
+          mkdir -p _site
+          cp "index complet.html" _site/index.html
+          touch _site/.nojekyll
+
+      - name: Charger le site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Déployer la version de test
+        id: deployment
+        uses: actions/deploy-pages@v4
