@@ -973,7 +973,7 @@
         if(!supabaseClient||!STATE.user) return;
         await loadZackPublicData();
         const uid=STATE.user.id;
-        const [members,couriers,establishments,favorites,orders,items,convs,messages,notifs,subs,payments,recipients,plans,events,reports,adminRoles,invitations] = await Promise.all([
+        const [members,couriers,establishments,favorites,orders,items,convs,messages,notifs,subs,payments,recipients,plans,events,reports,adminRoles,invitations,adminDirectory] = await Promise.all([
           safeDbRows("business_members",q=>q.eq("user_id",uid)),
           safeDbRows("couriers"),
           safeDbRows("business_establishments"),
@@ -990,7 +990,8 @@
           safeDbRows("business_events"),
           safeDbRows("reports"),
           safeDbRows("admin_roles"),
-          Promise.resolve([])
+          Promise.resolve([]),
+          supabaseClient.rpc("admin_list_admins").then(x=>x.error?[]:(x.data||[])).catch(()=>[])
         ]);
         const bizIds=[...new Set(members.map(x=>x.business_id))];
         const team= bizIds.length ? await safeDbRows("business_members",q=>q.in("business_id",bizIds)) : members;
@@ -1015,7 +1016,7 @@
         STATE.reports=reports.map(r=>({id:r.id,targetType:r.target_type||"Signalement",targetId:r.target_id,bizName:"",userId:r.reporter_id,reason:r.reason||"",date:dbDate(r.created_at),status:r.status||"Ouvert",_db:r}));
         if(STATE.user.isAdmin){
           const adminProfiles=await safeDbRows("profiles",q=>q.in("id",adminRoles.map(x=>x.user_id)));
-          STATE.admins=adminRoles.map(a=>{const p=adminProfiles.find(x=>x.id===a.user_id)||{};return {id:"auth-admin-"+a.user_id,userId:a.user_id,name:p.full_name||"Admin Zack",email:"",isPrincipal:a.role==="main_admin",roleLabel:a.role==="main_admin"?"Administrateur principal":"Administrateur",active:true,permissions:a.permissions||[]};});
+          STATE.admins=adminRoles.map(a=>{const p=adminProfiles.find(x=>x.id===a.user_id)||{},directory=adminDirectory.find(x=>x.user_id===a.user_id)||{};return {id:"auth-admin-"+a.user_id,userId:a.user_id,name:directory.full_name||p.full_name||"Admin Zack",email:directory.email||"",isPrincipal:a.role==="main_admin",roleLabel:a.role==="main_admin"?"Administrateur principal":"Administrateur",active:true,permissions:expandAdminPermissions(a.permissions||[])};});
           STATE.adminProfileId="auth-admin-"+uid;
           STATE.adminUsers=profiles.map(p=>({id:p.id,name:p.full_name||"Utilisateur",phone:p.phone||"",status:"active"}));
         }
@@ -1079,7 +1080,7 @@
             id: adminId, name: displayName, email: authUser.email || "",
             isPrincipal: adminRole.role === "main_admin", active: true,
             roleLabel: adminRole.role === "main_admin" ? "Administrateur principal" : "Administrateur",
-            permissions: adminRole.permissions || []
+            permissions: expandAdminPermissions(adminRole.permissions || [])
           };
           STATE.admins = (STATE.admins || []).filter((item) => item.id !== adminId);
           STATE.admins.push(currentAdmin);
@@ -1825,6 +1826,24 @@
         if (!isAdminSession()) return false;
         const a = getCurrentAdmin();
         return Boolean(a && a.active !== false && a.isPrincipal);
+      }
+      function expandAdminPermissions(dbPermissions) {
+        const db=new Set(dbPermissions||[]), ui=[];
+        if(db.has("businesses"))ui.push("view_dashboard","manage_businesses","verify_businesses");
+        if(db.has("content"))ui.push("moderate_content");
+        if(db.has("categories"))ui.push("manage_categories");
+        if(db.has("reports"))ui.push("manage_comm","view_audit_logs");
+        if(db.has("settings"))ui.push("platform_settings");
+        return ui;
+      }
+      function compactAdminPermissions(uiPermissions) {
+        const ui=new Set(uiPermissions||[]), db=[];
+        if(ui.has("manage_businesses")||ui.has("verify_businesses"))db.push("businesses");
+        if(ui.has("moderate_content"))db.push("content");
+        if(ui.has("manage_categories"))db.push("categories");
+        if(ui.has("manage_comm")||ui.has("view_audit_logs"))db.push("reports");
+        if(ui.has("platform_settings"))db.push("settings");
+        return [...new Set(db)];
       }
       function hasAdm(perm) {
         if (!isAdminSession()) return false;
@@ -5160,7 +5179,7 @@
         const canLogs = hasAdm("view_audit_logs");
         if (!isPrin && !canLogs) return admDenied("Permission view_audit_logs ou niveau Administrateur principal requis.");
 
-        const editablePerms = ADMIN_PERMISSIONS.filter((p) => !p.principalOnly);
+        const editablePerms = ADMIN_PERMISSIONS.filter((p) => !p.principalOnly && ["view_dashboard","manage_businesses","moderate_content","manage_categories","manage_comm","view_audit_logs"].includes(p.id));
         const filteredLogs = STATE.auditLogs.filter((l) => STATE.admAuditActorFilter === "all" || l.actor.includes(STATE.admAuditActorFilter));
 
         return `
@@ -6632,46 +6651,33 @@
           toast(`Commune « ${comm} » ajoutée à ${dept}.`);
           render();
         },
-        admAddAdmin(e) {
-          e.preventDefault();
-          if (!isPrincipalAdmin()) { toast("Réservé à l'Administrateur principal."); return; }
-          const name = (document.getElementById("newAdmName").value || "").trim();
-          const email = (document.getElementById("newAdmEmail").value || "").trim();
-          const perms = Array.from(document.querySelectorAll('input[name="newAdmPerm"]:checked')).map((el) => el.value);
-          if (!name || !email) return;
-          STATE.admins.push({ id: "adm-" + Date.now(), name, email, isPrincipal: false, roleLabel: "Administrateur ordinaire", active: true, permissions: perms });
-          addAudit(this._admActor(), `Administrateur ordinaire ajouté : ${name} (${perms.length} permissions)`);
-          toast("Administrateur ordinaire ajouté !");
-          render();
+        async admAddAdmin(e) {
+          e.preventDefault();if(!isPrincipalAdmin()){toast("Réservé à l'Administrateur principal.");return;}
+          const email=(document.getElementById("newAdmEmail").value||"").trim().toLowerCase(),selected=Array.from(document.querySelectorAll('input[name="newAdmPerm"]:checked')).map(el=>el.value),permissions=compactAdminPermissions(selected);
+          if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast("Adresse e-mail invalide.");return;}
+          if(!permissions.length){toast("Choisissez au moins une catégorie de permissions.");return;}
+          const result=await supabaseClient.rpc("admin_add_admin",{p_email:email,p_permissions:permissions});
+          if(result.error){toast("Administrateur non ajouté : "+result.error.message);return;}
+          await loadZackWorkspace();toast("Droits administrateur enregistrés. Le compte Zack existant a été ajouté.");render();
         },
-        admToggleAdminPerm(admId, permId) {
-          if (!isPrincipalAdmin()) { toast("Réservé à l'Administrateur principal."); return; }
-          const a = STATE.admins.find((x) => x.id === admId);
-          if (!a || a.isPrincipal) return;
-          const meta = ADMIN_PERMISSIONS.find((p) => p.id === permId);
-          if (meta && meta.principalOnly) { toast("Permission réservée au Principal."); return; }
-          const idx = a.permissions.indexOf(permId);
-          if (idx >= 0) a.permissions.splice(idx, 1);
-          else a.permissions.push(permId);
-          addAudit(this._admActor(), `Permission « ${permId} » ${idx >= 0 ? "retirée à" : "accordée à"} ${a.name}`);
-          render();
+        async admToggleAdminPerm(admId,permId) {
+          if(!isPrincipalAdmin()){toast("Réservé à l'Administrateur principal.");return;}
+          const a=STATE.admins.find(x=>x.id===admId);if(!a||a.isPrincipal||!a.email)return;
+          const next=a.permissions.includes(permId)?a.permissions.filter(x=>x!==permId):[...a.permissions,permId],permissions=compactAdminPermissions(next);
+          if(!permissions.length){toast("Un administrateur doit conserver au moins une catégorie de permissions. Utilisez Retirer pour supprimer son accès.");render();return;}
+          const result=await supabaseClient.rpc("admin_add_admin",{p_email:a.email,p_permissions:permissions});
+          if(result.error){toast("Permissions non modifiées : "+result.error.message);return;}
+          await loadZackWorkspace();toast("Permissions administrateur mises à jour.");render();
         },
         admToggleAdminActive(admId) {
-          if (!isPrincipalAdmin()) { toast("Réservé à l'Administrateur principal."); return; }
-          const a = STATE.admins.find((x) => x.id === admId);
-          if (!a || a.isPrincipal) return;
-          a.active = a.active === false;
-          addAudit(this._admActor(), `Accès admin de ${a.name} ${a.active ? "réactivé" : "suspendu"}`);
-          render();
+          toast("La suspension temporaire d'un administrateur n'est pas encore disponible côté serveur. Utilisez Retirer pour supprimer ses droits.");
         },
-        admRemoveAdmin(admId) {
-          if (!isPrincipalAdmin()) { toast("Réservé à l'Administrateur principal."); return; }
-          const a = STATE.admins.find((x) => x.id === admId);
-          if (!a || a.isPrincipal) return;
-          STATE.admins = STATE.admins.filter((x) => x.id !== admId);
-          addAudit(this._admActor(), `Administrateur ordinaire retiré : ${a.name}`);
-          toast("Administrateur retiré.");
-          render();
+        async admRemoveAdmin(admId) {
+          if(!isPrincipalAdmin()){toast("Réservé à l'Administrateur principal.");return;}
+          const a=STATE.admins.find(x=>x.id===admId);if(!a||a.isPrincipal||!a.userId)return;
+          const result=await supabaseClient.rpc("admin_remove_admin",{p_user_id:a.userId});
+          if(result.error){toast("Administrateur non retiré : "+result.error.message);return;}
+          await loadZackWorkspace();toast("Accès administrateur retiré dans Supabase.");render();
         },
         admSetStatus(id, s) {
           this.admBizAction(id, s === "verified" ? "verify" : s === "suspended" ? "suspend" : "reject");
