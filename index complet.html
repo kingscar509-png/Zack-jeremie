@@ -3075,23 +3075,6 @@
                   <div class="small">${(o.items || []).map((it) => `${it.qty}× ${esc(it.name)}`).join(", ")}</div>
                   <div class="flex-between">
                     <div class="price-htg">${money(o.totalHtg)}</div>
-                  <div class="form-stack" style="gap:8px;">
-                    <strong class="small">Articles de la commande</strong>
-                    ${o.items.map(item => `
-                      <div class="flex-between" style="gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
-                        <div style="min-width:0;">
-                          <div class="small"><strong>${esc(item.name)}</strong> × ${item.qty}</div>
-                          <div class="small muted">${money(item.priceHtg*item.qty)} · ${item.status==="pending"?"En attente":item.status==="accepted"?"Accepté":"Refusé"}</div>
-                        </div>
-                        ${item.status==="pending" ? `
-                          <div class="flex-row" style="flex-shrink:0;">
-                            <button type="button" class="btn btn-primary btn-sm" onclick="app.decideOrderItem('${item.id}',true)">Accepter</button>
-                            <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger);" onclick="app.decideOrderItem('${item.id}',false)">Refuser</button>
-                          </div>
-                        ` : ""}
-                      </div>
-                    `).join("")}
-                  </div>
                     <div class="flex-row">
                       ${bz ? `<button type="button" class="btn btn-outline btn-sm" onclick="app.startChatItem('${bz.id}', 'biz', '${bz.id}')">Contacter vendeur</button>` : ""}
                       <button type="button" class="btn btn-outline btn-sm" onclick="app.openReportDrawer('Commande', '${esc(o.id)}')">Signaler</button>
@@ -3485,6 +3468,23 @@
                   <div class="flex-between"><strong>${esc(o.id)}</strong><span>${esc(o.customerName)}</span></div>
                   <div class="small muted">${esc(o.mode)} · ${esc(o.address)} · ${esc(o.customerPhone)}</div>
                   <div class="price-htg">${money(o.totalHtg)}</div>
+                  <div class="form-stack" style="gap:8px;">
+                    <strong class="small">Articles de la commande</strong>
+                    ${o.items.map(item => `
+                      <div class="flex-between" style="gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
+                        <div style="min-width:0;">
+                          <div class="small"><strong>${esc(item.name)}</strong> × ${item.qty}</div>
+                          <div class="small muted">${money(item.priceHtg*item.qty)} · ${item.status==="pending"?"En attente":item.status==="accepted"?"Accepté":"Refusé"}</div>
+                        </div>
+                        ${item.status==="pending" ? `
+                          <div class="flex-row" style="flex-shrink:0;">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="app.decideOrderItem('${item.id}',true)">Accepter</button>
+                            <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger);" onclick="app.decideOrderItem('${item.id}',false)">Refuser</button>
+                          </div>
+                        ` : ""}
+                      </div>
+                    `).join("")}
+                  </div>
                   ${["accepted","partially_accepted","preparing","ready","out_for_delivery"].includes(o._db?.status) ? `
                     <select class="select" aria-label="Statut de la commande ${esc(o.id)}" onchange="app.setOrderStatus('${o.id}', this.value)">
                       <option value="" selected disabled>Statut actuel : ${esc(o.status)}</option>
