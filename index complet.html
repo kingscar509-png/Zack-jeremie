@@ -936,7 +936,7 @@
         });
         STATE.plans={};
         plans.forEach(row=>{
-          STATE.plans[row.name]={name:row.name,code:row.code,priceHtg:Number(row.price_htg),durationDays:Number(row.duration_days),maxImages:Number(row.max_images_per_item),maxProducts:row.max_products,maxServices:row.max_services,maxPublications:row.max_publications_per_month,maxTeamMembers:row.max_team_members,maxEstablishments:row.max_establishments,statsLevel:row.stats_level,visibilityLevel:row.visibility_level,active:row.is_active};
+          STATE.plans[row.name]={name:row.name,code:row.code,id:row.id,priceHtg:Number(row.price_htg),durationDays:Number(row.duration_days),maxImages:Number(row.max_images_per_item),maxProducts:row.max_products,maxServices:row.max_services,maxPublications:row.max_publications_per_month,maxTeamMembers:row.max_team_members,maxEstablishments:row.max_establishments,statsLevel:row.stats_level,visibilityLevel:row.visibility_level,active:row.is_active};
         });
         STATE.businesses=biz.map(row=>mapDbBusiness(row,hours,media,[],plans,subs));
         STATE.products=prods.map(row=>({
@@ -994,7 +994,7 @@
         STATE.moncashPayments=payments.map(p=>{const sub=subById[p.subscription_id]||{};const plan=planById[sub.plan_id]||{};return {id:p.id,bizId:p.business_id,planName:plan.name||"Forfait",amountHtg:Number(p.amount),txRef:p.proof_reference,provider:p.provider,recipientPhone:"",date:p.created_at,status:({needs_review:"pending",succeeded:"verified",failed:"rejected"})[p.status]||p.status,reviewNote:p.review_note,subscriptionId:p.subscription_id};});
         STATE.moncashAccounts=recipients.map(r=>({id:r.id,provider:r.provider,label:r.label,phone:r.account_number,enabled:r.is_active,isActiveRecipient:r.is_active}));
         STATE.plans={};
-        plans.forEach(row=>{STATE.plans[row.name]={name:row.name,code:row.code,priceHtg:Number(row.price_htg),durationDays:Number(row.duration_days),maxImages:Number(row.max_images_per_item),maxProducts:row.max_products,maxServices:row.max_services,maxPublications:row.max_publications_per_month,maxTeamMembers:row.max_team_members,maxEstablishments:row.max_establishments,statsLevel:row.stats_level,visibilityLevel:row.visibility_level,active:row.is_active};});
+        plans.forEach(row=>{STATE.plans[row.name]={name:row.name,code:row.code,id:row.id,priceHtg:Number(row.price_htg),durationDays:Number(row.duration_days),maxImages:Number(row.max_images_per_item),maxProducts:row.max_products,maxServices:row.max_services,maxPublications:row.max_publications_per_month,maxTeamMembers:row.max_team_members,maxEstablishments:row.max_establishments,statsLevel:row.stats_level,visibilityLevel:row.visibility_level,active:row.is_active};});
         STATE.reports=reports.map(r=>({id:r.id,targetType:r.target_type||"Signalement",targetId:r.target_id,bizName:"",userId:r.reporter_id,reason:r.reason||"",date:dbDate(r.created_at),status:r.status||"Ouvert",_db:r}));
         if(STATE.user.isAdmin){
           const adminProfiles=await safeDbRows("profiles",q=>q.in("id",adminRoles.map(x=>x.user_id)));
@@ -2808,8 +2808,8 @@
         const grandTotal = lines.reduce((s, l) => s + l.qty * l.p.priceHtg, 0);
 
         return `
-          <div class="notice notice-warn">
-            <strong>Commandes par vendeur (aperçu local) :</strong> chaque boutique possède sa propre commande distincte (${vendorGroups.length} vendeur${vendorGroups.length > 1 ? "s" : ""} dans votre panier). Le regroupement multi-vendeurs (<code>checkout_batches</code>) nécessitera Supabase. Les commandes sont réglées au vendeur et restent séparées des abonnements Zack.
+          <div class="notice notice-info">
+            <strong>Commande sécurisée :</strong> chaque vendeur reçoit sa propre commande. Le paiement se règle directement entre le client et le vendeur, en dehors de Zack.
           </div>
           ${vendorGroups.map(([bizId, items]) => {
             const bz = getBiz(bizId);
@@ -2835,8 +2835,9 @@
                 <form class="form-stack" onsubmit="app.placeOrder(event, '${esc(bizId)}')">
                   <div class="field"><label for="oName-${esc(bizId)}">Nom complet</label><input id="oName-${esc(bizId)}" class="input" required value="${esc(STATE.user ? STATE.user.name : '')}" /></div>
                   <div class="field"><label for="oPhone-${esc(bizId)}">Téléphone (+509)</label><input id="oPhone-${esc(bizId)}" class="input" required value="${esc(STATE.user ? STATE.user.phone : '')}" /></div>
-                  <div class="field"><label for="oMode-${esc(bizId)}">Mode</label><select id="oMode-${esc(bizId)}" class="select"><option>Livraison</option><option>Retrait sur place</option></select></div>
-                  <div class="field"><label for="oAddr-${esc(bizId)}">Adresse complète</label><input id="oAddr-${esc(bizId)}" class="input" required value="${esc(STATE.user ? STATE.user.commune + ', ' + STATE.user.dept : '')}" /></div>
+                  <div class="field"><label for="oMode-${esc(bizId)}">Mode de réception</label><select id="oMode-${esc(bizId)}" class="select"><option value="delivery">Livraison</option><option value="pickup">Retrait sur place</option></select></div>
+                  <div class="field"><label for="oZone-${esc(bizId)}">Zone de livraison</label><select id="oZone-${esc(bizId)}" class="select"><option value="">Choisir une zone (obligatoire pour livraison)</option>${(STATE.deliveryZones||[]).filter(z=>z.bizId===bizId).map(z=>`<option value="${z.id}">${esc(z.name)} · ${money(z.fee)}</option>`).join("")}</select></div>
+                  <div class="field"><label for="oAddr-${esc(bizId)}">Adresse complète (obligatoire pour livraison)</label><input id="oAddr-${esc(bizId)}" class="input" value="${esc(STATE.user ? STATE.user.commune + ', ' + STATE.user.dept : '')}" /></div>
                   <button type="submit" class="btn btn-yellow btn-block">Commander chez ${esc(bz ? bz.name : "ce vendeur")} (${money(subTotal)})</button>
                 </form>
               </div>
@@ -6305,81 +6306,46 @@
           toast("Proposition B2B transmise localement !");
           render();
         },
-        openMonCash(bizId, planName, amt) {
-          const b = getBiz(bizId);
-          const pl = STATE.plans[planName];
-          const activeMc = getActiveMoncashAccount();
-          const baseDays = (pl && pl.durationDays) ? Number(pl.durationDays) : 30;
-          lastFocusedEl = document.activeElement;
-          document.getElementById("drawerSheet").innerHTML = `
-            <div class="flex-between" style="margin-bottom:10px;"><strong>Parcours MonCash (Aperçu)</strong><button type="button" class="btn btn-outline btn-sm" onclick="app.closeDrawer()">Fermer</button></div>
-            <div class="notice notice-warn" style="margin-bottom:10px;">
-              <strong>Aucune transaction réelle :</strong> le paiement MonCash et l'activation automatique nécessitent l'API serveur Digicel MonCash, des webhooks vérifiés et Supabase. Ne saisissez aucun PIN ou OTP ici.
+        openMonCash(bizId,planName,amt) {
+          const business=getBiz(bizId),plan=STATE.plans[planName];
+          if(!STATE.user){toast("Connectez-vous pour demander un abonnement.");this.switchRoot("auth");return;}
+          if(!business||!plan||!plan.id){toast("Ce forfait n'est pas disponible.");return;}
+          if(!plan.active){toast("Ce forfait payant n'est pas encore ouvert aux inscriptions. Zack finalise ses contrôles.");return;}
+          const recipients=STATE.moncashAccounts.filter(x=>x.enabled);
+          if(!recipients.length){toast("Aucun compte de réception actif. Contactez Zack.");return;}
+          lastFocusedEl=document.activeElement;
+          document.getElementById("drawerSheet").innerHTML=`
+            <div class="flex-between" style="margin-bottom:10px;"><strong>Abonnement Zack · paiement manuel</strong><button type="button" class="btn btn-outline btn-sm" onclick="app.closeDrawer()">Fermer</button></div>
+            <div class="notice notice-info"><strong>Important :</strong> effectuez le transfert sur le compte affiché, puis saisissez la référence. Zack vérifiera le transfert manuellement avant toute activation. Ne communiquez jamais votre PIN ou OTP.</div>
+            <div class="card card-pad form-stack">
+              <div><strong>Entreprise :</strong> ${esc(business.name)}</div>
+              <div><strong>Forfait :</strong> ${esc(planName)} · ${money(plan.priceHtg)} / mois</div>
+              <div><strong>Destinataires actifs :</strong></div>
+              ${recipients.map(r=>`<div class="flex-between"><span>${esc(r.label)} (${esc(r.provider.toUpperCase())})</span><strong>${esc(r.phone)}</strong></div>`).join("")}
             </div>
-            <div class="card card-pad form-stack" style="margin-bottom:10px;">
-              <div><strong>Offre sélectionnée :</strong> ${esc(planName)}</div>
-              <div><strong>Tarif unitaire :</strong> ${money(amt)} / ${baseDays} jours</div>
-              <div><strong>Compte de réception Zack :</strong> ${activeMc ? `${esc(activeMc.label)} (${esc(activeMc.phone)})` : "Aucun compte actif"}</div>
-              <div class="small muted">Quota inclus : ${pl ? pl.maxImages : 2} images / pub · ${pl ? (pl.maxEstablishments || 1) : 1} étab. pour ${esc(b ? b.name : "")}.</div>
-            </div>
-            <form class="form-stack" onsubmit="app.submitMonCashPreview(event, '${esc(bizId)}', '${esc(planName)}')">
-              <div class="field">
-                <label for="mcCycle">Période de facturation</label>
-                <select id="mcCycle" class="select">
-                  <option value="1">1 période (${baseDays} jours) — ${Number(amt).toLocaleString("fr-FR")} HTG</option>
-                  <option value="3">Trimestriel (${baseDays * 3} jours) — ${(Number(amt) * 3).toLocaleString("fr-FR")} HTG</option>
-                  <option value="12">Annuel (${baseDays * 12} jours) — ${(Number(amt) * 12).toLocaleString("fr-FR")} HTG</option>
-                </select>
-              </div>
-              <div class="field"><label for="mcTxRef">Référence transaction MonCash (unique · test aperçu)</label><input id="mcTxRef" class="input" required placeholder="Ex. MC-9120455" /></div>
-              <div class="field"><label for="mcProofNote">Note / numéro expéditeur</label><input id="mcProofNote" class="input" required placeholder="Ex. Payé depuis +509 37XX XXXX" /></div>
-              <button type="submit" class="btn btn-navy btn-block">Soumettre justificatif pour vérification admin</button>
-            </form>
-          `;
+            <form class="form-stack" onsubmit="app.submitMonCashPreview(event,'${esc(bizId)}','${esc(planName)}')">
+              <div class="field"><label for="mcProvider">Moyen de transfert</label><select id="mcProvider" class="select" required>${recipients.map(r=>`<option value="${esc(r.provider)}">${esc(r.provider.toUpperCase())} — ${esc(r.phone)}</option>`).join("")}</select></div>
+              <div class="field"><label for="mcTxRef">Référence de transaction</label><input id="mcTxRef" class="input" required minlength="4" maxlength="60" placeholder="Référence indiquée après le transfert" /></div>
+              <button type="submit" class="btn btn-navy btn-block">Envoyer la preuve de paiement</button>
+            </form>`;
           document.getElementById("drawerOverlay").classList.add("open");
           document.getElementById("drawerSheet").focus();
         },
-        submitMonCashPreview(e, bizId, planName) {
+        async submitMonCashPreview(e,bizId,planName) {
           e.preventDefault();
-          const b = getBiz(bizId);
-          const pl = STATE.plans[planName];
-          const activeMc = getActiveMoncashAccount();
-          const txRef = (document.getElementById("mcTxRef").value || "").trim();
-          const proofNote = (document.getElementById("mcProofNote").value || "").trim();
-          const cycleEl = document.getElementById("mcCycle");
-          const mult = cycleEl ? Math.max(1, Number(cycleEl.value) || 1) : 1;
-          if (!b || !pl || !txRef) return;
-          if (STATE.moncashPayments.some((p) => (p.txRef || "").trim().toLowerCase() === txRef.toLowerCase())) {
-            toast("Cette référence MonCash a déjà été soumise !");
-            return;
-          }
-          if (!lockSubmit("moncash-" + bizId)) return;
-          const baseDays = Number(pl.durationDays || 30);
-          const totalDays = baseDays * mult;
-          const totalAmount = Number(pl.priceHtg) * mult;
-          const durLabel = mult === 1 ? (pl.durationLabel || `${totalDays} jours`) : `${totalDays} jours (${mult}x)`;
-          const d = new Date(), p = (n) => String(n).padStart(2, "0");
-          const nowStr = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-          STATE.moncashPayments.unshift({
-            id: "pay-" + Date.now(),
-            bizId: b.id,
-            planName,
-            amountHtg: totalAmount,
-            durationDays: totalDays,
-            durationLabel: durLabel,
-            txRef,
-            proofNote,
-            recipientPhone: activeMc ? activeMc.phone : "Non défini",
-            date: nowStr,
-            status: "pending"
+          const business=getBiz(bizId),plan=STATE.plans[planName];
+          const provider=(document.getElementById("mcProvider")?.value||"").toLowerCase();
+          const reference=(document.getElementById("mcTxRef")?.value||"").trim();
+          if(!business||!plan?.id||!["moncash","natcash"].includes(provider)||reference.length<4){toast("Vérifiez le moyen de transfert et la référence.");return;}
+          if(!lockSubmit("subscription-"+bizId))return;
+          const {error}=await supabaseClient.rpc("request_subscription_payment",{
+            p_business:bizId,p_plan:plan.id,p_provider:provider,p_reference:reference
           });
-          addAudit(b.name, `Justificatif MonCash soumis (${planName} · ${durLabel} · ${totalAmount} HTG · ${txRef})`);
-          pushNotification("payment_status", `Justificatif MonCash ${txRef} soumis pour ${b.name} (${planName}).`, "pro-billing");
-          this.closeDrawer();
-          toast("Justificatif enregistré en attente de vérification admin (aperçu).");
+          if(error){toast("Demande non enregistrée : "+error.message);return;}
+          await loadZackWorkspace();this.closeDrawer();
+          toast("Preuve reçue. Votre abonnement sera activé après vérification manuelle.");
           render();
         },
-
         setAdminProfile(id) {
           const a = STATE.admins.find((x) => x.id === id);
           if (!a || a.active === false) { toast("Ce compte administrateur est désactivé."); return; }
@@ -6728,65 +6694,44 @@
           toast("Forfaits rétablis par défaut.");
           render();
         },
-        admVerifyPayment(payId) {
-          if (!hasAdm("verify_payments")) { toast("Permission insuffisante."); return; }
-          const p = STATE.moncashPayments.find((x) => x.id === payId);
-          if (!p) return;
-          p.status = "verified";
-          const b = getBiz(p.bizId);
-          const days = Number(p.durationDays || (STATE.plans[p.planName] && STATE.plans[p.planName].durationDays) || 30);
-          if (b && STATE.plans[p.planName]) {
-            b.plan = p.planName;
-            b.planStatus = "active";
-            const d = new Date(Date.now() + days * 86400000), pad = (n) => String(n).padStart(2, "0");
-            b.planExpiresAt = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-          }
-          addAudit(this._admActor(), `Paiement MonCash ${p.txRef} accepté (${b ? b.name : p.bizId} → ${p.planName} · ${days}j)`);
-          pushNotification("payment_status", `Paiement MonCash ${p.txRef} validé · forfait ${p.planName} actif (${days}j).`, "pro-billing");
-          toast("Paiement accepté et abonnement activé (aperçu) !");
-          render();
+        async admVerifyPayment(payId) {
+          if(!hasAdm("verify_payments")){toast("Permission insuffisante.");return;}
+          const {error}=await supabaseClient.rpc("admin_review_payment",{p_payment:payId,p_approve:true,p_note:null});
+          if(error){toast("Validation impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Paiement vérifié et abonnement traité.");render();
         },
-        admRejectPayment(payId) {
-          if (!hasAdm("verify_payments")) { toast("Permission insuffisante."); return; }
-          const p = STATE.moncashPayments.find((x) => x.id === payId);
-          if (!p) return;
-          p.status = "rejected";
-          addAudit(this._admActor(), `Paiement MonCash ${p.txRef} refusé`);
-          pushNotification("payment_status", `Paiement MonCash ${p.txRef} refusé par vérification.`, "pro-billing");
-          toast("Paiement refusé.");
-          render();
+        async admRejectPayment(payId) {
+          if(!hasAdm("verify_payments")){toast("Permission insuffisante.");return;}
+          const note=window.prompt("Motif du refus (facultatif) :")||"";
+          const {error}=await supabaseClient.rpc("admin_review_payment",{p_payment:payId,p_approve:false,p_note:note});
+          if(error){toast("Refus impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Paiement refusé.");render();
         },
-        admSaveMoncashAcc(e, accId, idx) {
-          e.preventDefault();
-          if (!hasAdm("manage_moncash_accounts")) { toast("Réservé à l'Administrateur principal."); return; }
-          const acc = STATE.moncashAccounts.find((x) => x.id === accId);
-          if (!acc) return;
-          acc.label = (document.getElementById("mcLbl-" + idx).value || "").trim();
-          acc.phone = (document.getElementById("mcPh-" + idx).value || "").trim();
-          addAudit(this._admActor(), `Compte MonCash mis à jour : ${acc.label} (${acc.phone})`);
-          toast("Compte MonCash enregistré !");
-          render();
+        async admSaveMoncashAcc(e,accId,idx) {
+          e.preventDefault();if(!hasAdm("manage_moncash_accounts")){toast("Réservé à l'Administrateur principal.");return;}
+          const account=STATE.moncashAccounts.find(x=>x.id===accId);if(!account)return;
+          const label=(document.getElementById("mcLbl-"+idx).value||"").trim();
+          const phone=(document.getElementById("mcPh-"+idx).value||"").trim();
+          const {error}=await supabaseClient.from("payment_recipients").update({label,account_number:phone}).eq("id",accId);
+          if(error){toast("Modification impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Destinataire de paiement mis à jour.");render();
         },
-        admSetActiveMoncashAcc(accId) {
-          if (!hasAdm("manage_moncash_accounts")) { toast("Réservé à l'Administrateur principal."); return; }
-          STATE.moncashAccounts.forEach((a) => { a.isActiveRecipient = a.id === accId; });
-          const cur = STATE.moncashAccounts.find((a) => a.id === accId);
-          addAudit(this._admActor(), `Nouveau compte MonCash actif : ${cur ? cur.phone : accId}`);
-          toast("Compte de réception actif modifié !");
-          render();
+        async admSetActiveMoncashAcc(accId) {
+          if(!hasAdm("manage_moncash_accounts")){toast("Réservé à l'Administrateur principal.");return;}
+          const account=STATE.moncashAccounts.find(x=>x.id===accId);if(!account)return;
+          const off=await supabaseClient.from("payment_recipients").update({is_active:false}).eq("provider",account.provider);
+          if(off.error){toast("Impossible de désactiver l'ancien numéro : "+off.error.message);return;}
+          const on=await supabaseClient.from("payment_recipients").update({is_active:true}).eq("id",accId);
+          if(on.error){toast("Impossible d'activer le numéro : "+on.error.message);return;}
+          await loadZackWorkspace();toast("Numéro actif mis à jour.");render();
         },
-        admToggleMoncashAcc(accId) {
-          if (!hasAdm("manage_moncash_accounts")) { toast("Réservé à l'Administrateur principal."); return; }
-          const acc = STATE.moncashAccounts.find((x) => x.id === accId);
-          if (!acc) return;
-          acc.enabled = !acc.enabled;
-          if (!acc.enabled && acc.isActiveRecipient) {
-            acc.isActiveRecipient = false;
-            const other = STATE.moncashAccounts.find((a) => a.enabled);
-            if (other) other.isActiveRecipient = true;
-          }
-          addAudit(this._admActor(), `Compte MonCash « ${acc.label} » ${acc.enabled ? "réactivé" : "désactivé"}`);
-          render();
+        async admToggleMoncashAcc(accId) {
+          if(!hasAdm("manage_moncash_accounts")){toast("Réservé à l'Administrateur principal.");return;}
+          const account=STATE.moncashAccounts.find(x=>x.id===accId);if(!account)return;
+          if(account.isActiveRecipient){toast("Choisissez d'abord un autre numéro actif pour ce moyen de paiement.");return;}
+          const {error}=await supabaseClient.from("payment_recipients").update({is_active:!account.enabled}).eq("id",accId);
+          if(error){toast("Modification impossible : "+error.message);return;}
+          await loadZackWorkspace();render();
         },
         admAddMoncashAcc(e) {
           e.preventDefault();
