@@ -4897,16 +4897,16 @@
 
         return `
           <div class="tabs-bar">
-            <button type="button" class="tab-item ${tab === 'payments' ? 'active' : ''}" onclick="app.setFilter('admPayTab', 'payments')">Paiements clients (${STATE.moncashPayments.length})</button>
+            <button type="button" class="tab-item ${tab === 'payments' ? 'active' : ''}" onclick="app.setFilter('admPayTab', 'payments')">Paiements d'abonnements (${STATE.moncashPayments.length})</button>
             <button type="button" class="tab-item ${tab === 'accounts' ? 'active' : ''}" onclick="app.setFilter('admPayTab', 'accounts')">Comptes MonCash ${canAcc ? '' : '(Principal)'}</button>
           </div>
 
           ${tab === "payments" ? `
             <div class="notice notice-warn">
-              <strong>Vérification manuelle (aperçu) :</strong> les preuves et références MonCash sont validées ici localement. En production, un webhook Digicel MonCash ou une fonction serveur Supabase vérifiera chaque transaction.
+              <strong>Vérification manuelle réelle :</strong> les références MonCash et NatCash sont contrôlées par l'administrateur sur son compte, puis enregistrées dans Supabase. Zack ne reçoit pas les paiements des commandes.
             </div>
             <div class="card card-pad flex-between">
-              <span class="small muted">Revenus validés (aperçu)</span>
+              <span class="small muted">Abonnements validés</span>
               <strong class="price-htg">${money(totalVerified)}</strong>
             </div>
             <div class="filter-strip">
@@ -6235,58 +6235,21 @@
           STATE.admSelectedBizId = id;
           this.open("admin-biz-manage");
         },
-        admBizAction(id, action) {
+        async admBizAction(id, action) {
           if (!hasAdm("manage_businesses")) { toast("Permission insuffisante."); return; }
-          const b = getBiz(id);
-          if (!b) return;
-          if (["verify", "toggleDocs", "unbadge", "reject"].includes(action) && !hasAdm("verify_businesses")) {
-            toast("Permission verify_businesses requise.");
-            return;
+          const b=getBiz(id); if(!b)return;
+          const statusMap={verify:"verified",unbadge:"pending",reject:"rejected",suspend:"suspended",reactivate:"verified"};
+          if(Object.prototype.hasOwnProperty.call(statusMap,action)){
+            if(["verify","unbadge","reject"].includes(action)&&!hasAdm("verify_businesses")){toast("Permission verify_businesses requise.");return;}
+            const note=action==="reject"?"Demande refusée après vérification":action==="suspend"?"Suspension administrative":action==="unbadge"?"Retrait du badge vérifié":null;
+            const result=await supabaseClient.rpc("admin_set_business_status",{p_business_id:id,p_status:statusMap[action],p_reason:note});
+            if(result.error){toast("Modification non enregistrée : "+result.error.message);return;}
+            await loadZackWorkspace();toast("Statut de l'entreprise mis à jour dans la base Zack.");render();return;
           }
-          if (action === "verify") {
-            b.status = "verified";
-            b.correctionNote = "";
-            addAudit(this._admActor(), `Entreprise « ${b.name} » approuvée et badge vérifié attribué`);
-            pushNotification("biz_status", `Votre entreprise « ${b.name} » a reçu le badge vérifié.`, "pro-dashboard");
-            toast("Entreprise vérifiée !");
-          } else if (action === "toggleDocs") {
-            b.documentsVerified = !b.documentsVerified;
-            addAudit(this._admActor(), `Documents de « ${b.name} » marqués ${b.documentsVerified ? "vérifiés" : "à contrôler"}`);
-            toast("Statut documentaire mis à jour.");
-          } else if (action === "unbadge") {
-            b.status = "pending";
-            addAudit(this._admActor(), `Badge vérifié retiré pour « ${b.name} »`);
-            pushNotification("biz_status", `Badge vérifié retiré pour « ${b.name} ».`, "pro-dashboard");
-            toast("Badge vérifiée retiré.");
-          } else if (action === "reject") {
-            b.status = "rejected";
-            addAudit(this._admActor(), `Demande d'inscription refusée pour « ${b.name} »`);
-            pushNotification("biz_status", `Demande d'inscription refusée pour « ${b.name} ».`, "pro-dashboard");
-            toast("Entreprise refusée.");
-          } else if (action === "suspend") {
-            b.status = "suspended";
-            addAudit(this._admActor(), `Entreprise « ${b.name} » suspendue`);
-            pushNotification("biz_status", `Entreprise « ${b.name} » suspendue temporairement.`, "pro-dashboard");
-            toast("Entreprise suspendue.");
-          } else if (action === "reactivate") {
-            b.status = "verified";
-            addAudit(this._admActor(), `Entreprise « ${b.name} » réactivée`);
-            pushNotification("biz_status", `Entreprise « ${b.name} » réactivée.`, "pro-dashboard");
-            toast("Entreprise réactivée.");
-          } else if (action === "toggleFeatured") {
-            b.featured = !b.featured;
-            addAudit(this._admActor(), `Mise en avant ${b.featured ? "activée" : "retirée"} pour « ${b.name} »`);
-            toast(b.featured ? "Mise en avant activée." : "Retirée de la mise en avant.");
-          } else if (action === "delete") {
-            STATE.businesses = STATE.businesses.filter((x) => x.id !== id);
-            STATE.products = STATE.products.filter((x) => x.bizId !== id);
-            STATE.services = STATE.services.filter((x) => x.bizId !== id);
-            addAudit(this._admActor(), `Entreprise « ${b.name} » supprimée (procédure contrôlée)`);
-            toast("Entreprise supprimée de l'aperçu.");
-            this.back();
-            return;
+          if(action==="toggleDocs"||action==="toggleFeatured"||action==="delete"){
+            toast("Cette action n'est pas encore reliée à une fonction serveur sécurisée. Aucune modification n'a été effectuée.");return;
           }
-          render();
+          toast("Action non disponible.");
         },
         admSendCorrection(e, id) {
           e.preventDefault();
