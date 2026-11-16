@@ -3,6 +3,18 @@
 
 ## Avancement complémentaire — 16 novembre 2026
 
+
+### Dernière passe — 16 novembre 2026 (complément)
+
+- Les rapports utilisateurs sont désormais lisibles par leur auteur connecté, sans élargir la lecture des rapports d'autres utilisateurs.
+- Le traitement d'un rapport par l'administration est enregistré en base avec le statut `reviewed`, l'administrateur et l'horodatage.
+- Le sélecteur d'état de commande a été corrigé : les options visibles correspondent aux transitions réellement autorisées par `seller_set_order_status`. Les états en attente, acceptation/refus et annulation ne sont plus présentés comme des transitions vendeur valides.
+- Le panneau de commandes précise maintenant que le paiement reste directement entre le client et le vendeur, hors Zack.
+- Le principal administrateur peut charger les destinataires MonCash/NatCash avec leurs identifiants et états grâce au RPC `admin_list_payment_recipients()`. Les utilisateurs non administrateurs continuent de ne voir que les numéros actifs via `get_payment_recipients()`.
+- Le RPC de liste des destinataires a été testé dans une transaction avec le rôle `authenticated` et l'identité du principal administrateur : deux destinataires actifs retournés.
+- Migration Supabase enregistrée : `reports_self_read_and_admin_payment_recipient_listing` (policy de lecture personnelle des rapports, RPC admin de lecture des destinataires et verrouillage définitif du bootstrap principal).
+- GitHub Actions : contrôles syntaxe/structure réussis sur le commit `0cc8aaec14f4f7aa0dbaaea64e7dce7e9df628fe`.
+
 ### Actions supplémentaires raccordées ou sécurisées
 
 - Les signalements de fiches entreprise/produits/services/promotions/événements sont maintenant enregistrés dans `public.reports`, avec l'entreprise concernée et le compte auteur lorsqu'il est connecté.
