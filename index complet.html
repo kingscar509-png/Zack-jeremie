@@ -839,6 +839,26 @@
         return svgs[kind] || svgs.craft;
       }
 
+      async function uploadBusinessImages(bizId, dataUrls, folder) {
+        const urls=[];
+        for(let i=0;i<(dataUrls||[]).length;i++){
+          const source=dataUrls[i];
+          if(!source||!String(source).startsWith("data:")) { if(source) urls.push(source); continue; }
+          const response=await fetch(source);
+          const blob=await response.blob();
+          const ext=(blob.type.split("/")[1]||"jpg").replace("jpeg","jpg").replace(/[^a-z0-9]/gi,"")||"jpg";
+          const filePath=bizId+"/"+folder+"/"+Date.now()+"-"+i+"-"+Math.random().toString(36).slice(2,8)+"."+ext;
+          const {error}=await supabaseClient.storage.from("zack-public-media").upload(filePath,blob,{contentType:blob.type||"image/jpeg",upsert:false});
+          if(error) throw error;
+          const {data}=supabaseClient.storage.from("zack-public-media").getPublicUrl(filePath);
+          urls.push(data.publicUrl);
+        }
+        return urls;
+      }
+      function slugifyBusinessName(value) {
+        const base=String(value||"entreprise").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48)||"entreprise";
+        return base+"-"+Math.random().toString(36).slice(2,7);
+      }
       function dbText(value) { return value == null ? "" : String(value); }
       function dbDate(value) { return value ? new Date(value).toISOString().slice(0,10) : ""; }
       function dbCategoryId(name, dbId) {
@@ -5494,7 +5514,16 @@
         setBizTab(tab) { STATE.bizTab = tab; render(); },
         openProd(id) { STATE.selectedProdId = id; STATE.selectedProdImgIdx = 0; this.open("prod-detail"); },
         setProdImg(idx) { STATE.selectedProdImgIdx = idx; render(); },
-        toggleFav(id) { const i = STATE.favorites.indexOf(id); if (i >= 0) STATE.favorites.splice(i, 1); else STATE.favorites.push(id); render(); },
+        async toggleFav(id) {
+          if(!STATE.user){toast("Connectez-vous pour enregistrer vos favoris.");this.switchRoot("auth");return;}
+          const exists=STATE.favorites.includes(id);
+          const result=exists
+            ? await supabaseClient.from("business_favorites").delete().eq("business_id",id).eq("user_id",STATE.user.id)
+            : await supabaseClient.from("business_favorites").insert({business_id:id,user_id:STATE.user.id});
+          if(result.error){toast("Impossible de mettre à jour le favori : "+result.error.message);return;}
+          if(exists) STATE.favorites=STATE.favorites.filter(x=>x!==id); else STATE.favorites.push(id);
+          render();
+        },
         addToCart(id) {
           const p = STATE.products.find((x) => x.id === id);
           if (!p || !p.available) { toast("Ce produit n'est pas disponible."); return; }
@@ -5511,51 +5540,28 @@
           render();
         },
         removeFromCart(id) { STATE.cart = STATE.cart.filter((c) => c.prodId !== id); render(); },
-        placeOrder(e, targetBizId) {
+        async placeOrder(e, targetBizId) {
           e.preventDefault();
-          if (!STATE.cart.length) return;
-          const bizId = targetBizId || (STATE.products.find((p) => p.id === STATE.cart[0].prodId) || {}).bizId || "biz-1";
-          if (!lockSubmit("order-" + bizId)) return;
-          const nameEl = document.getElementById("oName-" + bizId) || document.getElementById("oName");
-          const phoneEl = document.getElementById("oPhone-" + bizId) || document.getElementById("oPhone");
-          const modeEl = document.getElementById("oMode-" + bizId) || document.getElementById("oMode");
-          const addrEl = document.getElementById("oAddr-" + bizId) || document.getElementById("oAddr");
-          const phoneRaw = phoneEl ? phoneEl.value.trim() : "";
-          if (phoneRaw && !isValidHaitiPhone(phoneRaw)) {
-            toast("Numéro haïtien invalide (+509 + 8 chiffres).");
-            return;
-          }
-          const vendorLines = STATE.cart
-            .map((c) => { const p = STATE.products.find((x) => x.id === c.prodId); return p && p.bizId === bizId ? { c, p } : null; })
-            .filter(Boolean);
-          if (!vendorLines.length) return;
-          const items = vendorLines.map(({ c, p }) => {
-            if (typeof p.stockQty === "number") {
-              p.stockQty = Math.max(0, p.stockQty - c.qty);
-              if (p.stockQty === 0) p.available = false;
-            }
-            return { name: p.name, qty: c.qty, priceHtg: p.priceHtg };
-          });
-          const total = items.reduce((s, i) => s + i.qty * i.priceHtg, 0);
-          const bz = getBiz(bizId);
-          const ordId = "CMD-" + Math.floor(1000 + Math.random() * 8999);
-          const d = new Date(), p2 = (n) => String(n).padStart(2, "0");
-          const dateStr = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
-          STATE.orders.unshift({
-            id: ordId, date: dateStr,
-            customerName: nameEl ? nameEl.value.trim() : "",
-            customerPhone: phoneRaw ? formatHaitiPhone(phoneRaw) : "",
-            bizId, mode: modeEl ? modeEl.value : "Livraison",
-            address: addrEl ? addrEl.value.trim() : "",
-            items, totalHtg: total, status: "En attente",
-            paymentNote: "Règlement direct vendeur (hors abonnements Zack)"
-          });
-          const removeIds = new Set(vendorLines.map((x) => x.c.prodId));
-          STATE.cart = STATE.cart.filter((c) => !removeIds.has(c.prodId));
-          pushNotification("order_new", `Commande ${ordId} enregistrée chez ${bz ? bz.name : "le vendeur"} (${money(total).replace(/<[^>]+>/g, "")}).`, "personal-orders");
-          toast(`Commande ${ordId} enregistrée pour ${bz ? bz.name : "ce vendeur"} !`);
-          if (!STATE.cart.length) this.open("personal-orders");
-          else render();
+          if(!STATE.user){toast("Connectez-vous avant de passer commande.");this.switchRoot("auth");return;}
+          const bizId=targetBizId;
+          const lines=STATE.cart.map(x=>({cart:x,product:STATE.products.find(p=>p.id===x.prodId)})).filter(x=>x.product&&x.product.bizId===bizId);
+          if(!lines.length)return;
+          if(!lockSubmit("order-"+bizId))return;
+          const phone=(document.getElementById("oPhone-"+bizId)?.value||"").trim();
+          const mode=document.getElementById("oMode-"+bizId)?.value||"delivery";
+          const address=(document.getElementById("oAddr-"+bizId)?.value||"").trim();
+          const zoneId=document.getElementById("oZone-"+bizId)?.value||"";
+          if(!isValidHaitiPhone(phone)){toast("Numéro haïtien invalide (+509 + 8 chiffres).");return;}
+          if(mode==="delivery"&&(!zoneId||address.length<5)){toast("Choisissez une zone de livraison et indiquez l'adresse complète.");return;}
+          const cart=lines.map(x=>({product_id:x.product.id,quantity:x.cart.qty}));
+          const options={};
+          options[bizId]={fulfillment:mode,zone_id:zoneId||null,address:mode==="delivery"?address:"",note:""};
+          const {data,error}=await supabaseClient.rpc("place_order",{p_cart:cart,p_options:options,p_phone:formatHaitiPhone(phone)});
+          if(error){toast("Commande non enregistrée : "+error.message);return;}
+          STATE.cart=STATE.cart.filter(x=>!lines.some(y=>y.cart.prodId===x.prodId));
+          await loadZackWorkspace();
+          toast("Commande envoyée au vendeur. Le paiement se règle directement avec lui, hors Zack.");
+          if(!STATE.cart.length)this.open("personal-orders");else render();
         },
         openChat(id) {
           const c = STATE.conversations.find((x) => x.id === id);
@@ -5686,25 +5692,16 @@
             render();
           }
         },
-        saveProfile(e) {
-          e.preventDefault();
-          if (!lockSubmit("save-profile")) return;
-          const phone = document.getElementById("pPhone").value.trim();
-          if (phone && !isValidHaitiPhone(phone)) {
-            toast("Veuillez saisir un numéro haïtien valide (+509 + 8 chiffres).");
-            return;
-          }
-          STATE.user.name = document.getElementById("pName").value.trim();
-          STATE.user.email = document.getElementById("pMail").value.trim();
-          STATE.user.phone = phone ? formatHaitiPhone(phone) : "";
-          STATE.user.dept = document.getElementById("pDept").value;
-          STATE.user.commune = document.getElementById("pComm").value.trim();
-          const sectEl = document.getElementById("pSect");
-          const quartEl = document.getElementById("pQuart");
-          if (sectEl) STATE.user.sectionCommunale = sectEl.value.trim();
-          if (quartEl) STATE.user.quartier = quartEl.value.trim();
-          toast("Profil enregistré (aperçu local).");
-          this.back();
+        async saveProfile(e) {
+          e.preventDefault();if(!lockSubmit("save-profile"))return;
+          const phone=document.getElementById("pPhone").value.trim();
+          if(phone&&!isValidHaitiPhone(phone)){toast("Veuillez saisir un numéro haïtien valide (+509 + 8 chiffres).");return;}
+          const full_name=document.getElementById("pName").value.trim();
+          const formattedPhone=phone?formatHaitiPhone(phone):null;
+          const {error}=await supabaseClient.from("profiles").update({full_name,phone:formattedPhone}).eq("id",STATE.user.id);
+          if(error){toast("Profil non enregistré : "+error.message);return;}
+          STATE.user.name=full_name;STATE.user.phone=formattedPhone||"";
+          toast("Profil enregistré dans Zack.");this.back();
         },
         openReportDrawer(targetType, targetId) {
           let label = targetId;
@@ -5793,36 +5790,74 @@
         },
         removeDraftImg(idx) { STATE.draftImages.splice(idx, 1); render(); },
 
-        addProduct(e, bizId) {
+        async addProduct(e,bizId) {
           e.preventDefault();
-          const stEl = document.getElementById("npStock");
-          const stockQty = stEl ? Math.max(0, Number(stEl.value) || 0) : 10;
-          STATE.products.unshift({ id: "prd-" + Date.now(), bizId, name: document.getElementById("npName").value.trim(), category: getCatName(getBiz(bizId).categoryId), priceHtg: Number(document.getElementById("npPrice").value), available: stockQty > 0, stockQty, variants: document.getElementById("npVar").value.trim() || "Standard", desc: document.getElementById("npDesc").value.trim(), art: "craft", images: [...STATE.draftImages] });
-          STATE.draftImages = [];
-          toast("Produit publié (aperçu local) !");
-          this.switchRoot("home");
+          const business=getBiz(bizId);if(!business||!canPro("content"))return;
+          const name=document.getElementById("npName").value.trim();
+          const price=Number(document.getElementById("npPrice").value);
+          const description=document.getElementById("npDesc").value.trim();
+          if(!name||!Number.isFinite(price)||price<0||!description){toast("Vérifiez les informations du produit.");return;}
+          try{
+            const images=await uploadBusinessImages(bizId,STATE.draftImages,"products");
+            const {data:product,error}=await supabaseClient.from("products").insert({
+              business_id:bizId,name,description,price,currency:"HTG",image_url:images[0]||null,is_available:true
+            }).select("*").single();
+            if(error)throw error;
+            if(images.length){
+              const rows=images.map((url,index)=>({product_id:product.id,business_id:bizId,image_url:url,storage_path:url,is_primary:index===0,display_order:index}));
+              const saved=await supabaseClient.from("product_images").insert(rows);
+              if(saved.error)throw saved.error;
+            }
+            STATE.draftImages=[];await loadZackWorkspace();toast("Produit enregistré dans le catalogue Zack.");this.switchRoot("pro-catalog");
+          }catch(error){toast("Publication du produit impossible : "+error.message);}
         },
-        addService(e, bizId) {
+        async addService(e,bizId) {
           e.preventDefault();
-          const p = Number(document.getElementById("nsPrice").value);
-          STATE.services.unshift({ id: "srv-" + Date.now(), bizId, name: document.getElementById("nsName").value.trim(), priceHtg: p, onQuote: p === 0, conditions: document.getElementById("nsCond").value.trim(), desc: document.getElementById("nsDesc").value.trim(), images: [...STATE.draftImages] });
-          STATE.draftImages = [];
-          toast("Service publié (aperçu local) !");
-          this.back();
+          try{
+            const images=await uploadBusinessImages(bizId,STATE.draftImages.slice(0,1),"services");
+            const price=Number(document.getElementById("nsPrice").value);
+            const {error}=await supabaseClient.from("services").insert({
+              business_id:bizId,name:document.getElementById("nsName").value.trim(),
+              description:document.getElementById("nsDesc").value.trim(),price:price===0?null:price,
+              currency:"HTG",duration:document.getElementById("nsCond").value.trim(),image_url:images[0]||null,is_available:true
+            });
+            if(error)throw error;
+            STATE.draftImages=[];await loadZackWorkspace();toast("Service enregistré dans Zack.");this.back();
+          }catch(error){toast("Enregistrement du service impossible : "+error.message);}
         },
-        addPromo(e, bizId) {
+        async addPromo(e,bizId) {
           e.preventDefault();
-          STATE.promotions.unshift({ id: "prm-" + Date.now(), bizId, title: document.getElementById("nprmTitle").value.trim(), oldHtg: Number(document.getElementById("nprmOld").value), newHtg: Number(document.getElementById("nprmNew").value), start: "2026-11-12", end: document.getElementById("nprmEnd").value, conditions: document.getElementById("nprmCond").value.trim(), images: [...STATE.draftImages] });
-          STATE.draftImages = [];
-          toast("Promotion ajoutée (aperçu local) !");
-          this.open("promos");
+          try{
+            const title=document.getElementById("nprmTitle").value.trim();
+            const oldPrice=Number(document.getElementById("nprmOld").value);
+            const newPrice=Number(document.getElementById("nprmNew").value);
+            if(!title||oldPrice<=0||newPrice<0||newPrice>=oldPrice){toast("Vérifiez les anciens et nouveaux prix de la promotion.");return;}
+            const images=await uploadBusinessImages(bizId,STATE.draftImages.slice(0,1),"promotions");
+            const end=document.getElementById("nprmEnd").value;
+            const {error}=await supabaseClient.from("promotions").insert({
+              business_id:bizId,title,description:document.getElementById("nprmCond").value.trim(),
+              discount_type:"percentage",discount_value:Number(((oldPrice-newPrice)/oldPrice*100).toFixed(2)),
+              image_url:images[0]||null,start_at:new Date().toISOString(),end_at:end?new Date(end+"T23:59:59").toISOString():null,is_active:true
+            });
+            if(error)throw error;
+            STATE.draftImages=[];await loadZackWorkspace();toast("Promotion publiée dans Zack.");this.open("promos");
+          }catch(error){toast("Publication de la promotion impossible : "+error.message);}
         },
-        addEvent(e, bizId) {
+        async addEvent(e,bizId) {
           e.preventDefault();
-          STATE.events.unshift({ id: "evt-" + Date.now(), bizId, title: document.getElementById("nevTitle").value.trim(), date: document.getElementById("nevDate").value, time: document.getElementById("nevTime").value, place: document.getElementById("nevPlace").value.trim(), desc: document.getElementById("nevDesc").value.trim(), images: [...STATE.draftImages] });
-          STATE.draftImages = [];
-          toast("Événement publié (aperçu local) !");
-          this.open("events");
+          try{
+            const images=await uploadBusinessImages(bizId,STATE.draftImages.slice(0,1),"events");
+            const date=document.getElementById("nevDate").value;
+            const time=document.getElementById("nevTime").value||"09:00";
+            const startAt=new Date(date+"T"+time).toISOString();
+            const {error}=await supabaseClient.from("business_events").insert({
+              business_id:bizId,title:document.getElementById("nevTitle").value.trim(),
+              description:document.getElementById("nevDesc").value.trim(),location:document.getElementById("nevPlace").value.trim(),
+              image_url:images[0]||null,start_at:startAt,is_published:true
+            });
+            if(error)throw error;
+            STATE.draftImages=[];await loadZackWorkspace();toast("Événement enregistré dans Zack.");this.open("events");
+          }catch(error){toast("Publication de l'événement impossible : "+error.message);}
         },
         toggleProdAvail(id) {
           const p = STATE.products.find((x) => x.id === id);
@@ -5831,18 +5866,16 @@
           toast(p.available ? "Produit marqué disponible." : "Produit marqué indisponible.");
           render();
         },
-        deleteProd(id) {
-          STATE.products = STATE.products.filter((x) => x.id !== id);
-          STATE.cart = STATE.cart.filter((c) => c.prodId !== id);
-          toast("Produit supprimé.");
-          render();
+        async deleteProd(id) {
+          const {error}=await supabaseClient.from("products").delete().eq("id",id);
+          if(error){toast("Suppression impossible : "+error.message);return;}
+          STATE.cart=STATE.cart.filter(x=>x.prodId!==id);await loadZackWorkspace();toast("Produit supprimé.");render();
         },
-        deleteSrv(id) {
-          STATE.services = STATE.services.filter((x) => x.id !== id);
-          toast("Service supprimé.");
-          render();
+        async deleteSrv(id) {
+          const {error}=await supabaseClient.from("services").delete().eq("id",id);
+          if(error){toast("Suppression impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Service supprimé.");render();
         },
-
         saveBizId(e, bizId) {
           e.preventDefault();
           const b = getBiz(bizId);
@@ -5886,54 +5919,31 @@
           toast(`Stock de « ${p.name} » : ${p.stockQty}`);
           render();
         },
-        addEstablishment(e, bizId) {
-          e.preventDefault();
-          if (!lockSubmit("est-" + bizId)) return;
-          const name = document.getElementById("estName").value.trim();
-          const dept = document.getElementById("estDept").value;
-          const commune = document.getElementById("estComm").value.trim();
-          const quartier = document.getElementById("estQuart").value.trim();
-          const address = document.getElementById("estAddr").value.trim();
-          const phone = document.getElementById("estPhone").value.trim();
-          const hours = document.getElementById("estHours").value.trim() || "Lun–Sam 08h00–17h00";
-          STATE.establishments.push({ id: "est-" + Date.now(), bizId, name, dept, commune, sectionCommunale: "", quartier, address, phone, hours, isMain: false });
-          toast(`Établissement « ${name} » ajouté (aperçu local).`);
-          render();
-        },
-        removeEstablishment(estId) {
-          STATE.establishments = STATE.establishments.filter((x) => x.id !== estId || x.isMain);
-          toast("Établissement retiré.");
-          render();
-        },
-        assignOrderMission(e, orderId, bizId) {
-          e.preventDefault();
-          const sel = document.getElementById("ordCour-" + orderId);
-          const courierId = sel ? sel.value : "";
-          const o = STATE.orders.find((x) => x.id === orderId);
-          const b = getBiz(bizId);
-          const cr = STATE.couriers.find((c) => c.id === courierId);
-          if (!o || !cr) return;
-          if (cr.availability === "Suspendu") { toast("Ce livreur est suspendu."); return; }
-          if (STATE.deliveryMissions.some((m) => m.orderId === orderId)) { toast("Une mission existe déjà pour cette commande."); return; }
-          STATE.deliveryMissions.unshift({
-            id: "mis-" + Date.now(),
-            orderId: o.id,
-            bizId,
-            courierId: cr.id,
-            pickupAddress: b ? `${b.address}, ${b.commune}` : "Boutique",
-            dropoffAddress: o.address,
-            customerName: o.customerName,
-            customerPhone: o.customerPhone,
-            feeHtg: 400,
-            status: "Assignée",
-            incidentNote: "",
-            createdAt: "À l'instant",
-            updatedAt: "À l'instant"
+        async addEstablishment(e,bizId) {
+          e.preventDefault();if(!lockSubmit("est-"+bizId))return;
+          const {error}=await supabaseClient.from("business_establishments").insert({
+            business_id:bizId,name:document.getElementById("estName").value.trim(),
+            city:document.getElementById("estComm").value.trim(),neighborhood:document.getElementById("estQuart").value.trim(),
+            address:document.getElementById("estAddr").value.trim(),phone:document.getElementById("estPhone").value.trim(),
+            is_active:true
           });
-          o.status = "En livraison";
-          pushNotification("mission_assigned", `Mission ${o.id} assignée au livreur ${cr.name}.`, "courier-space");
-          toast(`Mission assignée à ${cr.name}.`);
-          render();
+          if(error){toast("Ajout impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Établissement enregistré.");render();
+        },
+        async removeEstablishment(estId) {
+          const row=STATE.establishments.find(x=>x.id===estId);if(!row||row.isMain)return;
+          const {error}=await supabaseClient.from("business_establishments").delete().eq("id",estId);
+          if(error){toast("Suppression impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Établissement retiré.");render();
+        },
+        async assignOrderMission(e,orderId,bizId) {
+          e.preventDefault();
+          const sel=document.getElementById("ordCour-"+orderId);
+          const courierId=sel?sel.value:"";
+          if(!courierId){toast("Choisissez un livreur.");return;}
+          const {error}=await supabaseClient.rpc("seller_assign_courier",{p_order:orderId,p_courier:courierId});
+          if(error){toast("Affectation impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Livreur affecté à la commande.");render();
         },
         inviteCourierToBiz(bizId, courierId) {
           const dup = STATE.courierAffiliations.find((a) => a.bizId === bizId && a.courierId === courierId && ["Invitation envoyée", "Active"].includes(a.status));
@@ -5968,15 +5978,13 @@
           toast("Affiliation terminée.");
           render();
         },
-        setOrderStatus(id, s) {
-          const o = STATE.orders.find((x) => x.id === id);
-          if (o) {
-            o.status = s;
-            pushNotification("order_status", `Commande ${o.id} passée au statut « ${s} ».`, "personal-orders");
-            toast("Statut : " + s);
-          }
+        async setOrderStatus(id,s) {
+          const map={"Acceptée":"accepted","En préparation":"preparing","Prête":"ready","En livraison":"out_for_delivery","Livrée":"delivered","Terminée":"completed","Annulée":"cancelled"};
+          const status=map[s]||s;
+          const {error}=await supabaseClient.rpc("seller_set_order_status",{p_order:id,p_status:status});
+          if(error){toast("Mise à jour de la commande refusée : "+error.message);return;}
+          await loadZackWorkspace();toast("Statut de commande mis à jour.");render();
         },
-
         addStaffMember(e, bizId) {
           e.preventDefault();
           STATE.teamMembers.push({
@@ -6013,48 +6021,35 @@
           const items = getQuartierSuggestions(d.value, c ? c.value.trim() : "");
           dl.innerHTML = items.map((qt) => `<option value="${esc(qt)}"></option>`).join("");
         },
-        createBiz(e) {
+        async createBiz(e) {
           e.preventDefault();
-          if (!lockSubmit("create-biz")) return;
-          const name = document.getElementById("nbName").value.trim();
-          const webRaw = document.getElementById("nbWeb").value.trim();
-          if (webRaw && !safeUrl(webRaw)) {
-            toast("Le site web doit commencer par https:// ou http://.");
-            return;
-          }
-          const dept = document.getElementById("nbDept").value;
-          const comm = document.getElementById("nbComm").value || (HAITI_GEO[dept] ? Object.keys(HAITI_GEO[dept])[0] : "");
-          const sectEl = document.getElementById("nbSect");
-          const sectionCommunale = sectEl ? sectEl.value.trim() : "";
-          const quartier = document.getElementById("nbQuart").value.trim();
-          const address = document.getElementById("nbAddr").value.trim();
-          const phone = document.getElementById("nbPhone").value.trim();
-          const hours = document.getElementById("nbHours").value.trim() || "Lun–Sam : 08h00 – 17h00";
-          const id = "biz-" + Date.now();
-          STATE.businesses.unshift({
-            id, name, initials: name.slice(0, 2).toUpperCase(),
-            grad: "linear-gradient(135deg, #0A1A4F, #3B82F6)",
-            logoDataUrl: "", coverDataUrl: "",
-            subCategory: document.getElementById("nbSub").value.trim(),
-            shortDesc: document.getElementById("nbDesc").value.trim(),
-            longDesc: document.getElementById("nbDesc").value.trim(),
-            categoryId: document.getElementById("nbCat").value,
-            dept, commune: comm, city: comm, sectionCommunale,
-            quartier, address, phone,
-            whatsapp: safeDigits(document.getElementById("nbWa").value.trim()),
-            email: document.getElementById("nbEmail").value.trim(),
-            website: webRaw ? safeUrl(webRaw) : "",
-            socials: { facebook: "", instagram: "" },
-            hours, complementaryInfo: "",
-            gallery: [],
-            status: "pending", rating: 0, reviewCount: 0, followers: 0, views: 0,
-            createdAt: "2026-11-14", plan: "Gratuit", planStatus: "active", planExpiresAt: "",
-            featured: false, documentsVerified: false, correctionNote: ""
+          if(!STATE.user){toast("Connectez-vous pour enregistrer une entreprise.");this.switchRoot("auth");return;}
+          if(!lockSubmit("create-biz"))return;
+          const name=document.getElementById("nbName").value.trim();
+          const webRaw=document.getElementById("nbWeb").value.trim();
+          if(webRaw&&!safeUrl(webRaw)){toast("Le site web doit commencer par https:// ou http://.");return;}
+          const dept=document.getElementById("nbDept").value;
+          const comm=document.getElementById("nbComm").value||(HAITI_GEO[dept]?Object.keys(HAITI_GEO[dept])[0]:"");
+          const quartier=document.getElementById("nbQuart").value.trim();
+          const address=document.getElementById("nbAddr").value.trim();
+          const phone=document.getElementById("nbPhone").value.trim();
+          if(!name||!comm||!address||!phone){toast("Complétez les champs obligatoires.");return;}
+          const category=getCatName(document.getElementById("nbCat").value);
+          const {data:businessId,error}=await supabaseClient.rpc("create_business",{
+            p_name:name,p_slug:slugifyBusinessName(name),p_description:document.getElementById("nbDesc").value.trim(),
+            p_category:category,p_address:address,p_neighborhood:quartier,p_phone:phone,
+            p_whatsapp:safeDigits(document.getElementById("nbWa").value.trim()),p_email:document.getElementById("nbEmail").value.trim()
           });
-          STATE.establishments.push({ id: "est-" + Date.now(), bizId: id, name: "Siège Principal", dept, commune: comm, sectionCommunale, quartier, address, phone, hours, isMain: true });
-          STATE.proBizId = id;
-          addAudit(STATE.user ? STATE.user.name : "Entreprise", `Nouvelle fiche soumise : « ${name} »`);
-          toast("Fiche soumise (en attente de validation administrative).");
+          if(error){toast("Création impossible : "+error.message);return;}
+          const update=await supabaseClient.from("businesses").update({
+            city:comm,street:address,website:webRaw||null,
+            facebook_url:null,instagram_url:null
+          }).eq("id",businessId);
+          if(update.error){toast("Entreprise créée, mais certaines informations restent à compléter : "+update.error.message);}
+          await loadZackWorkspace();
+          STATE.proBizId=businessId;STATE.selectedBizId=businessId;
+          addAudit(STATE.user.name,"Nouvelle entreprise soumise : "+name);
+          toast("Entreprise enregistrée. Elle est maintenant en attente de vérification par Zack.");
           this.switchRoot("pro-dashboard");
         },
         setProIndepTab(t) { STATE.proIndepTab = t; render(); },
@@ -6161,16 +6156,12 @@
           toast(decision === "accept" ? "Affiliation activée !" : "Invitation refusée.");
           render();
         },
-        updateMissionStatus(misId, newStatus) {
-          const m = STATE.deliveryMissions.find((x) => x.id === misId);
-          if (!m) return;
-          m.status = newStatus;
-          m.updatedAt = "À l'instant";
-          const o = STATE.orders.find((x) => x.id === m.orderId);
-          if (o && newStatus === "Terminée") o.status = "Livrée";
-          pushNotification("mission_status", `Mission ${m.orderId} : ${newStatus}.`, "courier-space");
-          toast("Mission mise à jour : " + newStatus);
-          render();
+        async updateMissionStatus(misId,newStatus) {
+          const map={"Acceptée":"accepted","En préparation":"preparing","Prête":"ready","En cours":"out_for_delivery","Terminée":"delivered","Incident":"out_for_delivery"};
+          const status=map[newStatus]||newStatus;
+          const {error}=await supabaseClient.rpc("seller_set_order_status",{p_order:misId,p_status:status});
+          if(error){toast("Mise à jour de mission impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Mission mise à jour.");render();
         },
         reportMissionIncident(e, misId) {
           e.preventDefault();
