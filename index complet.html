@@ -938,7 +938,8 @@
         plans.forEach(row=>{
           STATE.plans[row.name]={name:row.name,code:row.code,id:row.id,priceHtg:Number(row.price_htg),durationDays:Number(row.duration_days),maxImages:Number(row.max_images_per_item),maxProducts:row.max_products,maxServices:row.max_services,maxPublications:row.max_publications_per_month,maxTeamMembers:row.max_team_members,maxEstablishments:row.max_establishments,statsLevel:row.stats_level,visibilityLevel:row.visibility_level,active:row.is_active};
         });
-        STATE.businesses=biz.map(row=>mapDbBusiness(row,hours,media,[],plans,subs));
+        const ratingRows=reviews.reduce((acc,row)=>{let x=acc.find(v=>v.business_id===row.business_id);if(!x){x={business_id:row.business_id,average_rating:0,review_count:0,_sum:0};acc.push(x);}x._sum+=Number(row.rating||0);x.review_count++;x.average_rating=x._sum/x.review_count;return acc;},[]);
+        STATE.businesses=biz.map(row=>mapDbBusiness(row,hours,media,ratingRows,plans,subs));
         STATE.products=prods.map(row=>({
           id:row.id,bizId:row.business_id,name:row.name,category:(STATE.businesses.find(b=>b.id===row.business_id)||{}).subCategory||"",
           priceHtg:Number(row.price||0),currency:row.currency||"HTG",available:row.is_available!==false,
@@ -958,7 +959,7 @@
         if(!supabaseClient||!STATE.user) return;
         await loadZackPublicData();
         const uid=STATE.user.id;
-        const [members,couriers,establishments,favorites,orders,items,convs,messages,notifs,subs,payments,recipients,plans,events,reports,adminRoles] = await Promise.all([
+        const [members,couriers,establishments,favorites,orders,items,convs,messages,notifs,subs,payments,recipients,plans,events,reports,adminRoles,invitations] = await Promise.all([
           safeDbRows("business_members",q=>q.eq("user_id",uid)),
           safeDbRows("couriers"),
           safeDbRows("business_establishments"),
@@ -974,14 +975,16 @@
           safeDbRows("subscription_plans"),
           safeDbRows("business_events"),
           safeDbRows("reports"),
-          safeDbRows("admin_roles")
+          safeDbRows("admin_roles"),
+          safeDbRows("business_invitations")
         ]);
         const bizIds=[...new Set(members.map(x=>x.business_id))];
         const team= bizIds.length ? await safeDbRows("business_members",q=>q.in("business_id",bizIds)) : members;
         const memberIds=[...new Set(team.map(x=>x.user_id))];
-        const profiles=memberIds.length ? await safeDbRows("profiles",q=>q.in("id",memberIds)) : [];
+        const profiles=STATE.user.isAdmin ? await safeDbRows("profiles") : (memberIds.length ? await safeDbRows("profiles",q=>q.in("id",memberIds)) : []);
         STATE.teamMembers=team.map(m=>{const p=profiles.find(x=>x.id===m.user_id)||{};return {id:m.user_id,bizId:m.business_id,userId:m.user_id,name:p.full_name||"Membre Zack",email:"",phone:p.phone||"",role:({owner:"Owner",admin:"Admin",manager:"Manager",editor:"Editor",cashier:"Caissier",courier:"Livreur"})[m.role]||m.role,permissions:m.permissions||[]};});
-        STATE.couriers=couriers.map(row=>({id:row.id,bizId:row.business_id,userId:row.user_id,name:row.name,phone:row.phone||"",vehicleType:row.vehicle||"Moto",vehicleInfo:"",dept:"",commune:"",quartier:"",coverageZones:[],idDocNote:"",idDocVerified:"pending",availability:row.is_active?"Disponible":"Suspendu",incidentCount:0,freeBadge:true,_db:row}));
+        STATE.teamMembers.push(...invitations.filter(x=>x.status==="pending"&&bizIds.includes(x.business_id)).map(x=>({id:x.id,invitationId:x.id,bizId:x.business_id,userId:null,name:x.email,email:x.email,phone:"",role:({admin:"Admin",manager:"Manager",editor:"Editor",cashier:"Caissier",courier:"Livreur"})[x.role]||x.role,status:"Invitation en attente"})));
+        STATE.couriers=couriers.map(row=>({id:row.id,bizId:row.business_id,userId:row.user_id,name:row.name,phone:row.phone||"",vehicleType:row.vehicle||"Moto",vehicleInfo:row.vehicle_info||"",dept:row.department||"",commune:row.commune||"",sectionCommunale:row.section_communal||"",quartier:row.neighborhood||"",coverageZones:row.coverage_zones||[],idDocNote:row.id_doc_note||"",idDocVerified:row.id_doc_status||"pending",availability:row.is_active?"Disponible":"Suspendu",incidentCount:0,freeBadge:true,_db:row}));
         STATE.establishments=STATE.establishments.concat(establishments.map(row=>({id:row.id,bizId:row.business_id,name:row.name,dept:"",commune:row.city||"",quartier:row.neighborhood||"",address:row.address||"",phone:row.phone||"",hours:"",isMain:false,_db:row})));
         STATE.favorites=favorites.map(x=>x.business_id);
         STATE.orders=orders.map(row=>mapDbOrder(row,items));
@@ -1012,14 +1015,14 @@
       async function hydrateAuthenticatedUser(authUser) {
         if (!supabaseClient || !authUser || !authUser.id) throw new Error("Session utilisateur invalide.");
         let profileResult = await supabaseClient.from("profiles")
-          .select("full_name, phone").eq("id", authUser.id).maybeSingle();
+          .select("full_name, phone, department, commune, section_communal, neighborhood, avatar_url").eq("id", authUser.id).maybeSingle();
         if (profileResult.error) throw profileResult.error;
         let profile = profileResult.data;
         if (!profile) {
           const profileName = (authUser.user_metadata && authUser.user_metadata.full_name) || (authUser.email || "").split("@")[0] || "Utilisateur Zack";
           const created = await supabaseClient.from("profiles")
             .insert({ id: authUser.id, full_name: profileName, phone: authUser.phone || null })
-            .select("full_name, phone").single();
+            .select("full_name, phone, department, commune, section_communal, neighborhood, avatar_url").single();
           if (created.error) throw created.error;
           profile = created.data;
         }
@@ -1050,8 +1053,9 @@
         const displayName = profile.full_name || (authUser.user_metadata && authUser.user_metadata.full_name) || (authUser.email || "").split("@")[0] || "Utilisateur Zack";
         STATE.user = {
           id: authUser.id, name: displayName, email: authUser.email || "",
-          phone: profile.phone || authUser.phone || "", dept: "", commune: "",
-          sectionCommunale: "", avatarDataUrl: "", coverDataUrl: "",
+          phone: profile.phone || authUser.phone || "", dept: profile.department || "", commune: profile.commune || "",
+          sectionCommunale: profile.section_communal || "", quartier: profile.neighborhood || "",
+          avatarDataUrl: profile.avatar_url || "", coverDataUrl: "",
           isAdmin: isAdmin, roles: roles,
           businessMemberships: memberships, courierRecords: courierRows
         };
