@@ -874,16 +874,17 @@
         const activeSub = (subRows || []).filter((x)=>x.business_id===row.id && ["active","queued"].includes(x.status) && (!x.starts_at || new Date(x.starts_at)<=new Date()) && (!x.ends_at || new Date(x.ends_at)>new Date())).sort((a,b)=>new Date(b.starts_at||0)-new Date(a.starts_at||0))[0];
         const plan = activeSub ? (planRows || []).find((x)=>x.id===activeSub.plan_id) : null;
         const city = row.city || "";
+        const dept=row.department||"";
         return {
           id:row.id,name:row.name,initials:(row.name||"Z").slice(0,2).toUpperCase(),
           grad:"linear-gradient(135deg, #0A1A4F, #3B82F6)",
           logoDataUrl:row.logo_url||"",coverDataUrl:row.cover_url||"",
-          subCategory:categoryName,shortDesc:row.description||"",longDesc:row.description||"",
-          categoryId:dbCategoryId(categoryName,row.category_id),dept:"",commune:city,city,
-          quartier:row.neighborhood||"",address:row.address||"",phone:row.phone||"",whatsapp:row.whatsapp||"",
+          subCategory:row.activity_summary||categoryName,shortDesc:row.description||"",longDesc:row.description||"",
+          categoryId:dbCategoryId(categoryName,row.category_id),dept,commune:city,city,
+          sectionCommunale:row.section_communal||"",quartier:row.neighborhood||"",address:row.address||"",phone:row.phone||"",whatsapp:row.whatsapp||"",
           email:row.email||"",website:row.website||"",
           socials:{facebook:row.facebook_url||"",instagram:row.instagram_url||"",tiktok:row.tiktok_url||"",youtube:row.youtube_url||""},
-          hours:hours,gallery:gallery,status:row.status,rating:Number(rating?.average_rating||0),
+          hours:row.hours_text||hours,complementaryInfo:row.additional_info||"",gallery:gallery,status:row.status,rating:Number(rating?.average_rating||0),
           reviewCount:Number(rating?.review_count||0),followers:0,views:0,createdAt:dbDate(row.created_at),
           plan:plan ? plan.name : "Gratuit",planStatus:plan ? "active" : "active",planExpiresAt:activeSub?.ends_at||"",
           featured:false,documentsVerified:row.status==="verified",correctionNote:"",_db:row
@@ -943,13 +944,13 @@
         STATE.products=prods.map(row=>({
           id:row.id,bizId:row.business_id,name:row.name,category:(STATE.businesses.find(b=>b.id===row.business_id)||{}).subCategory||"",
           priceHtg:Number(row.price||0),currency:row.currency||"HTG",available:row.is_available!==false,
-          variants:"",desc:row.description||"",art:"craft",
+          variants:row.variant||"",desc:row.description||"",art:"craft",
           images:images.filter(im=>im.product_id===row.id).sort((a,b)=>a.display_order-b.display_order).map(im=>im.image_url),
-          imageUrl:row.image_url||"",stockQty:null,_db:row
+          imageUrl:row.image_url||"",stockQty:row.stock_quantity==null?null:Number(row.stock_quantity),_db:row
         }));
         STATE.services=services.map(row=>({id:row.id,bizId:row.business_id,name:row.name,priceHtg:Number(row.price||0),currency:row.currency||"HTG",onQuote:row.price==null||Number(row.price)===0,conditions:row.duration||"",desc:row.description||"",images:row.image_url?[row.image_url]:[],available:row.is_available!==false,_db:row}));
         STATE.publications=posts.map(row=>({id:row.id,bizId:row.business_id,type:row.post_type==="announcement"?"Annonce":row.post_type==="event"?"Événement":"Actualité",date:dbDate(row.published_at||row.created_at),title:row.title||"",content:row.content||"",images:row.media_url?[row.media_url]:[],hidden:!row.is_published,_db:row}));
-        STATE.promotions=promos.map(row=>({id:row.id,bizId:row.business_id,title:row.title,oldHtg:null,newHtg:null,discountType:row.discount_type,discountValue:Number(row.discount_value||0),start:dbDate(row.start_at),end:dbDate(row.end_at),conditions:row.description||"",images:row.image_url?[row.image_url]:[],hidden:!row.is_active||Boolean(row.archived_at),_db:row}));
+        STATE.promotions=promos.map(row=>({id:row.id,bizId:row.business_id,title:row.title,oldHtg:row.original_price==null?null:Number(row.original_price),newHtg:row.discounted_price==null?null:Number(row.discounted_price),discountType:row.discount_type,discountValue:Number(row.discount_value||0),start:dbDate(row.start_at),end:dbDate(row.end_at),conditions:row.description||"",images:row.image_url?[row.image_url]:[],hidden:!row.is_active||Boolean(row.archived_at),_db:row}));
         STATE.events=events.map(row=>({id:row.id,bizId:row.business_id,title:row.title,date:dbDate(row.start_at),time:row.start_at?new Date(row.start_at).toLocaleTimeString("fr-HT",{hour:"2-digit",minute:"2-digit"}):"",place:row.location||"",desc:row.description||"",images:row.image_url?[row.image_url]:[],hidden:!row.is_published||Boolean(row.archived_at),_db:row}));
         STATE.reviews=reviews.map(row=>({id:row.id,bizId:row.business_id,author:"Client Zack",rating:Number(row.rating),date:dbDate(row.created_at),comment:row.content||"",reply:row.owner_response||"",orderId:row.order_id,_db:row}));
         STATE.establishments=STATE.businesses.map(b=>({id:"main-"+b.id,bizId:b.id,name:b.name+" · Siège principal",dept:"",commune:b.commune,quartier:b.quartier,address:b.address,phone:b.phone,hours:b.hours,isMain:true}));
@@ -984,8 +985,8 @@
         const profiles=STATE.user.isAdmin ? await safeDbRows("profiles") : (memberIds.length ? await safeDbRows("profiles",q=>q.in("id",memberIds)) : []);
         STATE.teamMembers=team.map(m=>{const p=profiles.find(x=>x.id===m.user_id)||{};return {id:m.user_id,bizId:m.business_id,userId:m.user_id,name:p.full_name||"Membre Zack",email:"",phone:p.phone||"",role:({owner:"Owner",admin:"Admin",manager:"Manager",editor:"Editor",cashier:"Caissier",courier:"Livreur"})[m.role]||m.role,permissions:m.permissions||[]};});
         STATE.teamMembers.push(...invitations.filter(x=>x.status==="pending"&&bizIds.includes(x.business_id)).map(x=>({id:x.id,invitationId:x.id,bizId:x.business_id,userId:null,name:x.email,email:x.email,phone:"",role:({admin:"Admin",manager:"Manager",editor:"Editor",cashier:"Caissier",courier:"Livreur"})[x.role]||x.role,status:"Invitation en attente"})));
-        STATE.couriers=couriers.map(row=>({id:row.id,bizId:row.business_id,userId:row.user_id,name:row.name,phone:row.phone||"",vehicleType:row.vehicle||"Moto",vehicleInfo:row.vehicle_info||"",dept:row.department||"",commune:row.commune||"",sectionCommunale:row.section_communal||"",quartier:row.neighborhood||"",coverageZones:row.coverage_zones||[],idDocNote:row.id_doc_note||"",idDocVerified:row.id_doc_status||"pending",availability:row.is_active?"Disponible":"Suspendu",incidentCount:0,freeBadge:true,_db:row}));
-        STATE.establishments=STATE.establishments.concat(establishments.map(row=>({id:row.id,bizId:row.business_id,name:row.name,dept:"",commune:row.city||"",quartier:row.neighborhood||"",address:row.address||"",phone:row.phone||"",hours:"",isMain:false,_db:row})));
+        STATE.couriers=couriers.map(row=>({id:row.id,bizId:row.business_id,userId:row.user_id,name:row.name,phone:row.phone||"",vehicleType:row.vehicle||"Moto",vehicleInfo:row.vehicle_info||"",dept:row.department||"",commune:row.commune||"",sectionCommunale:row.section_communal||"",quartier:row.neighborhood||"",coverageZones:row.coverage_zones||[],idDocNote:row.id_doc_note||"",idDocVerified:row.id_doc_status||"pending",availability:({available:"Disponible",on_route:"En tournée",unavailable:"Indisponible",suspended:"Suspendu"})[row.availability_status]||(row.is_active?"Disponible":"Indisponible"),incidentCount:0,freeBadge:true,_db:row}));
+        STATE.establishments=STATE.establishments.concat(establishments.map(row=>({id:row.id,bizId:row.business_id,name:row.name,dept:row.department||"",commune:row.city||"",sectionCommunale:row.section_communal||"",quartier:row.neighborhood||"",address:row.address||"",phone:row.phone||"",hours:row.hours_text||"",isMain:false,_db:row})));
         STATE.favorites=favorites.map(x=>x.business_id);
         STATE.orders=orders.map(row=>mapDbOrder(row,items));
         STATE.deliveryMissions=orders.filter(o=>o.courier_id && couriers.some(c=>c.id===o.courier_id)).map(o=>({id:o.id,orderId:o.order_number,bizId:o.business_id,courierId:o.courier_id,pickupAddress:(STATE.businesses.find(b=>b.id===o.business_id)||{}).address||"",dropoffAddress:o.delivery_address||"",customerName:"Client Zack",customerPhone:o.contact_phone,feeHtg:Number(o.delivery_fee),status:({pending:"Assignée",accepted:"Acceptée",preparing:"En préparation",ready:"Prête",out_for_delivery:"En cours",delivered:"Terminée",completed:"Terminée",cancelled:"Annulée"})[o.status]||o.status,createdAt:o.created_at,updatedAt:o.updated_at}));
@@ -5663,9 +5664,10 @@
           if(phone&&!isValidHaitiPhone(phone)){toast("Veuillez saisir un numéro haïtien valide (+509 + 8 chiffres).");return;}
           const full_name=document.getElementById("pName").value.trim();
           const formattedPhone=phone?formatHaitiPhone(phone):null;
-          const {error}=await supabaseClient.from("profiles").update({full_name,phone:formattedPhone}).eq("id",STATE.user.id);
+          const payload={full_name,phone:formattedPhone,department:document.getElementById("pDept").value,commune:document.getElementById("pComm").value.trim(),section_communal:document.getElementById("pSect").value.trim(),neighborhood:document.getElementById("pQuart").value.trim()};
+          const {error}=await supabaseClient.from("profiles").update(payload).eq("id",STATE.user.id);
           if(error){toast("Profil non enregistré : "+error.message);return;}
-          STATE.user.name=full_name;STATE.user.phone=formattedPhone||"";
+          Object.assign(STATE.user,{name:full_name,phone:formattedPhone||"",dept:payload.department,commune:payload.commune,sectionCommunale:payload.section_communal,quartier:payload.neighborhood});
           toast("Profil enregistré dans Zack.");this.back();
         },
         openReportDrawer(targetType, targetId) {
@@ -5756,23 +5758,15 @@
         removeDraftImg(idx) { STATE.draftImages.splice(idx, 1); render(); },
 
         async addProduct(e,bizId) {
-          e.preventDefault();
-          const business=getBiz(bizId);if(!business||!canPro("content"))return;
-          const name=document.getElementById("npName").value.trim();
-          const price=Number(document.getElementById("npPrice").value);
-          const description=document.getElementById("npDesc").value.trim();
+          e.preventDefault();const business=getBiz(bizId);if(!business||!canPro("content"))return;
+          const name=document.getElementById("npName").value.trim(),price=Number(document.getElementById("npPrice").value),description=document.getElementById("npDesc").value.trim();
+          const stock=Math.max(0,Number(document.getElementById("npStock")?.value)||0),variant=document.getElementById("npVar").value.trim();
           if(!name||!Number.isFinite(price)||price<0||!description){toast("Vérifiez les informations du produit.");return;}
           try{
             const images=await uploadBusinessImages(bizId,STATE.draftImages,"products");
-            const {data:product,error}=await supabaseClient.from("products").insert({
-              business_id:bizId,name,description,price,currency:"HTG",image_url:images[0]||null,is_available:true
-            }).select("*").single();
+            const {data:product,error}=await supabaseClient.from("products").insert({business_id:bizId,name,description,price,currency:"HTG",image_url:images[0]||null,is_available:stock>0,stock_quantity:stock,variant:variant||null}).select("*").single();
             if(error)throw error;
-            if(images.length){
-              const rows=images.map((url,index)=>({product_id:product.id,business_id:bizId,image_url:url,storage_path:url,is_primary:index===0,display_order:index}));
-              const saved=await supabaseClient.from("product_images").insert(rows);
-              if(saved.error)throw saved.error;
-            }
+            if(images.length){const rows=images.map((url,index)=>({product_id:product.id,business_id:bizId,image_url:url,storage_path:url,is_primary:index===0,display_order:index}));const saved=await supabaseClient.from("product_images").insert(rows);if(saved.error)throw saved.error;}
             STATE.draftImages=[];await loadZackWorkspace();toast("Produit enregistré dans le catalogue Zack.");this.switchRoot("pro-catalog");
           }catch(error){toast("Publication du produit impossible : "+error.message);}
         },
@@ -5793,17 +5787,10 @@
         async addPromo(e,bizId) {
           e.preventDefault();
           try{
-            const title=document.getElementById("nprmTitle").value.trim();
-            const oldPrice=Number(document.getElementById("nprmOld").value);
-            const newPrice=Number(document.getElementById("nprmNew").value);
+            const title=document.getElementById("nprmTitle").value.trim(),oldPrice=Number(document.getElementById("nprmOld").value),newPrice=Number(document.getElementById("nprmNew").value);
             if(!title||oldPrice<=0||newPrice<0||newPrice>=oldPrice){toast("Vérifiez les anciens et nouveaux prix de la promotion.");return;}
-            const images=await uploadBusinessImages(bizId,STATE.draftImages.slice(0,1),"promotions");
-            const end=document.getElementById("nprmEnd").value;
-            const {error}=await supabaseClient.from("promotions").insert({
-              business_id:bizId,title,description:document.getElementById("nprmCond").value.trim(),
-              discount_type:"percentage",discount_value:Number(((oldPrice-newPrice)/oldPrice*100).toFixed(2)),
-              image_url:images[0]||null,start_at:new Date().toISOString(),end_at:end?new Date(end+"T23:59:59").toISOString():null,is_active:true
-            });
+            const images=await uploadBusinessImages(bizId,STATE.draftImages.slice(0,1),"promotions"),end=document.getElementById("nprmEnd").value;
+            const {error}=await supabaseClient.from("promotions").insert({business_id:bizId,title,description:document.getElementById("nprmCond").value.trim(),discount_type:"percentage",discount_value:Number(((oldPrice-newPrice)/oldPrice*100).toFixed(2)),original_price:oldPrice,discounted_price:newPrice,image_url:images[0]||null,start_at:new Date().toISOString(),end_at:end?new Date(end+"T23:59:59").toISOString():null,is_active:true});
             if(error)throw error;
             STATE.draftImages=[];await loadZackWorkspace();toast("Promotion publiée dans Zack.");this.open("promos");
           }catch(error){toast("Publication de la promotion impossible : "+error.message);}
@@ -5843,46 +5830,23 @@
         },
         async saveBizId(e,bizId) {
           e.preventDefault();const b=getBiz(bizId);if(!b)return;
-          const webRaw=document.getElementById("edWeb").value.trim();
-          const fbRaw=document.getElementById("edFb").value.trim();
-          const igRaw=document.getElementById("edIg").value.trim();
+          const webRaw=document.getElementById("edWeb").value.trim(),fbRaw=document.getElementById("edFb").value.trim(),igRaw=document.getElementById("edIg").value.trim();
           if((webRaw&&!safeUrl(webRaw))||(fbRaw&&!safeUrl(fbRaw))||(igRaw&&!safeUrl(igRaw))){toast("Les URLs doivent commencer par https:// ou http://.");return;}
-          const payload={
-            name:document.getElementById("edName").value.trim(),
-            category:getCatName(document.getElementById("edCat").value),
-            category_id:STATE.categories.find(x=>x.id===document.getElementById("edCat").value)?.dbId||null,
-            description:document.getElementById("edLong").value.trim(),
-            city:document.getElementById("edComm").value.trim(),
-            neighborhood:document.getElementById("edQuart").value.trim(),
-            address:document.getElementById("edAddr").value.trim(),
-            street:document.getElementById("edAddr").value.trim(),
-            phone:document.getElementById("edPhone").value.trim(),
-            whatsapp:safeDigits(document.getElementById("edWa").value.trim()),
-            email:document.getElementById("edEmail").value.trim(),
-            website:webRaw||null,facebook_url:fbRaw||null,instagram_url:igRaw||null
-          };
+          const payload={name:document.getElementById("edName").value.trim(),category:getCatName(document.getElementById("edCat").value),category_id:STATE.categories.find(x=>x.id===document.getElementById("edCat").value)?.dbId||null,description:document.getElementById("edLong").value.trim(),department:document.getElementById("edDept").value,city:document.getElementById("edComm").value.trim(),section_communal:document.getElementById("edSect").value.trim(),activity_summary:document.getElementById("edSub").value.trim(),neighborhood:document.getElementById("edQuart").value.trim(),address:document.getElementById("edAddr").value.trim(),street:document.getElementById("edAddr").value.trim(),phone:document.getElementById("edPhone").value.trim(),whatsapp:safeDigits(document.getElementById("edWa").value.trim()),email:document.getElementById("edEmail").value.trim(),website:webRaw||null,facebook_url:fbRaw||null,instagram_url:igRaw||null,hours_text:document.getElementById("edHours").value.trim(),additional_info:document.getElementById("edExtra").value.trim()};
           const {error}=await supabaseClient.from("businesses").update(payload).eq("id",bizId);
           if(error){toast("Fiche non enregistrée : "+error.message);return;}
           await loadZackWorkspace();toast("Fiche entreprise mise à jour.");this.back();
         },
-        adjustProdStock(prodId, delta) {
-          const p = STATE.products.find((x) => x.id === prodId);
-          if (!p) return;
-          const cur = typeof p.stockQty === "number" ? p.stockQty : 10;
-          p.stockQty = Math.max(0, cur + delta);
-          if (p.stockQty === 0) p.available = false;
-          else if (delta > 0) p.available = true;
-          toast(`Stock de « ${p.name} » : ${p.stockQty}`);
-          render();
+        async adjustProdStock(prodId,delta) {
+          const product=STATE.products.find(x=>x.id===prodId);if(!product)return;
+          const current=typeof product.stockQty==="number"?product.stockQty:0,stock=Math.max(0,current+delta);
+          const {error}=await supabaseClient.from("products").update({stock_quantity:stock,is_available:stock>0}).eq("id",prodId);
+          if(error){toast("Stock non modifié : "+error.message);return;}
+          await loadZackWorkspace();toast("Stock du produit mis à jour.");render();
         },
         async addEstablishment(e,bizId) {
           e.preventDefault();if(!lockSubmit("est-"+bizId))return;
-          const {error}=await supabaseClient.from("business_establishments").insert({
-            business_id:bizId,name:document.getElementById("estName").value.trim(),
-            city:document.getElementById("estComm").value.trim(),neighborhood:document.getElementById("estQuart").value.trim(),
-            address:document.getElementById("estAddr").value.trim(),phone:document.getElementById("estPhone").value.trim(),
-            is_active:true
-          });
+          const {error}=await supabaseClient.from("business_establishments").insert({business_id:bizId,name:document.getElementById("estName").value.trim(),department:document.getElementById("estDept").value,city:document.getElementById("estComm").value.trim(),neighborhood:document.getElementById("estQuart").value.trim(),address:document.getElementById("estAddr").value.trim(),phone:document.getElementById("estPhone").value.trim(),hours_text:document.getElementById("estHours").value.trim(),is_active:true});
           if(error){toast("Ajout impossible : "+error.message);return;}
           await loadZackWorkspace();toast("Établissement enregistré.");render();
         },
@@ -5985,35 +5949,20 @@
           dl.innerHTML = items.map((qt) => `<option value="${esc(qt)}"></option>`).join("");
         },
         async createBiz(e) {
-          e.preventDefault();
-          if(!STATE.user){toast("Connectez-vous pour enregistrer une entreprise.");this.switchRoot("auth");return;}
+          e.preventDefault();if(!STATE.user){toast("Connectez-vous pour enregistrer une entreprise.");this.switchRoot("auth");return;}
           if(!lockSubmit("create-biz"))return;
-          const name=document.getElementById("nbName").value.trim();
-          const webRaw=document.getElementById("nbWeb").value.trim();
+          const name=document.getElementById("nbName").value.trim(),webRaw=document.getElementById("nbWeb").value.trim();
           if(webRaw&&!safeUrl(webRaw)){toast("Le site web doit commencer par https:// ou http://.");return;}
-          const dept=document.getElementById("nbDept").value;
-          const comm=document.getElementById("nbComm").value||(HAITI_GEO[dept]?Object.keys(HAITI_GEO[dept])[0]:"");
-          const quartier=document.getElementById("nbQuart").value.trim();
-          const address=document.getElementById("nbAddr").value.trim();
-          const phone=document.getElementById("nbPhone").value.trim();
+          const dept=document.getElementById("nbDept").value,comm=document.getElementById("nbComm").value||(HAITI_GEO[dept]?Object.keys(HAITI_GEO[dept])[0]:"");
+          const quartier=document.getElementById("nbQuart").value.trim(),address=document.getElementById("nbAddr").value.trim(),phone=document.getElementById("nbPhone").value.trim();
           if(!name||!comm||!address||!phone){toast("Complétez les champs obligatoires.");return;}
           const category=getCatName(document.getElementById("nbCat").value);
-          const {data:businessId,error}=await supabaseClient.rpc("create_business",{
-            p_name:name,p_slug:slugifyBusinessName(name),p_description:document.getElementById("nbDesc").value.trim(),
-            p_category:category,p_address:address,p_neighborhood:quartier,p_phone:phone,
-            p_whatsapp:safeDigits(document.getElementById("nbWa").value.trim()),p_email:document.getElementById("nbEmail").value.trim()
-          });
+          const {data:businessId,error}=await supabaseClient.rpc("create_business",{p_name:name,p_slug:slugifyBusinessName(name),p_description:document.getElementById("nbDesc").value.trim(),p_category:category,p_address:address,p_neighborhood:quartier,p_phone:phone,p_whatsapp:safeDigits(document.getElementById("nbWa").value.trim()),p_email:document.getElementById("nbEmail").value.trim()});
           if(error){toast("Création impossible : "+error.message);return;}
-          const update=await supabaseClient.from("businesses").update({
-            city:comm,street:address,website:webRaw||null,
-            facebook_url:null,instagram_url:null
-          }).eq("id",businessId);
-          if(update.error){toast("Entreprise créée, mais certaines informations restent à compléter : "+update.error.message);}
-          await loadZackWorkspace();
-          STATE.proBizId=businessId;STATE.selectedBizId=businessId;
-          addAudit(STATE.user.name,"Nouvelle entreprise soumise : "+name);
-          toast("Entreprise enregistrée. Elle est maintenant en attente de vérification par Zack.");
-          this.switchRoot("pro-dashboard");
+          const update=await supabaseClient.from("businesses").update({department:dept,city:comm,section_communal:document.getElementById("nbSect").value.trim(),activity_summary:document.getElementById("nbSub").value.trim(),hours_text:document.getElementById("nbHours").value.trim(),website:webRaw||null}).eq("id",businessId);
+          if(update.error)toast("Entreprise créée, mais certaines informations restent à compléter : "+update.error.message);
+          await loadZackWorkspace();STATE.proBizId=businessId;STATE.selectedBizId=businessId;
+          toast("Entreprise enregistrée. Elle est maintenant en attente de vérification par Zack.");this.switchRoot("pro-dashboard");
         },
         setProIndepTab(t) { STATE.proIndepTab = t; render(); },
         saveProIndepProfile(e) {
@@ -6083,8 +6032,8 @@
         setCourierMissionFilter(f) { STATE.courierMissionFilter = f; render(); },
         async setCourierAvailability(val) {
           if(!STATE.user)return;
-          const available=val!=="Indisponible"&&val!=="Suspendu";
-          const {error}=await supabaseClient.rpc("set_own_courier_availability",{p_available:available});
+          const status=({"Disponible":"available","En tournée":"on_route","Indisponible":"unavailable"})[val]||"unavailable";
+          const {error}=await supabaseClient.rpc("set_own_courier_availability",{p_status:status});
           if(error){toast("Disponibilité non modifiée : "+error.message);return;}
           const courier=getCurrentCourier();if(courier)courier.availability=val;
           toast("Disponibilité mise à jour.");render();
