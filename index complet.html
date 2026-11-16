@@ -6413,93 +6413,9 @@
           toast("Annonce officielle ajoutée !");
           render();
         },
-        saveAdminPlans(e) {
-          e.preventDefault();
-          if (!hasAdm("manage_plans")) { toast("Réservé à l'Administrateur principal."); return; }
-          const entries = Object.entries(STATE.plans);
-          const next = {};
-          const renameMap = {};
-          const d = new Date(), pad = (n) => String(n).padStart(2, "0");
-          const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-          for (let idx = 0; idx < entries.length; idx++) {
-            const [oldName, oldInfo] = entries[idx];
-            const newName = (document.getElementById("planName-" + idx).value || "").trim() || oldName;
-            const price = Math.max(0, Math.round(Number(document.getElementById("planPrice-" + idx).value)));
-            const durDays = Math.max(0, Math.min(1095, Math.round(Number(document.getElementById("planDurDays-" + idx).value || 0))));
-            const durLbl = (document.getElementById("planDurLbl-" + idx).value || "").trim() || (durDays ? `${durDays} jours` : "Illimitée");
-            const imgs = Math.max(1, Math.min(30, Math.round(Number(document.getElementById("planImg-" + idx).value))));
-            const maxEstEl = document.getElementById("planEst-" + idx);
-            const maxStaffEl = document.getElementById("planStaff-" + idx);
-            const maxEst = maxEstEl ? Math.max(1, Math.min(100, Math.round(Number(maxEstEl.value || 1)))) : (oldInfo.maxEstablishments || 1);
-            const maxStaff = maxStaffEl ? Math.max(1, Math.min(200, Math.round(Number(maxStaffEl.value || 2)))) : (oldInfo.maxStaff || 2);
-            const desc = (document.getElementById("planDesc-" + idx).value || "").trim();
-            const benRaw = (document.getElementById("planBen-" + idx).value || "").trim();
-            if (Number.isNaN(price) || Number.isNaN(imgs)) { toast("Valeurs numériques invalides."); return; }
-            if (newName !== oldName) renameMap[oldName] = newName;
-            if (Number(oldInfo.priceHtg) !== price || Number(oldInfo.durationDays || 0) !== durDays) {
-              if (!STATE.planPriceHistory) STATE.planPriceHistory = [];
-              STATE.planPriceHistory.unshift({
-                id: "pph-" + Date.now() + "-" + idx,
-                planName: newName,
-                oldPriceHtg: Number(oldInfo.priceHtg),
-                newPriceHtg: price,
-                oldDurationDays: Number(oldInfo.durationDays || 0),
-                newDurationDays: durDays,
-                changedBy: this._admActor(),
-                changedAt: today,
-                note: "Anciens paiements conservés à leur montant d'origine"
-              });
-            }
-            next[newName] = {
-              ...oldInfo,
-              priceHtg: price,
-              durationDays: durDays,
-              durationLabel: durLbl,
-              currency: oldInfo.currency || "HTG",
-              maxImages: imgs,
-              maxEstablishments: maxEst,
-              maxStaff,
-              description: desc,
-              benefits: benRaw ? benRaw.split(",").map((x) => x.trim()).filter(Boolean) : []
-            };
-          }
-          STATE.plans = next;
-          if (Object.keys(renameMap).length) {
-            STATE.businesses.forEach((b) => { if (renameMap[b.plan]) b.plan = renameMap[b.plan]; });
-          }
-          addAudit(this._admActor(), "Forfaits & tarifs mis à jour : " + Object.entries(next).map(([n, v]) => `${n} (${v.priceHtg} HTG / ${v.durationDays}j)`).join(", "));
-          toast("Abonnements mis à jour (aperçu local) !");
-          render();
-        },
-        admTogglePlanActive(idx) {
-          if (!hasAdm("manage_plans")) { toast("Réservé à l'Administrateur principal."); return; }
-          const names = Object.keys(STATE.plans);
-          const name = names[idx];
-          if (!name) return;
-          STATE.plans[name].active = STATE.plans[name].active === false;
-          addAudit(this._admActor(), `Forfait « ${name} » ${STATE.plans[name].active ? "activé" : "désactivé"}`);
-          render();
-        },
-        admCreatePlan(e) {
-          e.preventDefault();
-          if (!hasAdm("manage_plans")) { toast("Réservé à l'Administrateur principal."); return; }
-          const name = (document.getElementById("newPlanName").value || "").trim();
-          const price = Math.max(0, Math.round(Number(document.getElementById("newPlanPrice").value)));
-          const durDays = Math.max(1, Math.min(1095, Math.round(Number((document.getElementById("newPlanDurDays") && document.getElementById("newPlanDurDays").value) || 30))));
-          const imgs = Math.max(1, Math.min(30, Math.round(Number(document.getElementById("newPlanImg").value))));
-          const desc = (document.getElementById("newPlanDesc").value || "").trim();
-          if (!name || STATE.plans[name]) { toast("Nom invalide ou déjà existant."); return; }
-          STATE.plans[name] = {
-            priceHtg: price, durationDays: durDays, durationLabel: `${durDays} jours`, currency: "HTG",
-            maxImages: imgs, maxEstablishments: 5, maxStaff: 15,
-            eligibleRoles: ["business", "supplier", "reseller", "partner", "pro_commercial"],
-            active: true, description: desc || `Forfait ${name}`,
-            benefits: [`Jusqu'à ${imgs} images par publication`], features: ["custom"]
-          };
-          addAudit(this._admActor(), `Nouveau forfait créé : « ${name} » (${price} HTG / ${durDays}j)`);
-          toast("Forfait ajouté !");
-          render();
-        },
+        saveAdminPlans(e) { e.preventDefault(); toast("La modification des forfaits est suspendue pour éviter de changer les conditions déjà payées. Les tarifs et quotas validés restent ceux de la matrice Zack."); },
+        admTogglePlanActive(idx) { toast("L'activation/désactivation des forfaits est verrouillée pendant la préparation du lancement."); },
+        admCreatePlan(e) { e.preventDefault(); toast("La création de nouveaux forfaits est désactivée jusqu'à la finalisation de l'interface et des tests de quotas."); },
         admGrantCustomPeriod(e) {
           e.preventDefault();
           if (!hasAdm("manage_plans")) { toast("Réservé à l'Administrateur principal."); return; }
@@ -6540,22 +6456,8 @@
           toast(`${days} jours offerts (${planName}) accordés !`);
           render();
         },
-        admSetBizPlanStatus(bizId, status) {
-          if (!hasAdm("manage_plans")) { toast("Réservé à l'Administrateur principal."); return; }
-          const b = getBiz(bizId);
-          if (!b) return;
-          b.planStatus = status;
-          addAudit(this._admActor(), `Abonnement de « ${b.name} » passé à : ${status}`);
-          toast("Statut d'abonnement mis à jour.");
-          render();
-        },
-        resetAdminPlans() {
-          if (!hasAdm("manage_plans")) { toast("Réservé à l'Administrateur principal."); return; }
-          STATE.plans = JSON.parse(JSON.stringify(PLAN_QUOTAS_DEFAULT));
-          addAudit(this._admActor(), "Forfaits réinitialisés (Gratuit 0 HTG, Pro 750 HTG, Ultra 1 000 HTG)");
-          toast("Forfaits rétablis par défaut.");
-          render();
-        },
+        admSetBizPlanStatus(bizId,status) { toast("Le statut d'abonnement est géré uniquement par la validation sécurisée du paiement ou par la logique d'expiration Supabase."); },
+        resetAdminPlans() { toast("Les forfaits de production ne peuvent pas être réinitialisés depuis cette action."); },
         async admVerifyPayment(payId) {
           if(!isAdminSession()){toast("Accès administrateur requis.");return;}const r=await supabaseClient.rpc("admin_review_payment",{p_payment:payId,p_approve:true,p_note:null});
           if(r.error){toast("Validation impossible : "+r.error.message);return;}await loadZackWorkspace();toast("Paiement validé et abonnement activé.");render();
