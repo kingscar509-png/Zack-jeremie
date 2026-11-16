@@ -594,9 +594,16 @@
   </div>
   <div class="toast-box" id="toastBox" aria-live="polite"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0"></script>
   <script>
     (function () {
       'use strict';
+
+      const SUPABASE_URL = "https://hwuwqalazmrmdxseawnm.supabase.co";
+      const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_3pGbQyThjZyO3FpksGtt1g_edpPkzN5";
+      const supabaseClient = window.supabase && window.supabase.createClient
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+        : null;
 
       /* =========================================================
          1. TRADUCTIONS FRANÇAIS / CRÉOLE HAÏTIEN (FR / HT)
@@ -830,6 +837,97 @@
           tech: `<svg width="58" height="58" viewBox="0 0 64 64" fill="none"><rect x="10" y="16" width="44" height="28" rx="4" fill="#0F172A" stroke="#3B82F6" stroke-width="2"/><path d="M6 48h52" stroke="#64748B" stroke-width="3" stroke-linecap="round"/><path d="M22 28l6 6 14-12" stroke="#FFC107" stroke-width="3" stroke-linecap="round"/></svg>`
         };
         return svgs[kind] || svgs.craft;
+      }
+
+      async function hydrateAuthenticatedUser(authUser) {
+        if (!supabaseClient || !authUser || !authUser.id) throw new Error("Session utilisateur invalide.");
+        let profileResult = await supabaseClient.from("profiles")
+          .select("full_name, phone").eq("id", authUser.id).maybeSingle();
+        if (profileResult.error) throw profileResult.error;
+        let profile = profileResult.data;
+        if (!profile) {
+          const profileName = (authUser.user_metadata && authUser.user_metadata.full_name) || (authUser.email || "").split("@")[0] || "Utilisateur Zack";
+          const created = await supabaseClient.from("profiles")
+            .insert({ id: authUser.id, full_name: profileName, phone: authUser.phone || null })
+            .select("full_name, phone").single();
+          if (created.error) throw created.error;
+          profile = created.data;
+        }
+        const results = await Promise.all([
+          supabaseClient.from("business_members").select("business_id, role, permissions").eq("user_id", authUser.id),
+          supabaseClient.from("couriers").select("id, business_id, name, phone, vehicle, is_active").eq("user_id", authUser.id),
+          supabaseClient.from("admin_roles").select("role, permissions").eq("user_id", authUser.id).maybeSingle()
+        ]);
+        for (const result of results) if (result.error) throw result.error;
+        const memberships = results[0].data || [];
+        const courierRows = results[1].data || [];
+        const adminRole = results[2].data || null;
+        let businessStatuses = [];
+        if (memberships.length) {
+          const businessIds = memberships.map((item) => item.business_id);
+          const businessResult = await supabaseClient.from("businesses")
+            .select("id, name, status").in("id", businessIds);
+          if (businessResult.error) throw businessResult.error;
+          businessStatuses = businessResult.data || [];
+        }
+        const hasVerifiedBusiness = businessStatuses.some((item) => item.status === "verified");
+        const hasPendingBusiness = businessStatuses.some((item) => item.status === "pending");
+        const roles = makeDefaultRoles({
+          business: { status: hasVerifiedBusiness ? "active" : (hasPendingBusiness ? "pending" : "inactive"), verified: hasVerifiedBusiness },
+          courier: { status: courierRows.some((item) => item.is_active) ? "active" : "inactive", verified: courierRows.some((item) => item.is_active) }
+        });
+        const isAdmin = Boolean(adminRole && (adminRole.role === "main_admin" || adminRole.role === "admin"));
+        const displayName = profile.full_name || (authUser.user_metadata && authUser.user_metadata.full_name) || (authUser.email || "").split("@")[0] || "Utilisateur Zack";
+        STATE.user = {
+          id: authUser.id, name: displayName, email: authUser.email || "",
+          phone: profile.phone || authUser.phone || "", dept: "", commune: "",
+          sectionCommunale: "", avatarDataUrl: "", coverDataUrl: "",
+          isAdmin: isAdmin, roles: roles,
+          businessMemberships: memberships, courierRecords: courierRows
+        };
+        if (isAdmin) {
+          const adminId = "auth-admin-" + authUser.id;
+          const currentAdmin = {
+            id: adminId, name: displayName, email: authUser.email || "",
+            isPrincipal: adminRole.role === "main_admin", active: true,
+            roleLabel: adminRole.role === "main_admin" ? "Administrateur principal" : "Administrateur",
+            permissions: adminRole.permissions || []
+          };
+          STATE.admins = (STATE.admins || []).filter((item) => item.id !== adminId);
+          STATE.admins.push(currentAdmin);
+          STATE.adminProfileId = adminId;
+        }
+        STATE.activeSpace = isAdmin ? "admin" : "client";
+      }
+
+      async function initializeSupabaseAuth() {
+        if (!supabaseClient) {
+          STATE.authError = "Le module Supabase n'a pas pu être chargé. Vérifiez votre connexion Internet puis rechargez la page.";
+          render();
+          return;
+        }
+        supabaseClient.auth.onAuthStateChange((event) => {
+          if (event === "SIGNED_OUT") {
+            STATE.user = null;
+            STATE.activeSpace = "client";
+            if (STATE.screen !== "auth") window.app.switchRoot("auth");
+          }
+        });
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) {
+          STATE.authError = "Impossible de restaurer la session : " + error.message;
+          render();
+          return;
+        }
+        if (data.session && data.session.user) {
+          try {
+            await hydrateAuthenticatedUser(data.session.user);
+            window.app.switchRoot(STATE.user.isAdmin ? "admin-menu" : "home");
+          } catch (profileError) {
+            STATE.authError = "Session trouvée, mais profil inaccessible : " + profileError.message;
+            render();
+          }
+        }
       }
 
       /* =========================================================
@@ -1770,7 +1868,7 @@
             </div>
 
             <div class="notice notice-info">
-              <strong>Mode aperçu :</strong> la création de compte et la connexion réelles nécessiteront l'intégration Supabase Auth lors du lancement.
+              <strong>Connexion sécurisée :</strong> les comptes sont vérifiés par Zack via Supabase. Les accès aux espaces dépendent des rôles réellement associés à votre compte.
             </div>
 
             <div class="card card-pad form-stack">
@@ -1785,12 +1883,12 @@
                 <form class="form-stack" onsubmit="app.submitAuthLogin(event)" novalidate>
                   <div class="field">
                     <label for="authEmail">${esc(t("email_label"))}</label>
-                    <input id="authEmail" class="input" required placeholder="exemple@zack.ht / +509 ..." value="jeanmarc@exemple.ht" />
+                    <input id="authEmail" class="input" type="email" autocomplete="username" required placeholder="votre-adresse@email.com" />
                   </div>
                   <div class="field">
                     <label for="authPass">${esc(t("pass_label"))}</label>
                     <div style="display:flex; gap:6px;">
-                      <input id="authPass" class="input" type="${STATE.showPassword ? 'text' : 'password'}" required value="demo1234" />
+                      <input id="authPass" class="input" type="${STATE.showPassword ? 'text' : 'password'}" autocomplete="current-password" required />
                       <button type="button" class="btn btn-outline btn-sm" onclick="app.togglePass()">${STATE.showPassword ? 'Masquer' : 'Voir'}</button>
                     </div>
                   </div>
@@ -1803,20 +1901,12 @@
               ` : `
                 <form class="form-stack" onsubmit="app.submitAuthRegister(event)" novalidate>
                   <div class="field"><label for="regName">${esc(t("name_label"))}</label><input id="regName" class="input" required placeholder="Jean-Marc Baptiste" /></div>
-                  <div class="field"><label for="regEmail">${esc(t("email_label"))}</label><input id="regEmail" class="input" required placeholder="email@exemple.ht ou +509 ..." /></div>
+                  <div class="field"><label for="regEmail">Adresse e-mail</label><input id="regEmail" type="email" class="input" autocomplete="email" required placeholder="votre-adresse@email.com" /></div>
                   <div class="field"><label for="regPass">${esc(t("pass_label"))} (min. 6 caractères)</label><input id="regPass" type="password" minlength="6" class="input" required /></div>
                   <button type="submit" class="btn btn-navy btn-block">${esc(t("btn_register"))}</button>
                 </form>
               `}
 
-              <div class="divider"></div>
-              <div class="small muted" style="text-align:center;">Accès rapide démonstration (aperçu local)</div>
-              <div class="grid-2">
-                <button type="button" class="btn btn-outline btn-sm" onclick="app.loginDemo('client')">Client Démo</button>
-                <button type="button" class="btn btn-outline btn-sm" onclick="app.loginDemo('pro')">Pro Démo</button>
-              </div>
-              <button type="button" class="btn btn-outline btn-sm btn-block" onclick="app.loginDemo('admin')">Admin Zack (Aperçu privé)</button>
-              <div class="small muted" style="text-align:center; font-size:0.7rem;">L'espace Admin est masqué pour les clients, entreprises et visiteurs ; au lancement réel, il devra être isolé sur un portail/rôle dédié Supabase Auth.</div>
             </div>
 
             <button type="button" class="btn btn-yellow btn-block" onclick="app.switchRoot('home')">${esc(t("btn_guest"))}</button>
@@ -5000,102 +5090,104 @@
 
         setAuthTab(tab) { STATE.authTab = tab; STATE.authError = ""; render(); },
         togglePass() { STATE.showPassword = !STATE.showPassword; render(); },
-        forgotPass() { toast("Réinitialisation du mot de passe : nécessite Supabase Auth (non actif dans cet aperçu)."); },
-        submitAuthLogin(e) {
+        async forgotPass() {
+          if (!supabaseClient) { toast("Le service de connexion est indisponible."); return; }
+          const email = (document.getElementById("authEmail").value || "").trim().toLowerCase();
+          if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+            STATE.authError = "Saisissez d'abord une adresse e-mail valide pour recevoir le lien.";
+            render();
+            return;
+          }
+          const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+          STATE.authError = error ? error.message : "Si cette adresse est enregistrée, un lien de réinitialisation sera envoyé.";
+          render();
+        },
+        async submitAuthLogin(e) {
           e.preventDefault();
           if (!lockSubmit("auth-login")) return;
-          const mail = (document.getElementById("authEmail").value || "").trim();
-          const pass = (document.getElementById("authPass").value || "");
-          if (mail.length < 4 || (!mail.includes("@") && !isValidHaitiPhone(mail))) {
-            STATE.authError = "Veuillez saisir un e-mail ou un numéro haïtien valide (ex. +509 3712 4589).";
+          if (!supabaseClient) { STATE.authError = "Impossible de joindre le service de connexion. Rechargez la page."; render(); return; }
+          const email = (document.getElementById("authEmail").value || "").trim().toLowerCase();
+          const password = document.getElementById("authPass").value || "";
+          if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+            STATE.authError = "Veuillez saisir une adresse e-mail valide.";
             render();
             return;
           }
-          if (pass.length < 6) {
+          if (password.length < 6) {
             STATE.authError = "Le mot de passe doit contenir au moins 6 caractères.";
             render();
             return;
           }
-          STATE.authError = "";
-          const matchedAdm = STATE.admins.find((a) => a.email.toLowerCase() === mail.toLowerCase() && a.active !== false);
-          const isAdm = Boolean(matchedAdm || mail.toLowerCase() === "admin@zack.ht");
-          if (matchedAdm) STATE.adminProfileId = matchedAdm.id;
-          STATE.user = {
-            id: isAdm ? "u-adm" : "u1",
-            name: matchedAdm ? matchedAdm.name : "Jean-Marc Baptiste (Aperçu)",
-            email: mail,
-            phone: "+509 3712 4589",
-            dept: "Ouest",
-            commune: "Pétion-Ville",
-            sectionCommunale: "Zone Urbaine / Bourg",
-            avatarDataUrl: "",
-            coverDataUrl: "",
-            isAdmin: isAdm,
-            roles: makeDefaultRoles({ business: { status: isAdm ? "inactive" : "active", verified: false } })
-          };
-          STATE.activeSpace = isAdm ? "admin" : "client";
-          toast(isAdm ? "Session administrateur (aperçu local) ouverte." : "Session d'aperçu ouverte (connexion locale).");
-          this.switchRoot(isAdm ? "admin-menu" : "home");
+          const button = document.querySelector("form[onsubmit*='submitAuthLogin'] button[type='submit']");
+          if (button) { button.disabled = true; button.textContent = "Connexion..."; }
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+          if (error) {
+            STATE.authError = "Connexion impossible : " + error.message;
+            render();
+            return;
+          }
+          try {
+            await hydrateAuthenticatedUser(data.user);
+            STATE.authError = "";
+            toast("Connexion sécurisée réussie.");
+            this.switchRoot(STATE.user.isAdmin ? "admin-menu" : "home");
+          } catch (profileError) {
+            await supabaseClient.auth.signOut();
+            STATE.user = null;
+            STATE.authError = "Votre compte est connecté, mais son profil n'a pas pu être chargé : " + profileError.message;
+            render();
+          }
         },
-        submitAuthRegister(e) {
+        async submitAuthRegister(e) {
           e.preventDefault();
           if (!lockSubmit("auth-reg")) return;
+          if (!supabaseClient) { STATE.authError = "Le service de création de compte est indisponible."; render(); return; }
           const name = (document.getElementById("regName").value || "").trim();
-          const mail = (document.getElementById("regEmail").value || "").trim();
-          const pass = (document.getElementById("regPass").value || "");
-          if (name.length < 2) {
-            STATE.authError = "Le nom complet doit contenir au moins 2 caractères.";
+          const email = (document.getElementById("regEmail").value || "").trim().toLowerCase();
+          const password = document.getElementById("regPass").value || "";
+          if (name.length < 2) { STATE.authError = "Le nom complet doit contenir au moins 2 caractères."; render(); return; }
+          if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) { STATE.authError = "Veuillez saisir une adresse e-mail valide."; render(); return; }
+          if (password.length < 6) { STATE.authError = "Le mot de passe doit contenir au moins 6 caractères."; render(); return; }
+          const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: { data: { full_name: name } }
+          });
+          if (error) {
+            STATE.authError = "Création du compte impossible : " + error.message;
             render();
             return;
           }
-          const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail);
-          if (!isEmail && !isValidHaitiPhone(mail)) {
-            STATE.authError = "Veuillez saisir une adresse e-mail ou un numéro haïtien valide (+509...).";
+          if (data.session && data.user) {
+            try {
+              await hydrateAuthenticatedUser(data.user);
+              toast("Votre compte Zack est créé et connecté.");
+              this.switchRoot("home");
+            } catch (profileError) {
+              STATE.authError = "Compte créé, mais le profil doit être finalisé : " + profileError.message;
+              render();
+            }
+          } else {
+            STATE.authError = "Compte créé. Consultez votre boîte e-mail et confirmez votre adresse avant de vous connecter.";
+            STATE.authTab = "login";
             render();
-            return;
           }
-          if (pass.length < 6) {
-            STATE.authError = "Le mot de passe doit contenir au moins 6 caractères.";
-            render();
-            return;
-          }
-          STATE.authError = "";
-          STATE.user = {
-            id: "u-" + Date.now(),
-            name,
-            email: isEmail ? mail : "",
-            phone: isEmail ? "+509" : formatHaitiPhone(mail),
-            dept: "Ouest",
-            commune: "Port-au-Prince",
-            sectionCommunale: "Zone Urbaine / Bourg",
-            avatarDataUrl: "",
-            coverDataUrl: "",
-            isAdmin: false,
-            roles: makeDefaultRoles()
-          };
-          STATE.activeSpace = "client";
-          toast("Compte multi-rôles d'aperçu créé localement !");
-          this.switchRoot("home");
         },
         loginDemo(type) {
-          STATE.authError = "";
-          if (type === "client") {
-            STATE.user = { id: "u1", name: "Jean-Marc Baptiste (Démo)", email: "jeanmarc@exemple.ht", phone: "+509 3712 4589", dept: "Ouest", commune: "Pétion-Ville", sectionCommunale: "Zone Urbaine / Bourg", avatarDataUrl: "", coverDataUrl: "", isAdmin: false, roles: makeDefaultRoles({ pro: { status: "active", verified: true }, courier: { status: "active", verified: true } }) };
-            STATE.activeSpace = "client";
-            this.switchRoot("home");
-          } else if (type === "pro") {
-            STATE.user = { id: "u2", name: "Carl-Henry Théodore (Démo)", email: "carl@exemple-zack.ht", phone: "+509 2813 4400", dept: "Ouest", commune: "Pétion-Ville", sectionCommunale: "Zone Urbaine / Bourg", avatarDataUrl: "", coverDataUrl: "", isAdmin: false, roles: makeDefaultRoles({ business: { status: "active", verified: true }, pro: { status: "active", verified: true }, supplier: { status: "active", verified: true } }) };
-            STATE.activeSpace = "business";
-            this.switchRoot("pro-dashboard");
-          } else {
-            STATE.adminProfileId = "adm-1";
-            STATE.user = { id: "u3", name: "Claire-Marie Deschamps (Démo)", email: "principal@zack.ht", phone: "+509 2800 0001", dept: "Ouest", commune: "Port-au-Prince", sectionCommunale: "Zone Urbaine / Bourg", avatarDataUrl: "", coverDataUrl: "", isAdmin: true, roles: makeDefaultRoles() };
-            STATE.activeSpace = "admin";
-            this.switchRoot("admin-menu");
-          }
-          toast("Session démo active.");
+          STATE.authError = "Les comptes de démonstration ont été désactivés. Utilisez un compte Zack réel.";
+          STATE.user = null;
+          render();
         },
-        logout() { STATE.user = null; STATE.activeSpace = "client"; STATE.authError = ""; this.switchRoot("auth"); },
+        async logout() {
+          if (supabaseClient) {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) { toast("Déconnexion impossible : " + error.message); return; }
+          }
+          STATE.user = null;
+          STATE.activeSpace = "client";
+          STATE.authError = "";
+          this.switchRoot("auth");
+        },
         switchSpace(spaceId) {
           if (spaceId === "admin") {
             if (!isAdminSession()) { toast("Accès réservé aux administrateurs Zack."); return; }
@@ -5120,9 +5212,8 @@
             return;
           }
           if (st === "inactive") {
-            if (!STATE.user.roles) STATE.user.roles = makeDefaultRoles();
-            STATE.user.roles[sp.roleKey] = { status: "active", verified: false };
-            toast(`Rôle « ${sp.labelFr} » activé sur votre compte unique !`);
+            toast("Cet espace n'est pas encore associé à votre compte. Vous devez d'abord obtenir ou créer cet accès.");
+            return;
           }
           STATE.activeSpace = spaceId;
           this.switchRoot(sp.root);
@@ -6878,6 +6969,7 @@
 
       applyTheme();
       render();
+      initializeSupabaseAuth();
     })();
   </script>
 </body>
