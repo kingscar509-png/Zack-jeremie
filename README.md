@@ -4,10 +4,10 @@ Zack est une plateforme destinée à aider le public à découvrir les entrepris
 
 ## État du dépôt
 
-- Le nouveau frontend est amorcé avec TanStack Start, React, TypeScript, Vite et Tailwind CSS.
-- Supabase fournit l'authentification et les données existantes.
-- Les types TypeScript de la base sont générés dans `src/types/database.types.ts`.
-- L'ancienne application HTML/CSS/JavaScript est conservée dans `legacy/index.html` comme référence fonctionnelle.
+- Pour la phase 1 de Zack, le frontend officiel retenu est `index complet.html` (HTML/CSS/JavaScript), conformément à la décision produit du 15 novembre 2026.
+- Le frontend React/TanStack dans `src/` n'est pas la référence active de cette phase et ne doit pas remplacer l'interface HTML choisie.
+- Supabase fournit l'authentification, les rôles et les données réelles.
+- `legacy/index.html` reste une archive distincte et ne doit pas être confondue avec `index complet.html`.
 - Les documents d'audit, d'architecture, de sécurité et de recette sont dans `docs/`.
 
 ## Démarrage local
