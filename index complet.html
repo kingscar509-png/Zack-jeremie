@@ -614,7 +614,7 @@
           welcome_title: "Bienvenue sur Zack",
           welcome_sub: "La plateforme numérique nationale qui connecte les entreprises des 10 départements d'Haïti avec les consommateurs.",
           tab_login: "Connexion", tab_register: "Créer un compte",
-          email_label: "E-mail ou téléphone", pass_label: "Mot de passe", name_label: "Nom complet",
+          email_label: "E-mail", pass_label: "Mot de passe", name_label: "Nom complet",
           remember: "Se souvenir de moi", forgot: "Mot de passe oublié ?",
           btn_login: "Se connecter", btn_register: "Créer mon compte",
           btn_guest: "Continuer sans compte (Espace public)",
@@ -644,7 +644,7 @@
           welcome_title: "Byenveni sou Zack",
           welcome_sub: "Platfòm nimerik nasyonal ki konekte antrepriz nan tout 10 depatman Ayiti yo ak konsomatè yo.",
           tab_login: "Konekte", tab_register: "Kreye yon kont",
-          email_label: "Imèl oswa telefòn", pass_label: "Modpas", name_label: "Non konplè",
+          email_label: "Imèl", pass_label: "Modpas", name_label: "Non konplè",
           remember: "Sonje mwen", forgot: "Ou bliye modpas ou ?",
           btn_login: "Konekte kounye a", btn_register: "Kreye kont mwen",
           btn_guest: "Kontinye san kont (Espas piblik)",
@@ -1611,6 +1611,17 @@
       }
       function isAdminSession() {
         return Boolean(STATE.user && STATE.user.isAdmin === true);
+      }
+      function canAccessRoot(scr) {
+        if (scr.startsWith("admin-")) return isAdminSession();
+        if (scr === "pro-indep-dashboard" || scr.startsWith("pro-indep-")) {
+          return ["active", "pending"].includes(getUserRoleStatus("pro"));
+        }
+        if (scr.startsWith("pro-")) {
+          return ["active", "pending"].includes(getUserRoleStatus("business"));
+        }
+        if (scr === "courier-space") return getUserRoleStatus("courier") === "active";
+        return true;
       }
       function getCurrentAdmin() {
         return STATE.admins.find((x) => x.id === STATE.adminProfileId) || STATE.admins[0];
@@ -5056,20 +5067,24 @@
          ========================================================= */
       window.app = {
         switchRoot(scr) {
-          if (scr.startsWith("admin-") && !isAdminSession()) {
-            toast("Accès réservé aux administrateurs Zack.");
+          if (!canAccessRoot(scr)) {
+            toast("Cet espace n'est pas autorisé pour les rôles de votre compte.");
             return;
           }
           STATE.history = []; STATE.screen = scr; render();
         },
         open(scr) {
-          if (scr.startsWith("admin-") && !isAdminSession()) {
-            toast("Accès réservé aux administrateurs Zack.");
+          if (!canAccessRoot(scr)) {
+            toast("Cet espace n'est pas autorisé pour les rôles de votre compte.");
             return;
           }
           if (STATE.screen !== scr) STATE.history.push(STATE.screen); STATE.screen = scr; render();
         },
-        back() { STATE.screen = STATE.history.pop() || "home"; render(); },
+        back() {
+          const previous = STATE.history.pop() || "home";
+          STATE.screen = canAccessRoot(previous) ? previous : "home";
+          render();
+        },
         setViewport(m) {
           STATE.viewport = m;
           const sh = document.getElementById("appShell");
