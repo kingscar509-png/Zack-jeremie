@@ -3062,7 +3062,7 @@
         }
         if (scr === "personal-orders") {
           return `
-            <div class="notice notice-info">Historique local de vos demandes & commandes par vendeur. Le suivi temps réel et les statuts serveur nécessitent Supabase.</div>
+            <div class="notice notice-info">Historique de vos commandes enregistrées dans Zack. Vous pouvez annuler une commande tant que le vendeur ne l'a pas encore traitée.</div>
             ${STATE.orders.map((o) => {
               const bz = getBiz(o.bizId);
               return `
@@ -3076,6 +3076,7 @@
                   <div class="flex-between">
                     <div class="price-htg">${money(o.totalHtg)}</div>
                     <div class="flex-row">
+                      ${o._db?.status === "pending" ? `<button type="button" class="btn btn-outline btn-sm" style="color:var(--danger);" onclick="app.cancelOrder('${o.id}')">Annuler la commande</button>` : ""}
                       ${bz ? `<button type="button" class="btn btn-outline btn-sm" onclick="app.startChatItem('${bz.id}', 'biz', '${bz.id}')">Contacter vendeur</button>` : ""}
                       <button type="button" class="btn btn-outline btn-sm" onclick="app.openReportDrawer('Commande', '${esc(o.id)}')">Signaler</button>
                     </div>
@@ -5790,7 +5791,7 @@
         async submitEntityReport(e,targetType,targetId,label) {
           e.preventDefault();if(!lockSubmit("rep-"+targetId))return;
           const reason=(document.getElementById("repReason").value||"").trim(),details=(document.getElementById("repDetails").value||"").trim();
-          const targets={"Entreprise":{businessId:targetId},"Produit":STATE.products.find(x=>x.id===targetId),"Service":STATE.services.find(x=>x.id===targetId),"Promotion":STATE.promotions.find(x=>x.id===targetId),"Événement":STATE.events.find(x=>x.id===targetId)};
+          const targets={"Entreprise":{businessId:targetId},"Produit":STATE.products.find(x=>x.id===targetId),"Service":STATE.services.find(x=>x.id===targetId),"Promotion":STATE.promotions.find(x=>x.id===targetId),"Événement":STATE.events.find(x=>x.id===targetId),"Commande":STATE.orders.find(x=>x.id===targetId)};
           const target=targets[targetType],businessId=targetType==="Entreprise"?targetId:(target&&(target.bizId||target.business_id));
           if(!businessId){toast("Impossible d'identifier l'entreprise concernée. Le signalement n'a pas été envoyé.");return;}
           const {error}=await supabaseClient.from("reports").insert({business_id:businessId,target_type:targetType.toLowerCase(),target_id:targetId,reason,details,reporter_id:STATE.user?STATE.user.id:null,status:"open"});
@@ -5930,6 +5931,12 @@
           const row=await supabaseClient.from("couriers").delete().eq("business_id",aff.bizId).eq("user_id",courier.userId);
           if(row.error){toast("Affiliation retirée, mais profil livreur à vérifier : "+row.error.message);}
           await loadZackWorkspace();toast("Affiliation terminée.");render();
+        },
+        async cancelOrder(orderId) {
+          if(!supabaseClient){toast("Service indisponible.");return;}
+          const {error}=await supabaseClient.rpc("customer_cancel_order",{p_order:orderId});
+          if(error){toast("Annulation impossible : "+error.message);return;}
+          await loadZackWorkspace();toast("Commande annulée. Le stock réservé a été rétabli.");render();
         },
         async decideOrderItem(itemId,accept) {
           if(!supabaseClient){toast("Service indisponible.");return;}
