@@ -3459,7 +3459,7 @@
           const ords = STATE.orders.filter((o) => o.bizId === biz.id);
           const activeAffs = STATE.courierAffiliations.filter((a) => a.bizId === biz.id && a.status === "Active");
           return `
-            <div class="notice notice-warn">Module préparatoire : la réception des commandes et le suivi de livraison en temps réel nécessitent Supabase.</div>
+            <div class="notice notice-info">Les commandes et leurs statuts sont chargés depuis Supabase. Le paiement se fait directement entre le client et le vendeur, en dehors de Zack.</div>
             ${ords.map((o) => {
               const linkedMission = STATE.deliveryMissions.find((m) => m.orderId === o.id);
               const assignedCour = linkedMission ? STATE.couriers.find((c) => c.id === linkedMission.courierId) : null;
@@ -3468,9 +3468,11 @@
                   <div class="flex-between"><strong>${esc(o.id)}</strong><span>${esc(o.customerName)}</span></div>
                   <div class="small muted">${esc(o.mode)} · ${esc(o.address)} · ${esc(o.customerPhone)}</div>
                   <div class="price-htg">${money(o.totalHtg)}</div>
-                  <select class="select" aria-label="Statut de la commande ${esc(o.id)}" onchange="app.setOrderStatus('${o.id}', this.value)">
-                    ${["En attente", "Confirmée", "En préparation", "En livraison", "Livrée", "Annulée"].map((s) => `<option ${o.status === s ? 'selected' : ''}>${s}</option>`).join("")}
-                  </select>
+                  ${["accepted","partially_accepted","preparing","ready","out_for_delivery"].includes(o._db?.status) ? `
+                    <select class="select" aria-label="Statut de la commande ${esc(o.id)}" onchange="app.setOrderStatus('${o.id}', this.value)">
+                      ${(o.fulfillment==="delivery" ? [["preparing","En préparation"],["ready","Prête"],["out_for_delivery","En livraison"],["delivered","Livrée"],["completed","Terminée"]] : [["preparing","En préparation"],["ready","Prête"],["completed","Terminée"]]).map(([value,label]) => `<option value="${label}" ${o.status === label ? 'selected' : ''}>${label}</option>`).join("")}
+                    </select>
+                  ` : `<div class="small muted">Statut : <strong>${esc(o.status)}</strong> · Les décisions d'acceptation ou de refus se font au niveau des articles.</div>`}
                   ${o.mode === "Livraison" ? `
                     <div class="card card-pad" style="background:var(--surface-alt); padding:10px;">
                       ${linkedMission ? `
