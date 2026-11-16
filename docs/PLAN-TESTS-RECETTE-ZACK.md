@@ -4,6 +4,18 @@
 ## Avancement complémentaire — 16 novembre 2026
 
 
+
+### Commandes, stock et annulations — 16 novembre 2026
+
+- Le panier est maintenant agrégé par produit côté serveur : deux lignes identiques ne créent plus des lignes de commande incohérentes.
+- `place_order` verrouille les lignes produits dans un ordre stable avant la validation du stock. Cela protège contre les ventes simultanées qui dépasseraient le stock disponible.
+- Le vendeur peut accepter ou refuser chaque article d'une commande depuis son espace. Le refus d'un article remet son stock en réserve disponible ; un article déjà décidé ne peut pas être décidé une seconde fois.
+- Le client peut annuler une commande tant que son statut est encore `pending`. L'annulation remet le stock réservé et notifie le vendeur.
+- Tests transactionnels avec rollback : deux lignes du même produit (2 + 3 unités) ont créé une seule ligne de commande de 5 unités et réduit le stock de 10 à 5 ; annulation client et refus vendeur ont chacun rétabli le stock de 6 à 10 et produit les statuts `cancelled` et `rejected`.
+- Tous les produits temporaires de test ont été annulés par rollback ; vérification après test : 0 produit temporaire persistant.
+- Une erreur de contrainte sur le type de notification d'annulation a été détectée durant le test, corrigée en utilisant le type autorisé `order_update`, puis le test a réussi.
+- Le RPC `admin_list_payment_recipients()` a été converti en `SECURITY INVOKER` : il ne contourne plus RLS. Tests transactionnels : le principal administrateur voit les deux destinataires actifs ; un utilisateur non administrateur n'en voit aucun.
+
 ### Dernière passe — 16 novembre 2026 (complément)
 
 - Les rapports utilisateurs sont désormais lisibles par leur auteur connecté, sans élargir la lecture des rapports d'autres utilisateurs.
