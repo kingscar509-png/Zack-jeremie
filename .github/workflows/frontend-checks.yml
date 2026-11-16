@@ -34,9 +34,9 @@ jobs:
           new Function(scripts[0]);
           const required = [
             'signInWithPassword', 'auth.signUp', 'PASSWORD_RECOVERY',
-            'auth.updateUser({password})', 'rpc("place_order")',
-            'rpc("create_business")', 'rpc("request_subscription_payment")',
-            'rpc("admin_review_payment")'
+            'auth.updateUser({password})', 'rpc("place_order"',
+            'rpc("create_business"', 'rpc("request_subscription_payment"',
+            'rpc("admin_review_payment"'
           ];
           for (const token of required) {
             if (!html.includes(token)) throw new Error('Fonction attendue absente : ' + token);
