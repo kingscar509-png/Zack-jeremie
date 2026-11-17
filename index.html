@@ -1162,6 +1162,7 @@
       async function initializeSupabaseAuth() {
         if (!supabaseClient) {
           STATE.authError = "Le module Supabase n'a pas pu être chargé. Vérifiez votre connexion Internet puis rechargez la page.";
+          STATE.authInitializing = false;
           render();
           return;
         }
@@ -1182,17 +1183,23 @@
         const { data, error } = await supabaseClient.auth.getSession();
         if (error) {
           STATE.authError = "Impossible de restaurer la session : " + error.message;
+          STATE.authInitializing = false;
           render();
           return;
         }
         if (data.session && data.session.user) {
           try {
             await hydrateAuthenticatedUser(data.session.user);
+            STATE.authInitializing = false;
             window.app.switchRoot(STATE.user.isAdmin ? "admin-menu" : "home");
           } catch (profileError) {
             STATE.authError = "Session trouvée, mais profil inaccessible : " + profileError.message;
+            STATE.authInitializing = false;
             render();
           }
+        } else {
+          STATE.authInitializing = false;
+          render();
         }
       }
 
@@ -1200,7 +1207,8 @@
          3. ÉTAT INITIAL (PREMIÈRE OUVERTURE = PAGE DE CONNEXION)
          ========================================================= */
       const STATE = {
-        screen: "auth", // Premier écran à l'ouverture : Connexion !
+        screen: "auth", // Écran initial masqué pendant la restauration de session
+        authInitializing: true,
         authTab: "login", // login | register
         showPassword: false,
         history: [],
@@ -6606,9 +6614,13 @@
       };
 
       function render() {
+        const body = document.getElementById("screenBody");
+        if (STATE.authInitializing) {
+          body.innerHTML = '<div class="card card-pad" style="max-width:420px;margin:15vh auto;text-align:center;"><div style="font-size:34px;font-weight:900;color:#0A1A4F;letter-spacing:1px;">ZACK</div><p class="small muted" style="margin-top:10px;">Ouverture de votre espace...</p></div>';
+          return;
+        }
         renderHeader();
         renderBottomNav();
-        const body = document.getElementById("screenBody");
         const s = STATE.screen;
         let html = "";
         if (s.startsWith("admin-") && !isAdminSession()) html = viewHome();
