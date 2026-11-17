@@ -1004,12 +1004,15 @@
         const ownBusinessRows = bizIds.length ? await safeDbRows("businesses",q=>q.in("id",bizIds)) : [];
         const hasVerifiedBusiness = ownBusinessRows.some(x=>x.status==="verified");
         const hasPendingBusiness = ownBusinessRows.some(x=>x.status==="pending");
+        const hasSuspendedBusiness = ownBusinessRows.some(x=>x.status==="suspended");
+        const hasRejectedBusiness = ownBusinessRows.length > 0 && ownBusinessRows.every(x=>x.status==="rejected");
+        const businessRoleStatus = hasVerifiedBusiness ? "active" : (hasPendingBusiness ? "pending" : (hasSuspendedBusiness ? "suspended" : (hasRejectedBusiness ? "rejected" : "inactive")));
         const ownCourierRows = couriers.filter(x=>x.user_id===uid);
         STATE.user.businessMemberships = members;
         STATE.user.courierRecords = ownCourierRows;
         STATE.user.roles = {
           ...(STATE.user.roles || makeDefaultRoles()),
-          business: { status: hasVerifiedBusiness ? "active" : (hasPendingBusiness ? "pending" : "inactive"), verified: hasVerifiedBusiness },
+          business: { status: businessRoleStatus, verified: hasVerifiedBusiness },
           courier: { status: ownCourierRows.some(x=>x.is_active) ? "active" : "inactive", verified: ownCourierRows.some(x=>x.is_active) }
         };
         const team= bizIds.length ? await safeDbRows("business_members",q=>q.in("business_id",bizIds)) : members;
@@ -1078,8 +1081,11 @@
         }
         const hasVerifiedBusiness = businessStatuses.some((item) => item.status === "verified");
         const hasPendingBusiness = businessStatuses.some((item) => item.status === "pending");
+        const hasSuspendedBusiness = businessStatuses.some((item) => item.status === "suspended");
+        const hasRejectedBusiness = businessStatuses.length > 0 && businessStatuses.every((item) => item.status === "rejected");
+        const businessRoleStatus = hasVerifiedBusiness ? "active" : (hasPendingBusiness ? "pending" : (hasSuspendedBusiness ? "suspended" : (hasRejectedBusiness ? "rejected" : "inactive")));
         const roles = makeDefaultRoles({
-          business: { status: hasVerifiedBusiness ? "active" : (hasPendingBusiness ? "pending" : "inactive"), verified: hasVerifiedBusiness },
+          business: { status: businessRoleStatus, verified: hasVerifiedBusiness },
           courier: { status: courierRows.some((item) => item.is_active) ? "active" : "inactive", verified: courierRows.some((item) => item.is_active) }
         });
         const isAdmin = Boolean(adminRole && (adminRole.role === "main_admin" || adminRole.role === "admin"));
@@ -5496,6 +5502,10 @@
             this.switchRoot(sp.root);
             return;
           }
+          if (st === "inactive" && spaceId === "pro") {
+            toast("L'espace Professionnel indépendant sera activé dans une phase ultérieure de Zack.");
+            return;
+          }
           if (st === "inactive") {
             toast("Cet espace n'est pas encore activé pour votre compte.");
             return;
@@ -6032,7 +6042,7 @@
           const r=await supabaseClient.rpc("create_business",{p_name:name,p_slug:slug,p_description:document.getElementById("nbDesc").value.trim()||null,p_category:document.getElementById("nbCat").value||null,p_address:document.getElementById("nbAddr").value.trim()||null,p_neighborhood:document.getElementById("nbQuart").value.trim()||null,p_phone:phone||null,p_whatsapp:safeDigits(document.getElementById("nbWa").value.trim())||null,p_email:document.getElementById("nbEmail").value.trim()||null});
           if(r.error){toast("Création impossible : "+r.error.message);return;} const id=r.data;
           const u=await supabaseClient.from("businesses").update({department:dept||null,city:comm||null,section_communal:(document.getElementById("nbSect")?.value||"").trim()||null,street:document.getElementById("nbAddr").value.trim()||null,website:webRaw?safeUrl(webRaw):null,activity_summary:document.getElementById("nbSub").value.trim()||null,hours_text:document.getElementById("nbHours").value.trim()||null}).eq("id",id);
-          if(u.error)toast("Entreprise créée, détails à compléter : "+u.error.message); await loadZackWorkspace(); STATE.proBizId=id;STATE.selectedBizId=id;toast("Entreprise enregistrée, en attente de validation.");this.switchRoot("pro-dashboard");
+          if(u.error)toast("Entreprise créée, détails à compléter : "+u.error.message); await loadZackWorkspace(); STATE.proBizId=id;STATE.selectedBizId=id;STATE.activeSpace="business";toast("Entreprise enregistrée, en attente de validation.");this.switchRoot("pro-dashboard");
         },
         setProIndepTab(t) { STATE.proIndepTab = t; render(); },
         saveProIndepProfile(e) { e.preventDefault(); toast("L'espace Professionnel indépendant n'est pas activé dans la première version publique. Aucun profil local n'a été enregistré."); },
