@@ -1,0 +1,31 @@
+{
+  "id": "./",
+  "name": "Zack Haïti",
+  "short_name": "Zack",
+  "description": "La plateforme numérique qui connecte les entreprises, les consommateurs et les livreurs en Haïti.",
+  "lang": "fr-HT",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait",
+  "background_color": "#F6F8FC",
+  "theme_color": "#0A1A4F",
+  "categories": [
+    "business",
+    "shopping",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "./icons/zack-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
