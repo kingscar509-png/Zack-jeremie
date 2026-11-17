@@ -692,7 +692,7 @@
           eligibleRoles: ["business", "supplier", "reseller", "partner"],
           active: true,
           description: "Présence de base sur l'annuaire national Zack.",
-          benefits: ["Fiche entreprise complète", "Jusqu'à 2 images par publication", "Contact téléphone & WhatsApp"],
+          benefits: ["Fiche entreprise complète et coordonnées", "Jusqu'à 2 photos par publication", "Jusqu'à 5 produits et 5 services", "3 publications par mois", "1 membre d'équipe et 2 établissements"],
           features: ["fiche", "contact", "gallery_2"]
         },
         "Pro": {
@@ -701,7 +701,7 @@
           eligibleRoles: ["business", "supplier", "reseller", "partner", "pro_commercial"],
           active: false,
           description: "Plus de capacité pour développer votre catalogue et vos publications.",
-          benefits: ["Jusqu'à 6 images par publication", "Promotions et événements", "Gestion d'équipe (staff) jusqu'à 8 membres"],
+          benefits: ["Jusqu'à 6 photos par publication", "Jusqu'à 15 produits et 10 services", "12 publications par mois", "Jusqu'à 3 membres d'équipe et 5 établissements", "Statistiques détaillées et visibilité renforcée"],
           features: ["fiche", "contact", "gallery_6", "promos", "events", "staff"]
         },
         "Ultra": {
@@ -710,7 +710,7 @@
           eligibleRoles: ["business", "supplier", "reseller", "partner", "pro_commercial"],
           active: false,
           description: "Capacité étendue et visibilité prioritaire pour les entreprises en croissance.",
-          benefits: ["Jusqu'à 12 images par publication", "Mise en avant prioritaire", "Multi-établissements & support prioritaire"],
+          benefits: ["Jusqu'à 12 photos par publication", "Jusqu'à 30 produits et 20 services", "20 publications par mois", "Jusqu'à 10 membres d'équipe et 20 établissements", "Statistiques avancées et visibilité prioritaire"],
           features: ["fiche", "contact", "gallery_12", "promos", "events", "staff", "featured", "priority"]
         }
       };
@@ -3763,7 +3763,11 @@
                   <div>Membres d'équipe : <strong>${Number(info.maxTeamMembers ?? info.maxStaff ?? 1)}</strong></div>
                   <div>Établissements : <strong>${Number(info.maxEstablishments || 1)}</strong></div>
                 </div>
-                <div class="small muted">Statistiques : <strong>${esc(info.statsLevel || "standard")}</strong> · Visibilité : <strong>${esc(info.visibilityLevel || "standard")}</strong></div>
+                <strong class="small">Avantages inclus</strong>
+                <ul class="small muted" style="padding-left:18px; margin:0;">
+                  ${(info.benefits || []).map((benefit) => `<li>${esc(benefit)}</li>`).join("")}
+                </ul>
+                <div class="small muted">Statistiques : <strong>${info.statsLevel === "advanced" ? "Avancées" : info.statsLevel === "detailed" ? "Détaillées" : "Essentielles"}</strong> · Visibilité : <strong>${info.visibilityLevel === "priority" ? "Prioritaire" : info.visibilityLevel === "enhanced" ? "Renforcée" : "Standard"}</strong></div>
                 ${biz.plan === name ? `<span class="status-ok">Votre forfait actuel (${biz.planStatus === 'expired' ? 'Expiré' : 'Actif'}${biz.planExpiresAt ? ' · Expire le ' + esc(biz.planExpiresAt) : ''})</span>` : info.priceHtg > 0 && info.active !== false ? `<button type="button" class="btn btn-primary btn-sm" onclick="app.openMonCash('${biz.id}', '${esc(name)}', ${info.priceHtg})">Passer au forfait ${esc(name)}</button>` : info.priceHtg > 0 ? `<div class="notice notice-info">Ce forfait sera disponible prochainement. Les paiements ne sont pas encore ouverts.</div>` : ""}
               </div>
             `).join("")}
