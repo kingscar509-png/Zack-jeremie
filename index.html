@@ -9,7 +9,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zack Haïti" />
-  <!-- Préparation PWA : l'installation réelle sur mobile requiert un fichier manifest.webmanifest et un Service Worker (sw.js) servis en HTTPS lors du déploiement. -->
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="./icons/zack-icon.svg" />
+  <link rel="apple-touch-icon" href="./icons/zack-icon.svg" />
   <title>Zack Haïti — Annuaire & plateforme numérique nationale des entreprises</title>
   <meta name="description" content="Zack connecte les entreprises, commerces, artisans et services des 10 départements d'Haïti avec les consommateurs : recherche locale, fiches détaillées, produits, promotions et événements." />
   <meta property="og:title" content="Zack Haïti — Plateforme numérique nationale des entreprises" />
@@ -1943,6 +1946,18 @@
         e.preventDefault();
         STATE.deferredPwaPrompt = e;
       });
+
+      window.addEventListener("appinstalled", () => {
+        STATE.deferredPwaPrompt = null;
+        toast("Zack a été installé sur votre appareil.");
+      });
+
+      if ("serviceWorker" in navigator && location.protocol === "https:") {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js", { scope: "./" })
+            .catch((error) => console.warn("Zack : enregistrement du Service Worker impossible.", error));
+        }, { once: true });
+      }
 
       let lastFocusedEl = null;
       document.addEventListener("keydown", (e) => {
@@ -6546,12 +6561,12 @@
           document.getElementById("drawerSheet").innerHTML = `
             <div class="flex-between" style="margin-bottom:10px;"><strong>Installer Zack (PWA / APK)</strong><button type="button" class="btn btn-outline btn-sm" onclick="app.closeDrawer()">Fermer</button></div>
             <div class="notice notice-info" style="margin-bottom:10px;">
-              <strong>Prérequis technique :</strong> ce fichier HTML autonome doit être hébergé en <strong>HTTPS</strong> avec un fichier <code>manifest.webmanifest</code>, des icônes PNG et un Service Worker (<code>sw.js</code>) pour déclencher l'installation PWA native et générer un APK.
+              <strong>Installation PWA préparée :</strong> Zack dispose maintenant de son manifeste, de son icône et de son Service Worker. L’option d’installation dépend du navigateur et de la compatibilité de l’appareil.
             </div>
             <div class="form-stack small muted">
               <p><strong>Android (Chrome) :</strong> Menu (⋮) → <em>Installer l'application</em> ou <em>Ajouter à l'écran d'accueil</em>.</p>
               <p><strong>iPhone / iPad (Safari) :</strong> Icône <em>Partager</em> → <em>Sur l'écran d'accueil</em>.</p>
-              <p><strong>Générer le fichier .apk :</strong> une fois le manifest et le Service Worker en ligne en HTTPS, utilisez <em>PWABuilder</em> ou <em>Bubblewrap</em>.</p>
+              <p><strong>Application Android APK :</strong> elle sera préparée dans une deuxième étape, après les tests de la version installable.</p>
             </div>
           `;
           document.getElementById("drawerOverlay").classList.add("open");
