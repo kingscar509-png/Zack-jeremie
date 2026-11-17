@@ -1833,6 +1833,10 @@
         return Boolean(STATE.user && STATE.user.isAdmin === true);
       }
       function canAccessRoot(scr) {
+        // L'inscription d'une entreprise est une étape d'onboarding, pas une fonction réservée aux entreprises déjà inscrites.
+        // Elle reste accessible uniquement à un utilisateur authentifié. Les autres écrans Pro exigent un rôle entreprise.
+        if (scr === "pro-create") return Boolean(STATE.user && STATE.user.id);
+        // La protection de l'administration reste strictement séparée et inchangée.
         if (scr.startsWith("admin-")) return isAdminSession();
         if (scr === "pro-indep-dashboard" || scr.startsWith("pro-indep-")) {
           return ["active", "pending"].includes(getUserRoleStatus("pro"));
