@@ -1001,6 +1001,17 @@
           return { id:g.id, targetType:"business", targetId:g.business_id, targetName:business?.name || "Entreprise", planName:plan?.name || "Forfait", days:Number(g.days), reason:g.reason, grantedBy:g.granted_by === uid ? (STATE.user.name || "Administrateur principal") : "Administration Zack", date:g.created_at ? new Date(g.created_at).toISOString().slice(0,10) : "", excludedFromRevenue:true };
         });
         const bizIds=[...new Set(members.map(x=>x.business_id))];
+        const ownBusinessRows = bizIds.length ? await safeDbRows("businesses",q=>q.in("id",bizIds)) : [];
+        const hasVerifiedBusiness = ownBusinessRows.some(x=>x.status==="verified");
+        const hasPendingBusiness = ownBusinessRows.some(x=>x.status==="pending");
+        const ownCourierRows = couriers.filter(x=>x.user_id===uid);
+        STATE.user.businessMemberships = members;
+        STATE.user.courierRecords = ownCourierRows;
+        STATE.user.roles = {
+          ...(STATE.user.roles || makeDefaultRoles()),
+          business: { status: hasVerifiedBusiness ? "active" : (hasPendingBusiness ? "pending" : "inactive"), verified: hasVerifiedBusiness },
+          courier: { status: ownCourierRows.some(x=>x.is_active) ? "active" : "inactive", verified: ownCourierRows.some(x=>x.is_active) }
+        };
         const team= bizIds.length ? await safeDbRows("business_members",q=>q.in("business_id",bizIds)) : members;
         const memberIds=[...new Set(team.map(x=>x.user_id))];
         const profiles=STATE.user.isAdmin ? await safeDbRows("profiles") : (memberIds.length ? await safeDbRows("profiles",q=>q.in("id",memberIds)) : []);
@@ -5475,8 +5486,18 @@
             toast(`Votre rôle « ${sp.labelFr} » a été refusé par la modération.`);
             return;
           }
+          if (st === "inactive" && spaceId === "business") {
+            STATE.activeSpace = "client";
+            this.switchRoot("pro-create");
+            return;
+          }
+          if (st === "inactive" && spaceId === "courier") {
+            STATE.activeSpace = "courier";
+            this.switchRoot(sp.root);
+            return;
+          }
           if (st === "inactive") {
-            toast("Cet espace n'est pas encore associé à votre compte. Vous devez d'abord obtenir ou créer cet accès.");
+            toast("Cet espace n'est pas encore activé pour votre compte.");
             return;
           }
           STATE.activeSpace = spaceId;
