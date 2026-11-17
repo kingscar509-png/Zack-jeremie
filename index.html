@@ -1116,16 +1116,18 @@
       }
 
       let notificationRealtimeChannel = null;
+      let notificationRealtimeUserId = null;
       function stopNotificationRealtime() {
         if (notificationRealtimeChannel && supabaseClient) {
           supabaseClient.removeChannel(notificationRealtimeChannel);
           notificationRealtimeChannel = null;
+          notificationRealtimeUserId = null;
         }
       }
       function startNotificationRealtime() {
         if (!supabaseClient || !STATE.user?.id) return;
         const uid = STATE.user.id;
-        if (notificationRealtimeChannel && notificationRealtimeChannel._zackUserId === uid) return;
+        if (notificationRealtimeChannel && notificationRealtimeUserId === uid) return;
         stopNotificationRealtime();
         const channel = supabaseClient.channel("zack-notifications-" + uid)
           .on("postgres_changes", {
@@ -1150,8 +1152,8 @@
             if (STATE.screen === "personal-notifications") render();
           })
           .subscribe();
-        channel._zackUserId = uid;
         notificationRealtimeChannel = channel;
+        notificationRealtimeUserId = uid;
       }
 
       async function initializeSupabaseAuth() {
