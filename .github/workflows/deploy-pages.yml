@@ -40,10 +40,29 @@ jobs:
           console.log(`Syntaxe valide : ${scripts.length} script(s) JavaScript.`);
           NODE
 
+      - name: Vérifier les ressources PWA
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
+          if (!manifest.name || !manifest.start_url || !manifest.scope || manifest.display !== 'standalone') {
+            throw new Error('Le manifeste PWA est incomplet.');
+          }
+          for (const icon of manifest.icons || []) {
+            if (!fs.existsSync(icon.src.replace(/^\.\//, ''))) {
+              throw new Error(`Icône PWA introuvable : ${icon.src}`);
+            }
+          }
+          if (!fs.existsSync('sw.js')) throw new Error('Service Worker sw.js introuvable.');
+          console.log('Manifeste, icônes et Service Worker présents.');
+          NODE
+
       - name: Préparer GitHub Pages
         run: |
-          mkdir -p _site
+          mkdir -p _site/icons
           cp index.html _site/index.html
+          cp manifest.webmanifest sw.js _site/
+          cp icons/zack-icon.svg _site/icons/
           touch _site/.nojekyll
 
       - name: Charger le site
