@@ -1112,6 +1112,46 @@
         }
         STATE.activeSpace = isAdmin ? "admin" : "client";
         await loadZackWorkspace();
+        startNotificationRealtime();
+      }
+
+      let notificationRealtimeChannel = null;
+      function stopNotificationRealtime() {
+        if (notificationRealtimeChannel && supabaseClient) {
+          supabaseClient.removeChannel(notificationRealtimeChannel);
+          notificationRealtimeChannel = null;
+        }
+      }
+      function startNotificationRealtime() {
+        if (!supabaseClient || !STATE.user?.id) return;
+        const uid = STATE.user.id;
+        if (notificationRealtimeChannel && notificationRealtimeChannel._zackUserId === uid) return;
+        stopNotificationRealtime();
+        const channel = supabaseClient.channel("zack-notifications-" + uid)
+          .on("postgres_changes", {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: "user_id=eq." + uid
+          }, (payload) => {
+            const row = payload && payload.new;
+            if (!row || row.user_id !== uid || STATE.notifications.some(n => n.id === row.id)) return;
+            const item = {
+              id: row.id,
+              type: row.notification_type,
+              label: row.title || "Notification",
+              route: "personal-notifications",
+              text: row.message || "",
+              time: new Date(row.created_at || Date.now()).toLocaleString("fr-HT"),
+              read: false
+            };
+            STATE.notifications.unshift(item);
+            toast((item.label ? item.label + " — " : "") + item.text);
+            if (STATE.screen === "personal-notifications") render();
+          })
+          .subscribe();
+        channel._zackUserId = uid;
+        notificationRealtimeChannel = channel;
       }
 
       async function initializeSupabaseAuth() {
@@ -1124,6 +1164,7 @@
         supabaseClient.auth.onAuthStateChange((event) => {
           if (event === "PASSWORD_RECOVERY") { STATE.screen = "auth-reset"; STATE.history = []; render(); return; }
           if (event === "SIGNED_OUT") {
+            stopNotificationRealtime();
             STATE.user = null;
             STATE.activeSpace = "client";
             STATE.orders = []; STATE.deliveryMissions = []; STATE.favorites = [];
