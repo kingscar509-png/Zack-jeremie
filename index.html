@@ -1174,38 +1174,43 @@
           render();
           return;
         }
-        await loadZackPublicData();
-        supabaseClient.auth.onAuthStateChange((event) => {
-          if (event === "PASSWORD_RECOVERY") { STATE.screen = "auth-reset"; STATE.history = []; render(); return; }
-          if (event === "SIGNED_OUT") {
-            stopNotificationRealtime();
-            STATE.user = null;
-            STATE.activeSpace = "client";
-            STATE.orders = []; STATE.deliveryMissions = []; STATE.favorites = [];
-            STATE.conversations = []; STATE.notifications = []; STATE.moncashPayments = [];
-            STATE.teamMembers = []; STATE.couriers = []; STATE.establishments = [];
-            STATE.moncashAccounts = [];
-            if (STATE.screen !== "auth") window.app.switchRoot("auth");
-          }
+
+        // Le catalogue public se charge en arrière-plan : il ne doit jamais bloquer
+        // la restauration de la session ni laisser l'écran d'ouverture affiché.
+        loadZackPublicData().catch((publicDataError) => {
+          console.warn("Chargement des données publiques Zack :", publicDataError);
         });
-        const { data, error } = await supabaseClient.auth.getSession();
-        if (error) {
-          STATE.authError = "Impossible de restaurer la session : " + error.message;
-          STATE.authInitializing = false;
-          render();
-          return;
-        }
-        if (data.session && data.session.user) {
-          try {
+
+        try {
+          supabaseClient.auth.onAuthStateChange((event) => {
+            if (event === "PASSWORD_RECOVERY") { STATE.screen = "auth-reset"; STATE.history = []; render(); return; }
+            if (event === "SIGNED_OUT") {
+              stopNotificationRealtime();
+              STATE.user = null;
+              STATE.activeSpace = "client";
+              STATE.orders = []; STATE.deliveryMissions = []; STATE.favorites = [];
+              STATE.conversations = []; STATE.notifications = []; STATE.moncashPayments = [];
+              STATE.teamMembers = []; STATE.couriers = []; STATE.establishments = [];
+              STATE.moncashAccounts = [];
+              if (STATE.screen !== "auth") window.app.switchRoot("auth");
+            }
+          });
+
+          const { data, error } = await supabaseClient.auth.getSession();
+          if (error) throw new Error("Impossible de restaurer la session : " + error.message);
+
+          if (data.session && data.session.user) {
             await hydrateAuthenticatedUser(data.session.user);
             STATE.authInitializing = false;
             window.app.switchRoot(STATE.user.isAdmin ? "admin-menu" : "home");
-          } catch (profileError) {
-            STATE.authError = "Session trouvée, mais profil inaccessible : " + profileError.message;
+          } else {
             STATE.authInitializing = false;
             render();
           }
-        } else {
+        } catch (authError) {
+          STATE.authError = authError && authError.message
+            ? authError.message
+            : "Impossible d'ouvrir votre espace. Vérifiez votre connexion puis réessayez.";
           STATE.authInitializing = false;
           render();
         }
