@@ -390,8 +390,15 @@
       display: grid; place-items: center; overflow: hidden; position: relative;
     }
     .media-box img { width: 100%; height: 100%; object-fit: cover; }
-    .product-media-box { background: var(--surface-alt); padding: 6px; }
-    .product-media-box img { object-fit: contain; }
+    .product-media-box { background: var(--surface-alt); padding: 8px; box-sizing: border-box; }
+    .media-box.product-media-box img,
+    .product-media-box img {
+      width: 100% !important; height: 100% !important; max-width: 100%;
+      object-fit: contain !important; object-position: center center;
+      display: block; margin: auto;
+    }
+    .product-thumb-item { background: var(--surface-alt); padding: 3px; box-sizing: border-box; }
+    .product-thumb-item img { object-fit: contain !important; }
     .explore-advanced { gap: 12px; }
     .explore-advanced summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; list-style: none; }
     .explore-advanced summary::-webkit-details-marker { display: none; }
@@ -2932,7 +2939,7 @@
             </div>
             ${imgs.length > 1 ? `
               <div class="thumb-strip" style="padding:10px 15px 0;">
-                ${imgs.map((im, idx) => `<button type="button" class="thumb-item" style="border-color:${idx === STATE.selectedProdImgIdx ? 'var(--blue)' : 'var(--border)'};" onclick="app.setProdImg(${idx})"><img src="${im}" alt="${esc(p.name)} — photo ${idx + 1}" /></button>`).join("")}
+                ${imgs.map((im, idx) => `<button type="button" class="thumb-item product-thumb-item" style="border-color:${idx === STATE.selectedProdImgIdx ? 'var(--blue)' : 'var(--border)'};" onclick="app.setProdImg(${idx})"><img src="${im}" alt="${esc(p.name)} — photo ${idx + 1}" /></button>`).join("")}
               </div>
             ` : ""}
             <div class="card-pad form-stack">
@@ -3282,7 +3289,7 @@
           <div class="notice notice-info">
             <strong>Espace Entreprise (isolation stricte par boutique) :</strong> toutes les données affichées ci-dessous concernent uniquement <strong>${esc(biz.name)}</strong>.
           </div>
-          ${canPro("billing") ? `
+          ${`
             <div class="card card-pad form-stack" style="border-color:var(--blue);">
               <div class="flex-between">
                 <div><strong>Développez votre entreprise avec Zack</strong><div class="small muted">Forfait actuel : ${esc(biz.plan)} · Comparez les capacités et les avantages.</div></div>
@@ -3291,7 +3298,7 @@
               <p class="small muted">Plus de produits, plus de photos, davantage de publications et une meilleure visibilité selon le forfait choisi.</p>
               <button type="button" class="btn btn-primary btn-block" onclick="app.open('pro-billing')">Découvrir les forfaits et leurs avantages</button>
             </div>
-          ` : ""}
+          `}
           <div class="card card-pad form-stack">
             <div class="field">
               <label for="proBizSel">Entreprise active (${STATE.businesses.length} disponibles en aperçu)</label>
@@ -3344,7 +3351,7 @@
             ${canPro("team") ? `<button type="button" class="menu-row" onclick="app.open('pro-team')"><span>Staff interne (Admin, Gérant, Éditeur, Caissier)</span><span>›</span></button>` : ""}
             <button type="button" class="menu-row" onclick="app.open('network-home')"><span>Réseau Zack (Fournisseurs, Revendeurs, Partenaires)</span><span>›</span></button>
             <button type="button" class="menu-row" onclick="app.open('b2b-market')"><span>Marché B2B (Gros, Devis, Recrutement)</span><span>›</span></button>
-            ${canPro("billing") ? `<button type="button" class="menu-row" onclick="app.open('pro-billing')"><span><strong>Forfaits & avantages Zack</strong><div class="small muted">Actuel : ${esc(biz.plan)} · Voir Pro et Ultra</div></span><span>›</span></button>` : ""}
+            <button type="button" class="menu-row" onclick="app.open('pro-billing')"><span><strong>Forfaits & avantages Zack</strong><div class="small muted">Actuel : ${esc(biz.plan)} · Comparer les offres</div></span><span>›</span></button>
             <button type="button" class="menu-row" onclick="app.open('pro-create')"><strong>+ Enregistrer une nouvelle entreprise</strong><span>›</span></button>
           </div></div>
         `;
@@ -3773,7 +3780,7 @@
                   ${(info.benefits || []).map((benefit) => `<li>${esc(benefit)}</li>`).join("")}
                 </ul>
                 <div class="small muted">Statistiques : <strong>${info.statsLevel === "advanced" ? "Avancées" : info.statsLevel === "detailed" ? "Détaillées" : "Essentielles"}</strong> · Visibilité : <strong>${info.visibilityLevel === "priority" ? "Prioritaire" : info.visibilityLevel === "enhanced" ? "Renforcée" : "Standard"}</strong></div>
-                ${biz.plan === name ? `<span class="status-ok">Votre forfait actuel (${biz.planStatus === 'expired' ? 'Expiré' : 'Actif'}${biz.planExpiresAt ? ' · Expire le ' + esc(biz.planExpiresAt) : ''})</span>` : info.priceHtg > 0 && info.active !== false ? `<button type="button" class="btn btn-primary btn-sm" onclick="app.openMonCash('${biz.id}', '${esc(name)}', ${info.priceHtg})">Passer au forfait ${esc(name)}</button>` : info.priceHtg > 0 ? `<div class="notice notice-info">Ce forfait sera disponible prochainement. Les paiements ne sont pas encore ouverts.</div>` : ""}
+                ${biz.plan === name ? `<span class="status-ok">Votre forfait actuel (${biz.planStatus === 'expired' ? 'Expiré' : 'Actif'}${biz.planExpiresAt ? ' · Expire le ' + esc(biz.planExpiresAt) : ''})</span>` : info.priceHtg > 0 && info.active !== false && canPro("billing") ? `<button type="button" class="btn btn-primary btn-sm" onclick="app.openMonCash('${biz.id}', '${esc(name)}', ${info.priceHtg})">Passer au forfait ${esc(name)}</button>` : info.priceHtg > 0 && info.active !== false ? `<div class="notice notice-info">La gestion du paiement est réservée au propriétaire de l'entreprise.</div>` : info.priceHtg > 0 ? `<div class="notice notice-info">Ce forfait sera disponible prochainement. Les paiements ne sont pas encore ouverts.</div>` : ""}
               </div>
             `).join("")}
             ${bizPayments.length ? `
