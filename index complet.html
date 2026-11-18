@@ -9,7 +9,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zack Haïti" />
-  <!-- Préparation PWA : l'installation réelle sur mobile requiert un fichier manifest.webmanifest et un Service Worker (sw.js) servis en HTTPS lors du déploiement. -->
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="./icons/zack-icon.svg" />
+  <link rel="apple-touch-icon" href="./icons/zack-icon.svg" />
   <title>Zack Haïti — Annuaire & plateforme numérique nationale des entreprises</title>
   <meta name="description" content="Zack connecte les entreprises, commerces, artisans et services des 10 départements d'Haïti avec les consommateurs : recherche locale, fiches détaillées, produits, promotions et événements." />
   <meta property="og:title" content="Zack Haïti — Plateforme numérique nationale des entreprises" />
@@ -6577,6 +6580,9 @@
         if (s === "pro-create") { const d = document.getElementById("nbDept"); if (d) window.app.fillComm(d.value); }
       }
 
+      if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+        navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(error => console.warn("Service Worker Zack :", error));
+      }
       applyTheme();
       render();
       initializeSupabaseAuth();
