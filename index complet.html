@@ -5750,12 +5750,32 @@
           if(!("Notification"in window)){toast("Les notifications navigateur ne sont pas prises en charge sur cet appareil.");return;}
           let permission=Notification.permission;if(permission!=="granted")permission=await Notification.requestPermission();
           if(permission!=="granted"){toast("Autorisation de notification refusée.");return;}
-          const c=STATE.notificationPreferences||{},p={user_id:STATE.user.id,in_app:c.in_app!==false,account_activity:c.account_activity!==false,business_updates:c.business_updates!==false,promotions:c.promotions!==false,review_activity:c.review_activity!==false,email:Boolean(c.email),push:true};
+          const c=STATE.notificationPreferences||{},key=window.ZACK_VAPID_PUBLIC_KEY||"";
+          let pushEnabled=false,pushError="";
+          if(key&&"serviceWorker"in navigator&&"PushManager"in window){
+            try{
+              const reg=await navigator.serviceWorker.ready,pad="=".repeat((4-key.length%4)%4);
+              const raw=atob((key+pad).replace(/-/g,"+").replace(/_/g,"/"));
+              const appKey=Uint8Array.from(raw,ch=>ch.charCodeAt(0));
+              const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:appKey});
+              const data=sub.toJSON(),keys=data.keys||{};
+              const saved=await supabaseClient.from("push_subscriptions").upsert(
+                {user_id:STATE.user.id,endpoint:data.endpoint,p256dh:keys.p256dh,auth_key:keys.auth,user_agent:navigator.userAgent},
+                {onConflict:"endpoint"}
+              );
+              if(saved.error)throw saved.error;
+              pushEnabled=true;
+            }catch(err){pushError=err.message||"inscription push impossible";}
+          }
+          const p={user_id:STATE.user.id,in_app:c.in_app!==false,account_activity:c.account_activity!==false,
+            business_updates:c.business_updates!==false,promotions:c.promotions!==false,review_activity:c.review_activity!==false,
+            email:Boolean(c.email),push:pushEnabled};
           const {error}=await supabaseClient.from("notification_preferences").upsert(p,{onConflict:"user_id"});
-          if(error){toast("Autorisation obtenue, mais préférence non enregistrée : "+error.message);return;}STATE.notificationPreferences=p;
-          const key=window.ZACK_VAPID_PUBLIC_KEY||"";
-          if(key&&"serviceWorker"in navigator&&"PushManager"in window){try{const reg=await navigator.serviceWorker.ready,pad="=".repeat((4-key.length%4)%4),raw=atob((key+pad).replace(/-/g,"+").replace(/_/g,"/")),appKey=Uint8Array.from(raw,c=>c.charCodeAt(0));const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:appKey}),data=sub.toJSON(),keys=data.keys||{};const saved=await supabaseClient.from("push_subscriptions").upsert({user_id:STATE.user.id,endpoint:data.endpoint,p256dh:keys.p256dh,auth_key:keys.auth,user_agent:navigator.userAgent},{onConflict:"endpoint"});if(saved.error)console.warn("Abonnement push Zack :",saved.error.message);toast("Notifications activées sur cet appareil.");}catch(err){toast("Alertes navigateur activées, mais l'inscription push a échoué : "+err.message);}}
-          else toast("Alertes navigateur activées lorsque Zack est ouvert. Les notifications même application fermée nécessitent la clé VAPID et le service d'envoi.");
+          if(error){toast("Autorisation obtenue, mais préférences non enregistrées : "+error.message);return;}
+          STATE.notificationPreferences=p;
+          if(pushEnabled)toast("Notifications activées sur cet appareil.");
+          else if(pushError)toast("Alertes dans Zack activées. Notifications push non configurées : "+pushError);
+          else toast("Alertes dans Zack activées. Les notifications même application fermée nécessitent la clé VAPID et le service d'envoi.");
           render();
         },
         async submitReview(e,bizId) {
