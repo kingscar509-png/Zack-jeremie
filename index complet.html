@@ -1100,7 +1100,7 @@
       function stopNotificationRealtime(){if(notificationRealtimeChannel&&supabaseClient)supabaseClient.removeChannel(notificationRealtimeChannel);notificationRealtimeChannel=null;notificationRealtimeUserId=null;}
       function stopMessageRealtime(){if(messageRealtimeChannel&&supabaseClient)supabaseClient.removeChannel(messageRealtimeChannel);messageRealtimeChannel=null;messageRealtimeUserId=null;}
       function notifyUserOnDevice(title,body){if(document.visibilityState==="visible"||!("Notification"in window)||Notification.permission!=="granted")return;try{const n=new Notification(title||"Zack",{body:body||"Vous avez une nouvelle notification.",icon:"./icons/zack-icon.svg",tag:"zack-"+Date.now()});n.onclick=()=>{window.focus();if(window.app)window.app.open("personal-notifications");n.close();};}catch(error){console.warn("Notification navigateur Zack :",error);}}
-      function mapDbNotification(row){return{id:row.id,type:row.notification_type,label:row.title||"Notification",route:"personal-notifications",text:row.message||"",time:new Date(row.created_at||Date.now()).toLocaleString("fr-HT"),read:Boolean(row.read_at),entityType:row.entity_type||"",entityId:row.entity_id||""};}
+      function mapDbNotification(row){return{id:row.id,type:row.notification_type,label:row.title||"Notification",route:"personal-notifications",text:row.message||"",time:new Date(row.created_at||Date.now()).toLocaleString("fr-HT"),read:Boolean(row.read_at),entityType:row.entity_type||"",entityId:row.entity_id||"",businessId:row.business_id||""};}
       async function loadNotificationPreferences(){if(!supabaseClient||!STATE.user)return;const defaults={in_app:true,email:false,push:false,account_activity:true,business_updates:true,promotions:true,review_activity:true};const {data,error}=await supabaseClient.from("notification_preferences").select("*").eq("user_id",STATE.user.id).maybeSingle();if(error)console.warn("Préférences de notifications Zack :",error.message);STATE.notificationPreferences=Object.assign({},defaults,data||{});}
       async function refreshZackMessaging(){
         if(!supabaseClient||!STATE.user)return false;const uid=STATE.user.id;
@@ -1783,6 +1783,8 @@
           const isBizThread = Boolean(conv.bizId && conv.bizId === STATE.proBizId && conv.contextType !== "pro");
           if (isBizThread && canPro("reply")) return true;
         }
+        const businessMembership = (STATE.user?.businessMemberships || []).find(member => member.business_id === conv.bizId);
+        if (businessMembership && ["owner", "admin", "manager"].includes(businessMembership.role)) return true;
         if (uid && Array.isArray(conv.participants) && conv.participants.includes(uid)) return true;
         if (!STATE.user && conv.id === "conv-1") return true;
         return false;
@@ -5724,7 +5726,7 @@
           const {error}=await supabaseClient.from("notifications").update({read_at:new Date().toISOString()}).eq("id",nid).eq("user_id",STATE.user.id);
           if(error){toast("Notification non mise à jour : "+error.message);return;}
           const n=STATE.notifications.find(x=>x.id===nid);if(n)n.read=true;
-          if(n&&n.type==="chat_message"&&n.entityId){await refreshZackMessaging();await this.openChat(n.entityId);return;}
+          if(n&&n.type==="chat_message"&&n.entityId){if(n.businessId&&(STATE.user?.businessMemberships||[]).some(m=>m.business_id===n.businessId)){STATE.activeSpace="business";STATE.proBizId=n.businessId;STATE.selectedBizId=n.businessId;}await refreshZackMessaging();await this.openChat(n.entityId);return;}
           if(n&&n.entityType==="order"){if(STATE.activeSpace==="business")this.open("pro-orders");else if(STATE.activeSpace==="courier")this.switchRoot("courier-space");else this.open("personal-orders");return;}
           if(n&&n.entityType==="payment"){this.open(isAdminSession()?"admin-payments":"pro-billing");return;}
           if(n&&n.route)this.open(n.route);else render();
@@ -5749,7 +5751,7 @@
           const {error}=await supabaseClient.from("notification_preferences").upsert(p,{onConflict:"user_id"});
           if(error){toast("Autorisation obtenue, mais préférence non enregistrée : "+error.message);return;}STATE.notificationPreferences=p;
           const key=window.ZACK_VAPID_PUBLIC_KEY||"";
-          if(key&&"serviceWorker"in navigator&&"PushManager"in window){try{const reg=await navigator.serviceWorker.ready,pad="=".repeat((4-key.length%4)%4),raw=atob((key+pad).replace(/-/g,"+").replace(/_/g,"/")),appKey=Uint8Array.from(raw,c=>c.charCodeAt(0));const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:appKey}),data=sub.toJSON(),keys=data.keys||{};const saved=await supabaseClient.from("push_subscriptions").insert({user_id:STATE.user.id,endpoint:data.endpoint,p256dh:keys.p256dh,auth_key:keys.auth,user_agent:navigator.userAgent});if(saved.error)console.warn("Abonnement push Zack :",saved.error.message);toast("Notifications activées sur cet appareil.");}catch(err){toast("Alertes navigateur activées, mais l'inscription push a échoué : "+err.message);}}
+          if(key&&"serviceWorker"in navigator&&"PushManager"in window){try{const reg=await navigator.serviceWorker.ready,pad="=".repeat((4-key.length%4)%4),raw=atob((key+pad).replace(/-/g,"+").replace(/_/g,"/")),appKey=Uint8Array.from(raw,c=>c.charCodeAt(0));const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:appKey}),data=sub.toJSON(),keys=data.keys||{};const saved=await supabaseClient.from("push_subscriptions").upsert({user_id:STATE.user.id,endpoint:data.endpoint,p256dh:keys.p256dh,auth_key:keys.auth,user_agent:navigator.userAgent},{onConflict:"endpoint"});if(saved.error)console.warn("Abonnement push Zack :",saved.error.message);toast("Notifications activées sur cet appareil.");}catch(err){toast("Alertes navigateur activées, mais l'inscription push a échoué : "+err.message);}}
           else toast("Alertes navigateur activées lorsque Zack est ouvert. Les notifications même application fermée nécessitent la clé VAPID et le service d'envoi.");
           render();
         },
